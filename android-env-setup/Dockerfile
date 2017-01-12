@@ -54,6 +54,4 @@ RUN \
 RUN \
     echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
 
-# 让此容器一直运行下去
-ENTRYPOINT ["/usr/sbin/sshd"]
-CMD ["-D"]
+CMD ["bash"]

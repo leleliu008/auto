@@ -1,6 +1,12 @@
-# ----------------------------------- #
+# ------------------------------------------------------- #
 # Android环境搭建的Docker容器构建脚本
-# ----------------------------------- #
+# 
+# JDK下载地址：
+# http://www.oracle.com/technetwork/java/javase/downloads/index.html
+#
+# Android SDK 和 Android Studio 的最新信息，请查看：
+# https://developer.android.google.cn/studio/index.html
+# ------------------------------------------------------- #
 
 FROM ubuntu:16.04
 

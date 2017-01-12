@@ -15,6 +15,7 @@ ANDROID_HOME=${WORK_DIR}/android-sdk-linux
 ANDROID_SDK_FILENAME=android-sdk_r24.4.1-linux.tgz
 
 # Google专门为中国的开发者提供了中国版本的服务，但是下载地址仍然是国外的
+# https://developer.android.google.cn/studio/index.html
 ANDROID_SDK_URL=http://dl.google.com/android/${ANDROID_SDK_FILENAME}
 
 # SDK framework API level
@@ -30,7 +31,9 @@ ANDROID_STUDIO_NEED=true
 
 ANDROID_STUDIO_FILENAME=android-studio-ide-145.3537739-linux.zip
 
-# 查看要安装的版本：http://tools.android.com/download/studio/canary
+# 查看要安装的版本：
+# http://tools.android.com/download/studio/canary
+# https://developer.android.google.cn/studio/index.html
 ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/2.2.3.0/${ANDROID_STUDIO_FILENAME}
 #------------------------------------------------------------------------------#
 

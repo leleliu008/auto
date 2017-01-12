@@ -23,7 +23,7 @@ ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_
 RUN \
     apt-get update && \
     apt-get install -y gcc-multilib lib32z1 lib32stdc++6 && \
-    apt-get install -y git subversion vim curl wget &&\
+    apt-get install -y git subversion vim curl wget openssh-server &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

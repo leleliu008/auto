@@ -20,6 +20,9 @@ TOMCAT_URL=http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.9/bin/${TOMCAT_F
 XWIKI_FILE_NAME=xwiki-enterprise-web-8.4.4.war
 XWIKI_URL=http://download.forge.ow2.org/xwiki/${XWIKI_FILE_NAME}
 
+MYSQL_JDBC_DRIVER_FILE_NAME=mysql-connector-java-5.1.34.jar
+MYSQL_JDBC_DRIVER_URL=http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.34/${MYSQL_JDBC_DRIVER_FILE_NAME}
+
 # MySQL的端口
 MYSQL_PORT=3306
 
@@ -141,15 +144,38 @@ function downloadXWiki() {
         # 如果安装包是完好无损的
         if [ $? -eq 0 ] ; then
             echo "${fileName} is exsit, don't download"
-            unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
+            unzip -o ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
         else
             rm ${fileName}
             wget ${url} && \
-            unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
+            unzip -o ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
         fi
     else
         wget ${url} && \
-        unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
+        unzip -o ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
+    fi
+}
+
+# 下载MySQL JDBC驱动
+function downloadMySQLJDBCDriver() {
+    url=${MYSQL_JDBC_DRIVER_URL}
+    fileName=${MYSQL_JDBC_DRIVER_FILE_NAME}
+
+    # 如果安装包已经存在了
+    if [ -f "${fileName}" ] ; then
+        unzip -t ${fileName} > /dev/null
+        # 如果安装包是完好无损的
+        if [ $? -eq 0 ] ; then
+            echo "${fileName} is exsit, don't download"
+            cp ${fileName} ${tomcatHomeDir}/webapps/xwiki/WEB-INF/lib/
+        else
+            rm ${fileName}
+            wget ${url} && \
+            cp ${fileName} ${tomcatHomeDir}/webapps/xwiki/WEB-INF/lib/
+        fi
+    else
+        wget ${url} && \
+        cp ${fileName} ${tomcatHomeDir}/webapps/xwiki/WEB-INF/lib/
     fi
 }
 
@@ -170,7 +196,9 @@ function main() {
     downloadTomcat
 
     downloadXWiki
-
+    
+    downloadMySQLJDBCDriver
+    
     # 启动Tomcat服务
     sh ${tomcatHomeDir}/bin/startup.sh
     

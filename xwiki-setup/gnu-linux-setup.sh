@@ -141,15 +141,15 @@ function downloadXWiki() {
         # 如果安装包是完好无损的
         if [ $? -eq 0 ] ; then
             echo "${fileName} is exsit, don't download"
-            unzip ${fileName} -d ${WORK_DIR}
+            unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
         else
             rm ${fileName}
             wget ${url} && \
-            unzip ${fileName} -d ${tomcatHomeDir}/xwiki
+            unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
         fi
     else
         wget ${url} && \
-        unzip ${fileName} -d ${tomcatHomeDir}/xwiki
+        unzip ${fileName} -d ${tomcatHomeDir}/webapps/xwiki
     fi
 }
 

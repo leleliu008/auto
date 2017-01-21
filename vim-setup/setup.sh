@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function installCommandLineDeveloperToolsOnMacOSX() {
-    which git
+    which git > /dev/null
     if [ $? -eq 0 ] ; then
         echo "CommandLineDeveloperTools already installed!"
     else
@@ -10,7 +10,7 @@ function installCommandLineDeveloperToolsOnMacOSX() {
 }
 
 function installBrewOnMacOSX() {
-    which brew
+    which brew > /dev/null
     if [ $? -eq 0 ] ; then
         echo "brew already installed!"
     else
@@ -19,7 +19,7 @@ function installBrewOnMacOSX() {
 }
 
 function installVimOnMacOSX() {
-    which vim
+    which vim  > /dev/null
     if [ $? -eq 0 ] ; then
         echo "vim already installed!"
     else
@@ -28,7 +28,7 @@ function installVimOnMacOSX() {
 }
 
 function installCurlOnMacOSX() {
-    which curl
+    which curl > /dev/null
     if [ $? -eq 0 ] ; then
         echo "curl already installed!"
     else
@@ -62,7 +62,7 @@ function installVundle() {
             git clone http://github.com/gmarik/vundle.git $vundleDir
         fi
 
-        cd -
+        cd - > /dev/null
     else
         mkdir -p $vundleDir
         git clone http://github.com/gmarik/vundle.git $vundleDir
@@ -70,7 +70,7 @@ function installVundle() {
 }
 
 function updateVimrcOfCurrentUser() {
-    if [ -f '~/.vimrc' ] ; then
+    if [ -f "${HOME}/.vimrc" ] ; then
         mv ~/.vimrc ~/.vimrc.bak
     fi
     cp vimrc-user ~/.vimrc

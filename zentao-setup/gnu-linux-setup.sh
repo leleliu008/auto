@@ -19,42 +19,55 @@ MYSQL_PORT=3306
 
 #--------------------------------------------------------------#
 
-# 32位还是64位
-X=32
-if [ `uname -m` == "x86_64" ] ; then
-    X=64
-fi
-
-FILE_NAME=ZenTaoPMS.${VERSION}.zbox_${X}.tar.gz
-URL=http://dl.cnezsoft.com/zentao/${VERSION}/${FILE_NAME}
-
-function doWork() {
+function downloadAndUnzip() {
+    # 32位还是64位
+    x=32
+    if [ `uname -m` = "x86_64" ] ; then
+        x=64
+    fi
+    
+    fileName=ZenTaoPMS.${VERSION}.zbox_${x}.tar.gz
+    url=http://dl.cnezsoft.com/zentao/${VERSION}/${fileName}
+    
     cd ~ 
     
-    if [ -f "${FILE_NAME}" ] ; then
-        rm ${FILE_NAME}
+    if [ -f "${fileName}" ] ; then
+        tar -tf ${fileName}
+        if [ $? -eq 0 ] ; then
+            sudo tar zvxf ${fileName} -C /opt && \
+            sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
+        else
+            rm ${fileName}
+
+            curl -O ${url} && \
+            sudo tar zvxf ${fileName} -C /opt && \
+            sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
+        fi
+    else
+        curl -O ${url} && \
+        sudo tar zvxf ${fileName} -C /opt && \
+        sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
     fi
 
-    curl -O ${URL} && \
-    sudo tar zvxf ${FILE_NAME} -C /opt && \
-    rm ${FILE_NAME} && \
-    sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
-
-    cd -
+    cd - > /dev/null
 }
 
-# 如果是Ubuntu系统
-if [ -f "/etc/lsb-release" ] ; then
-    sudo apt-get undate
-    sudo apt-get install -y curl
+function main() {
+    # 如果是Ubuntu系统
+    if [ -f "/etc/lsb-release" ] ; then
+        sudo apt-get undate
+        sudo apt-get install -y curl
     
-    doWork
-# 如果是CentOS系统
-elif [ -f "/etc/redhat-release" ] ; then
-    sudo yum undate
-    sudo yum install -y curl
+        downloadAndUnzip
+    # 如果是CentOS系统
+    elif [ -f "/etc/redhat-release" ] ; then
+        sudo yum undate
+        sudo yum install -y curl
     
-    doWork
-else
-   echo "your system os is not ubuntu or centos"! 
-fi
+        downloadAndUnzip
+    else
+        echo "your system os is not ubuntu or centos"! 
+    fi
+}
+
+main

@@ -39,7 +39,7 @@ function installOnCentOS() {
     sudo yum install ctags-etags
 }
 
-function updateVimrc() {
+function updateVimrcOfCurrentUser() {
     if [ -f '~/.vimrc' ] ; then
         mv ~/.vimrc ~/.vimrc.bak
     fi
@@ -69,11 +69,11 @@ function main() {
     fi
 
     if [ -f 'vimrc-user' ] ; then
-        updateVimrc
+        updateVimrcOfCurrentUser
     else
         curl -O https://raw.githubusercontent.com/leleliu008/auto/master/vim-setup/vimrc-user
         if [ $? -eq 0 ] ; then
-            updateVimrc
+            updateVimrcOfCurrentUser
         fi
     fi
 }

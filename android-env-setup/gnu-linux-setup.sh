@@ -38,65 +38,117 @@ ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/2.2.3.0/${AN
 #------------------------------------------------------------------------------#
 
 # 安装依赖库和工具
-# 如果是Ubuntu系统
-if [ -f "/etc/lsb-release" ] ; then
-    sudo apt-get update
-    sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
-    sudo apt-get install -y git subversion vim curl wget zip unzip
-    sudo apt-get clean
-    sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-# 如果是CentOS系统
-elif [ -f "/etc/redhat-release" ] ; then
-    sudo yum update
-    sudo yum install -y glibc.i686 zlib.i686 libstdc++.i686
-    sudo yum install -y git subversion vim curl wget
-    sudo yum clean
-fi
-
-# 如果不存在此文件夹，就创建
-if [ ! -d "${WORK_DIR}" ]; then
-    mkdir -p ${WORK_DIR}
-fi
-cd ${WORK_DIR}
-
-if [ -f "${JDK_FILENAME}" ] ; then
-    rm ${JDK_FILENAME}
-fi
+function installDependency() {
+    # 如果是Ubuntu系统
+    if [ -f "/etc/lsb-release" ] ; then
+        sudo apt-get update
+        sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
+        sudo apt-get install -y git subversion vim curl wget zip unzip
+    # 如果是CentOS系统
+    elif [ -f "/etc/redhat-release" ] ; then
+        sudo yum update
+        sudo yum install -y glibc.i686 zlib.i686 libstdc++.i686
+        sudo yum install -y git subversion vim curl wget
+    fi
+}
 
 # 下载JDK
-wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL} && \
-    tar xf ${JDK_FILENAME} && \
-    rm -rf ${JDK_FILENAME}
-
-if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
-    rm ${ANDROID_SDK_FILENAME}
-fi
+function downloadJDK() {
+    if [ -f "${JDK_FILENAME}" ] ; then
+        tar -tf ${JDK_FILENAME} > /dev/null
+        if [ $? -eq 0 ] ; then
+            tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+        else
+            rm ${JDK_FILENAME}
+            # 下载JDK
+            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL} && \
+            tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+        fi
+    else
+        # 下载JDK
+        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL} && \
+        tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+    fi
+}
 
 # 下载Android SDK
-wget ${ANDROID_SDK_URL} && \
-    tar xf ${ANDROID_SDK_FILENAME} && \
-    rm -rf ${ANDROID_SDK_FILENAME}
+function downloadAndroidSDK() {
+    if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
+        tar -tf ${ANDROID_SDK_FILENAME} > /dev/null
+        if [ $? -eq 0 ] ; then
+            tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+        else
+            rm ${ANDROID_SDK_FILENAME}
+            
+            # 下载Android SDK
+            wget ${ANDROID_SDK_URL} && \
+            tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+        fi
+    else
+        # 下载Android SDK
+        wget ${ANDROID_SDK_URL} && \
+        tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+    fi
+}
 
-#配置环境变量
-echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bashrc
-echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
-echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
+# 下载Android Studio
+function downloadAndroidStudio() {
+    if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
+        unzip -t ${ANDROID_STUDIO_FILENAME} > /dev/null
+        if [ $? -eq 0 ] ; then
+            unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+        else
+            rm ${ANDROID_STUDIO_FILENAME}
 
-echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
-echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
+            # 下载Android Studio
+            wget ${ANDROID_STUDIO_URL} && \
+            unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+        fi
+    else
+        # 下载Android Studio
+        wget ${ANDROID_STUDIO_URL} && \
+        unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+    fi
+}
 
-source ~/.bashrc
+# 配置环境变量
+function configEnv() {
+    echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bashrc
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
+
+    echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
+    echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
+
+    source ~/.bashrc
+}
 
 # 更新Android SDK
-echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
+function updateAndroidSDK() {
+    echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
+}
 
-if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
-    rm ${ANDROID_STUDIO_FILENAME}
-fi
+function main() {
+    # 如果不存在此文件夹，就创建
+    if [ ! -d "${WORK_DIR}" ]; then
+        mkdir -p ${WORK_DIR}
+    fi
 
-if [ $ANDROID_STUDIO_NEED ] ; then
-    # 下载Android Studio
-    wget ${ANDROID_STUDIO_URL} && \
-    unzip ${ANDROID_STUDIO_FILENAME} && \
-    rm -rf ${ANDROID_STUDIO_FILENAME}
-fi
+    cd ~
+
+    installDependency
+
+    downloadJDK
+
+    downloadAndroidSDK
+
+    configEnv
+
+    updateAndroidSDK
+
+    downloadAndroidStudio
+    
+    cd - > /dev/null
+}
+
+main

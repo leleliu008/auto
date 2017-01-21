@@ -31,104 +31,166 @@ ANDROID_STUDIO_FILENAME=android-studio-ide-145.3537739-mac.dmg
 # http://tools.android.com/download/studio/canary
 # https://developer.android.google.cn/studio/index.html
 ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/install/2.2.3.0/${ANDROID_STUDIO_FILENAME}
+
 #------------------------------------------------------------------------------#
 
-# 如果不是MacOSX系统就退出
-if [ "uname -s" != "Darwin" ] ; then
-    echo "your system os is not mac os"
-    exit 1;
-fi
+function installCommandLineDeveloperTools() {
+    which git > /dev/null
+    if [ $? -eq 0 ] ; then
+        echo "CommandLineDeveloperTools already installed!"
+    else
+        xcode-select --install
+    fi
+}
 
-#安装command line developer tools
-which git
-if [ $? -eq 0 ] ; then
-    echo "command line developer tools already installed!"
-else
-    # 这里会弹出一个GUI界面
-    xcode-select --install
-fi
+function installBrew() {
+    which brew > /dev/null
+    if [ $? -eq 0 ] ; then
+        echo "brew already installed!"
+    else                                                                                /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi                                                                         
+}
 
-# 安装HomeBrew这个包管理工具
-which brew
-if [ $? -eq 0 ] ; then
-    echo "brew already installed!"
-else
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-fi
+function installByBrew() {
+    which "$1"  > /dev/null                                                          if [ $? -eq 0 ] ; then
+        echo "$1 already installed!"
+    else
+        brew install "$2"
+    fi
+}
 
-# 安装依赖库和工具
-sudo brew update
-sudo brew install -y vim wget
+function _downloadJDK() {
+    wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL}
+}
 
-# 如果不存在此文件夹，就创建
-if [ ! -d "${WORK_DIR}" ]; then
-    mkdir -p ${WORK_DIR}
-fi
+function _installJDK() {
+    cd /Volumes
+    dir="`ls -d JDK* | sed 's/\ /\\ /g'`"
+    cd $dir
+    sudo installer -pkg "`ls *.pkg | sed 's/\ /\\ /g'`" -target /Applications       cd ~
+    hdiutil detach /Volumes/$dir
+}
 
-if [ -f "${JDK_FILENAME}" ] ; then
-    rm ${JDK_FILENAME}
-fi
-
-# 下载并安装JDK
-wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL}
-
-if [ $? -eq 0 ] ; then
+function _downloadAndInstallJDK() {
+    _downloadJDK
     hdiutil attach ${JDK_FILENAME}
     if [ $? -eq 0 ] ; then
-        cd /Volumes
-        cd  "`ls -d JDK* | sed 's/\ /\\ /g'`"
-        sudo installer -pkg "`ls *.pkg | sed 's/\ /\\ /g'`" -target /Applications
-        hdiutil detach .
-        cd ~
+        _installJDK
+    else                                                                                echo "not recognized dmg file!"
+        exit 1;                                                                     fi
+}
+
+function downloadAndInstallJDK() {
+    if [ -f "${JDK_FILENAME}" ] ; then
+        hdiutil attach ${JDK_FILENAME}
+        if [ $? -eq 0 ] ; then
+            installJDK
+        else
+            rm ${JDK_FILENAME}
+            _downloadAndInstallJDK
+        fi
     else
-        echo "not recognized dmg file!"
-        exit 1;
+        _downloadAndInstallJDK
     fi
-    rm -rf ${JDK_FILENAME}
-else
-    echo "JDK download error!"
-    exit 1;
-fi
+}
 
-if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
-    rm ${ANDROID_STUDIO_FILENAME}
-fi
+function _installAndroidStudio() {
+    cd /Volumes
+    dir="`ls -d Android\ Studio* | sed 's/\ /\\ /g'`"
+    cd $dir
+    sudo cp -r Android\ Studio.app /Applications/
+    cd ~
+    hdiutil detach /Volumes/$dir
+}
 
-# 下载并安装Android Studio
-wget ${ANDROID_STUDIO_URL}
-if [ $? -eq 0 ] ; then
+function _downloadAndInstallAndroidStudio() {
+    # 下载并安装Android Studio
+    wget ${ANDROID_STUDIO_URL}
     hdiutil attach ${ANDROID_STUDIO_FILENAME}
     if [ $? -eq 0 ] ; then
-        cd /Volumes
-        cd  "`ls -d Android\ Studio* | sed 's/\ /\\ /g'`"
-        sudo cp -r Android\ Studio.app /Applications/
-        hdiutil detach .
-        cd ~
+        _installAndroidStudio
     else
         echo "not recognized dmg file!"
         exit 1;
     fi
-    rm -rf ${ANDROID_STUDIO_FILENAME}
-else
-    echo "Android Studio download error!"
-    exit 1;
-fi
+}
 
+function downloadAndInstallAndroidStudio() {
+    if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
+        hdiutil attach ${ANDROID_STUDIO_FILENAME}
+        if [ $? -eq 0 ] ; then
+            _installAndroidStudio
+        else                                                                                rm ${ANDROID_STUDIO_FILENAME}
+            _downloadAndInstallAndroidStudio
+        fi
+    else
+        _downloadAndInstallAndroidStudio
+    fi       
+}
 
-if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
-    rm ${ANDROID_SDK_FILENAME}
-fi
+function downloadAndInstallAndroidSDK() {
+    if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
+        unzip -t ${ANDROID_SDK_FILENAME} > /dev/null
+        if [ $? -eq 0 ] ; then
+            unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+        else
+            rm ${ANDROID_SDK_FILENAME}
+            curl -O ${ANDROID_SDK_URL} && \
+            unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+        fi
+    else
+        curl -O ${ANDROID_SDK_URL} && \
+        unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+    fi
+}
 
-# 下载Android SDK
-curl -O ${ANDROID_SDK_URL} && \
-    unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR} && \
-    rm -rf ${ANDROID_SDK_FILENAME}
 
 #配置环境变量
-echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
-echo "export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:'$PATH'" >> ~/.bashrc
+function configEnv() {
+    echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
+    echo "export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:'$PATH'" >> ~/.bashrc
 
-source ~/.bashrc
+    source ~/.bashrc
+}
 
 # 更新Android SDK
-echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
+function updateAndroidSDK() {
+    echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
+}
+
+function main() {
+    # 如果不是MacOSX系统就退出
+    if [ "uname -s" != "Darwin" ] ; then
+        echo "your system os is not mac os"
+        exit 1;
+    fi
+
+    # 如果不存在此文件夹，就创建
+    if [ ! -d "${WORK_DIR}" ]; then
+        mkdir -p ${WORK_DIR}
+    fi
+
+    cd ~
+    
+    installCommandLineDeveloperTools
+
+    installBrew
+
+    installByBrew curl curl
+    installByBrew wget wget
+    installByBrew vim vim
+    
+    downloadAndInstallJDK
+
+    downloadAndInstallAndroidSDK
+
+    downloadAndInstallAndroidStudio
+
+    configEnv
+
+    updateAndroidSDK
+    
+    cd - > /dev/null
+}
+
+main

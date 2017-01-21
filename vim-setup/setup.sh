@@ -37,17 +37,21 @@ function installCurlOnMacOSX() {
 }
 
 function installOnUbuntu() {
-    sudo apt-get install git
-    sudo apt-get install curl
-    sudo apt-get install vim
-    sudo apt-get install exuberant-ctags
+    which "$1" > /dev/null
+    if [ $? -eq 0 ] ; then
+        echo "$1 already installed!"
+    else
+        sudo apt-get install "$2"
+    fi
 }
 
 function installOnCentOS() {
-    sudo yum install git
-    sudo yum install curl
-    sudo yum install vim
-    sudo yum install ctags-etags
+    which "$1" > /dev/null
+    if [ $? -eq 0 ] ; then
+        echo "$1 already installed!"
+    else
+        sudo yum install "$2"
+    fi
 }
 
 function installVundle() {
@@ -55,7 +59,8 @@ function installVundle() {
     if [ -d "$vundleDir" ] ; then
         cd $vundleDir
         
-        git pull
+        git pull > /dev/null
+
         if [ $? -eq 0 ] ; then
             echo "Vundle already installed!"
         else
@@ -93,9 +98,15 @@ function main() {
         installCurlOnMacOSX
     elif [ $osType = "Linux" ] ; then
         if [ -f '/etc/lsb-release' ] ; then
-            installOnUbuntu
+            installOnUbuntu git git
+            installOnUbuntu curl curl
+            installOnUbuntu vim vim
+            installOnUbuntu ctags exuberant-ctags
         elif [ -f '/etc/redhat-release' ] ; then
-            installOnCentOS
+            installOnCentOS git git
+            installOnCentOS curl curl
+            installOnCentOS vim vim
+            installOnCentOS ctags ctags-etags
         fi
     fi
     

@@ -47,12 +47,14 @@ function installBrew() {
     which brew > /dev/null
     if [ $? -eq 0 ] ; then
         echo "brew already installed!"
-    else                                                                                /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    else
+        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi                                                                         
 }
 
 function installByBrew() {
-    which "$1"  > /dev/null                                                          if [ $? -eq 0 ] ; then
+    which "$1"  > /dev/null
+    if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
         brew install "$2"

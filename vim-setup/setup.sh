@@ -1,5 +1,14 @@
 #!/bin/bash
 
+function installCommandLineDeveloperToolsOnMacOSX() {
+    which git
+    if [ $? -eq 0 ] ; then
+        echo "CommandLineDeveloperTools already installed!"
+    else
+        xcode-select --install
+    fi
+}
+
 function installBrewOnMacOSX() {
     which brew
     if [ $? -eq 0 ] ; then
@@ -28,15 +37,36 @@ function installCurlOnMacOSX() {
 }
 
 function installOnUbuntu() {
+    sudo apt-get install git
     sudo apt-get install curl
     sudo apt-get install vim
     sudo apt-get install exuberant-ctags
 }
 
 function installOnCentOS() {
+    sudo yum install git
     sudo yum install curl
     sudo yum install vim
     sudo yum install ctags-etags
+}
+
+function installVundle() {
+    vundleDir="${HOME}/.vim/bundle/vundle"
+    if [ -d "$vundleDir" ] ; then
+        cd $vundleDir
+        
+        git pull
+        if [ $? -eq 0 ] ; then
+            echo "Vundle already installed!"
+        else
+            git clone http://github.com/gmarik/vundle.git $vundleDir
+        fi
+
+        cd -
+    else
+        mkdir -p $vundleDir
+        git clone http://github.com/gmarik/vundle.git $vundleDir
+    fi
 }
 
 function updateVimrcOfCurrentUser() {
@@ -57,6 +87,7 @@ function main() {
     echo "osType=$osType"
 
     if [ $osType = "Darwin" ] ; then
+        installCommandLineDeveloperToolsOnMacOSX
         installBrewOnMacOSX
         installVimOnMacOSX
         installCurlOnMacOSX
@@ -67,6 +98,8 @@ function main() {
             installOnCentOS
         fi
     fi
+    
+    installVundle
 
     if [ -f 'vimrc-user' ] ; then
         updateVimrcOfCurrentUser

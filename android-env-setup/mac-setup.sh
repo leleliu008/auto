@@ -78,8 +78,10 @@ function _downloadAndInstallJDK() {
     hdiutil attach ${JDK_FILENAME}
     if [ $? -eq 0 ] ; then
         _installJDK
-    else                                                                                echo "not recognized dmg file!"
-        exit 1;                                                                     fi
+    else
+        echo "not recognized dmg file!"
+        exit 1;
+    fi
 }
 
 function downloadAndInstallJDK() {
@@ -122,7 +124,8 @@ function downloadAndInstallAndroidStudio() {
         hdiutil attach ${ANDROID_STUDIO_FILENAME}
         if [ $? -eq 0 ] ; then
             _installAndroidStudio
-        else                                                                                rm ${ANDROID_STUDIO_FILENAME}
+        else
+            rm ${ANDROID_STUDIO_FILENAME}
             _downloadAndInstallAndroidStudio
         fi
     else

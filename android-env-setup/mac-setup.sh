@@ -69,7 +69,8 @@ function _installJDK() {
     cd /Volumes
     dir="`ls -d JDK* | sed 's/\ /\\ /g'`"
     cd $dir
-    sudo installer -pkg "`ls *.pkg | sed 's/\ /\\ /g'`" -target /Applications       cd ~
+    sudo installer -pkg "`ls *.pkg | sed 's/\ /\\ /g'`" -target /Applications
+    cd ~
     hdiutil detach /Volumes/$dir
 }
 

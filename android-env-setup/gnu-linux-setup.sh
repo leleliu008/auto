@@ -103,6 +103,8 @@ function downloadFile() {
         downloadTGZFile $1
     elif [ "$extension" = "zip" ] ; then
         downloadZipFile $1
+    elif [ "$extension" = "war" ] ; then
+        downloadZipFile $1
     fi
 }
 

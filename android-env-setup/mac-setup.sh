@@ -9,15 +9,11 @@
 
 WORK_DIR=~/bin
 
-JDK_FILENAME=jdk-8u111-macosx-x64.dmg
-JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u111-b14/${JDK_FILENAME}
-
-ANDROID_HOME=${WORK_DIR}/android-sdk-macosx
-ANDROID_SDK_FILENAME=tools_r25.2.3-macosx.zip
+JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-macosx-x64.dmg
 
 # Google专门为中国的开发者提供了中国版本的服务，但是下载地址仍然是国外的
 # https://developer.android.google.cn/studio/index.html
-ANDROID_SDK_URL=https://dl.google.com/android/repository/${ANDROID_SDK_FILENAME}
+ANDROID_SDK_URL=https://dl.google.com/android/repository/tools_r25.2.3-macosx.zip
 
 # SDK framework API level
 ANDROID_SDK_FRAMEWORK_VERSION=23
@@ -25,12 +21,9 @@ ANDROID_SDK_FRAMEWORK_VERSION=23
 # 构建工具的版本
 ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
 
-ANDROID_STUDIO_FILENAME=android-studio-ide-145.3537739-mac.dmg
-
-# 查看要安装的版本：
 # http://tools.android.com/download/studio/canary
 # https://developer.android.google.cn/studio/index.html
-ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/install/2.2.3.0/${ANDROID_STUDIO_FILENAME}
+ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/install/2.2.3.0/android-studio-ide-145.3537739-mac.dmg
 
 #------------------------------------------------------------------------------#
 
@@ -75,8 +68,11 @@ function _installJDK() {
 }
 
 function _downloadAndInstallJDK() {
+    url=$ANDROID_STUDIO_URL
+    fileName=`basename "$url"`
+
     _downloadJDK
-    hdiutil attach ${JDK_FILENAME}
+    hdiutil attach ${fileName}
     if [ $? -eq 0 ] ; then
         _installJDK
     else
@@ -86,12 +82,15 @@ function _downloadAndInstallJDK() {
 }
 
 function downloadAndInstallJDK() {
-    if [ -f "${JDK_FILENAME}" ] ; then
-        hdiutil attach ${JDK_FILENAME}
+    url=$JDK_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        hdiutil attach ${fileName}
         if [ $? -eq 0 ] ; then
             installJDK
         else
-            rm ${JDK_FILENAME}
+            rm ${fileName}
             _downloadAndInstallJDK
         fi
     else
@@ -109,9 +108,12 @@ function _installAndroidStudio() {
 }
 
 function _downloadAndInstallAndroidStudio() {
+    url=$ANDROID_STUDIO_URL
+    fileName=`basename "$url"`
+
     # 下载并安装Android Studio
-    wget ${ANDROID_STUDIO_URL}
-    hdiutil attach ${ANDROID_STUDIO_FILENAME}
+    curl -O ${url}
+    hdiutil attach ${fileName}
     if [ $? -eq 0 ] ; then
         _installAndroidStudio
     else
@@ -121,12 +123,15 @@ function _downloadAndInstallAndroidStudio() {
 }
 
 function downloadAndInstallAndroidStudio() {
-    if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
-        hdiutil attach ${ANDROID_STUDIO_FILENAME}
+    url=$ANDROID_STUDIO_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        hdiutil attach ${fileName}
         if [ $? -eq 0 ] ; then
             _installAndroidStudio
         else
-            rm ${ANDROID_STUDIO_FILENAME}
+            rm ${fileName}
             _downloadAndInstallAndroidStudio
         fi
     else
@@ -135,25 +140,30 @@ function downloadAndInstallAndroidStudio() {
 }
 
 function downloadAndInstallAndroidSDK() {
-    if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
-        unzip -t ${ANDROID_SDK_FILENAME} > /dev/null
+    url=$ANDROID_SDK_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        unzip -t ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+            unzip ${fileName} -d ${WORK_DIR}
         else
-            rm ${ANDROID_SDK_FILENAME}
-            curl -O ${ANDROID_SDK_URL} && \
-            unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+            rm ${fileName}
+
+            curl -O ${url} && \
+            unzip ${fileName} -d ${WORK_DIR}
         fi
     else
-        curl -O ${ANDROID_SDK_URL} && \
-        unzip ${ANDROID_SDK_FILENAME} -d ${WORK_DIR}
+        curl -O ${url} && \
+        unzip ${fileName} -d ${WORK_DIR}
     fi
 }
 
 
 #配置环境变量
 function configEnv() {
-    echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
+    androidHome=${WORK_DIR}/android-sdk-macosx
+    echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
     echo "export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:'$PATH'" >> ~/.bashrc
 
     source ~/.bashrc

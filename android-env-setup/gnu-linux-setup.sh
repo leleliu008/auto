@@ -47,55 +47,31 @@ function installDependency() {
     fi
 }
 
-# 下载JDK
-function downloadJDK() {
-    url=$JDK_URL
-    fileName=`basename "$url"`
+# 下载并解压.tar.gz或者.tgz文件
+# $1是要下载文件的URL
+function downloadTGZFile() {
+    fileName=`basename "$1"`
 
     if [ -f "${fileName}" ] ; then
         tar -tf ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            tar zvxf ${fileName} -C ${WORK_DIR}
-        else
-            rm ${fileName}
-            # 下载JDK
-            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${url} && \
-            tar zvxf ${fileName} -C ${WORK_DIR}
-        fi
-    else
-        # 下载JDK
-        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${url} && \
-        tar zvxf ${fileName} -C ${WORK_DIR}
-    fi
-}
-
-# 下载Android SDK
-function downloadAndroidSDK() {
-    url=ANDROID_SDK_URL
-    fileName=`basename "$url"`
-
-    if [ -f "${fileName}" ] ; then
-        tar -tf ${fileName} > /dev/null
-        if [ $? -eq 0 ] ; then
-            tar zvxf ${fileName} -C ${WORK_DIR}
+            tar zxf ${fileName} -C ${WORK_DIR}
         else
             rm ${fileName}
             
-            # 下载Android SDK
-            wget ${url} && \
-            tar zvxf ${fileName} -C ${WORK_DIR}
+            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
+            tar zxf ${fileName} -C ${WORK_DIR}
         fi
     else
-        # 下载Android SDK
-        wget ${url} && \
-        tar zvxf ${fileName} -C ${WORK_DIR}
+        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
+        tar zxf ${fileName} -C ${WORK_DIR}
     fi
 }
 
-# 下载Android Studio
-function downloadAndroidStudio() {
-    url=ANDROID_STUDIO_URL
-    fileName=`basename "$url"`
+# 下载并解压.zip
+# $1是要下载文件的URL
+function downloadZipFile() {
+    fileName=`basename "$1"`
 
     if [ -f "${fileName}" ] ; then
         unzip -t ${fileName} > /dev/null
@@ -103,15 +79,30 @@ function downloadAndroidStudio() {
             unzip ${fileName} -d ${WORK_DIR}
         else
             rm ${fileName}
-
-            # 下载Android Studio
-            wget ${url} && \
+            
+            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
             unzip ${fileName} -d ${WORK_DIR}
         fi
     else
-        # 下载Android Studio
-        wget ${url} && \
+        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
         unzip ${fileName} -d ${WORK_DIR}
+    fi
+}
+
+# 下载文件
+# $1是要下载文件的URL
+function downloadFile() {
+    fileName=`basename "$1"`
+    extension=`echo "${fileName##*.}"`
+    
+    echo "downloadFile() url=$1 | fileName=$fileName | extension=$extension"
+    
+    if [ "$extension" = "tgz" ] ; then
+        downloadTGZFile $1
+    elif [ "$extension" = "gz" ] ; then
+        downloadTGZFile $1
+    elif [ "$extension" = "zip" ] ; then
+        downloadZipFile $1
     fi
 }
 
@@ -155,17 +146,17 @@ function main() {
 
     installDependency
 
-    downloadJDK
+    downloadFile $JDK_URL
 
     configJDKEnv
 
-    downloadAndroidSDK
+    downloadFile $ANDROID_SDK_URL
 
     configAndroidSDKEnv
 
     updateAndroidSDK
 
-    downloadAndroidStudio
+    downloadFile $ANDROID_STUDIO_URL
     
     cd - > /dev/null
 }

@@ -5,18 +5,14 @@
 # 目前只支持Ubuntu和CentOS系统
 #------------------------------------------------------------------------------#
 
+#解压后的文件存放目录，要修改的话，最好还是在~目录或者其子目录下，涉及到权限问题
 WORK_DIR=~/bin
 
-JAVA_HOME=${WORK_DIR}/jdk1.8.0_65
-JDK_FILENAME=jdk-8u65-linux-x64.tar.gz
-JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u65-b17/${JDK_FILENAME}
-
-ANDROID_HOME=${WORK_DIR}/android-sdk-linux
-ANDROID_SDK_FILENAME=android-sdk_r24.4.1-linux.tgz
+JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u65-b17/jdk-8u65-linux-x64.tar.gz
 
 # Google专门为中国的开发者提供了中国版本的服务，但是下载地址仍然是国外的
 # https://developer.android.google.cn/studio/index.html
-ANDROID_SDK_URL=http://dl.google.com/android/${ANDROID_SDK_FILENAME}
+ANDROID_SDK_URL=http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
 
 # SDK framework API level
 ANDROID_SDK_FRAMEWORK_VERSION=23
@@ -29,12 +25,11 @@ ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
 # 如果您用于持续构建服务器，通常是不需要安装的，把此开发改为false即可
 ANDROID_STUDIO_NEED=true
 
-ANDROID_STUDIO_FILENAME=android-studio-ide-145.3537739-linux.zip
-
 # 查看要安装的版本：
 # http://tools.android.com/download/studio/canary
 # https://developer.android.google.cn/studio/index.html
-ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/2.2.3.0/${ANDROID_STUDIO_FILENAME}
+ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/2.2.3.0/android-studio-ide-145.3537739-linux.zip
+
 #------------------------------------------------------------------------------#
 
 # 安装依赖库和工具
@@ -54,70 +49,92 @@ function installDependency() {
 
 # 下载JDK
 function downloadJDK() {
-    if [ -f "${JDK_FILENAME}" ] ; then
-        tar -tf ${JDK_FILENAME} > /dev/null
+    url=$JDK_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        tar -tf ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+            tar zvxf ${fileName} -C ${WORK_DIR}
         else
-            rm ${JDK_FILENAME}
+            rm ${fileName}
             # 下载JDK
-            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL} && \
-            tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${url} && \
+            tar zvxf ${fileName} -C ${WORK_DIR}
         fi
     else
         # 下载JDK
-        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${JDK_URL} && \
-        tar zvxf ${JDK_FILENAME} -C ${WORK_DIR}
+        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" ${url} && \
+        tar zvxf ${fileName} -C ${WORK_DIR}
     fi
 }
 
 # 下载Android SDK
 function downloadAndroidSDK() {
-    if [ -f "${ANDROID_SDK_FILENAME}" ] ; then
-        tar -tf ${ANDROID_SDK_FILENAME} > /dev/null
+    url=ANDROID_SDK_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        tar -tf ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+            tar zvxf ${fileName} -C ${WORK_DIR}
         else
-            rm ${ANDROID_SDK_FILENAME}
+            rm ${fileName}
             
             # 下载Android SDK
-            wget ${ANDROID_SDK_URL} && \
-            tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+            wget ${url} && \
+            tar zvxf ${fileName} -C ${WORK_DIR}
         fi
     else
         # 下载Android SDK
-        wget ${ANDROID_SDK_URL} && \
-        tar zvxf ${ANDROID_SDK_FILENAME} -C ${WORK_DIR}
+        wget ${url} && \
+        tar zvxf ${fileName} -C ${WORK_DIR}
     fi
 }
 
 # 下载Android Studio
 function downloadAndroidStudio() {
-    if [ -f "${ANDROID_STUDIO_FILENAME}" ] ; then
-        unzip -t ${ANDROID_STUDIO_FILENAME} > /dev/null
+    url=ANDROID_STUDIO_URL
+    fileName=`basename "$url"`
+
+    if [ -f "${fileName}" ] ; then
+        unzip -t ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+            unzip ${fileName} -d ${WORK_DIR}
         else
-            rm ${ANDROID_STUDIO_FILENAME}
+            rm ${fileName}
 
             # 下载Android Studio
-            wget ${ANDROID_STUDIO_URL} && \
-            unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+            wget ${url} && \
+            unzip ${fileName} -d ${WORK_DIR}
         fi
     else
         # 下载Android Studio
-        wget ${ANDROID_STUDIO_URL} && \
-        unzip ${ANDROID_STUDIO_FILENAME} -d ${WORK_DIR}
+        wget ${url} && \
+        unzip ${fileName} -d ${WORK_DIR}
     fi
 }
 
-# 配置环境变量
-function configEnv() {
-    echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bashrc
+# 配置JDK环境变量
+function configJDKEnv() {
+    fileName=`basename "$JDK_URL"`
+    dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
+    javaHome=${WORK_DIR}/${dirName}
+    
+    echo "export JAVA_HOME=${javaHome}" >> ~/.bashrc
     echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
     echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
 
-    echo "export ANDROID_HOME=${ANDROID_HOME}" >> ~/.bashrc
+    source ~/.bashrc
+}
+
+# 配置Android SDK的环境变量
+function configAndroidSDKEnv() {
+    fileName=`basename "$ANDROID_SDK_URL"`
+    dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
+    androidHome=${WORK_DIR}/${dirName}
+
+    echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
     echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
 
     source ~/.bashrc
@@ -140,9 +157,11 @@ function main() {
 
     downloadJDK
 
+    configJDKEnv
+
     downloadAndroidSDK
 
-    configEnv
+    configAndroidSDKEnv
 
     updateAndroidSDK
 

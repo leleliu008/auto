@@ -105,6 +105,8 @@ function downloadFile() {
         downloadZipFile $1
     elif [ "$extension" = "war" ] ; then
         downloadZipFile $1
+    elif [ "$extension" = "jar" ] ; then
+        downloadZipFile $1
     fi
 }
 

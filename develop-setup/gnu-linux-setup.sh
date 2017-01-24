@@ -136,12 +136,14 @@ function installBrew() {
 
     if [ -f "/etc/lsb-release" ] ; then
         sudo apt-get install -y build-essential m4 python-setuptools texinfo libbz2-dev \
-                                libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev && \
+                                libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
+
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum groupinstall -y 'Development Tools' && \
-        sudo yum install -y irb python-setuptools && \
+        sudo yum install -y irb python-setuptools
+        
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     fi

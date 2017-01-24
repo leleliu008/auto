@@ -251,10 +251,7 @@ function configAndroidSDKEnv() {
 function updateAndroidSDK() {
     echo "----------------------------------------------------------------"
     echo "updateAndroidSDK..."
-    echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},\
-                                                       platform-tools,\
-                                                       build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},\
-                                                       extra-android-m2repository
+    echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
 }
 
 

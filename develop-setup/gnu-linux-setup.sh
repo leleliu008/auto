@@ -119,9 +119,10 @@ function installDependency() {
 
 # 配置Brew的环境变量
 function configBrewEnv() {
-    echo "export PATH=\"~/.linuxbrew/bin:\$PATH\"" >> ~/.bashrc
-    echo "export MANPATH=\"~/.linuxbrew/share/man:\$MANPATH\"" >> ~/.bashrc
-    echo "export INFOPATH=\"~/.linuxbrew/share/info:\$INFOPATH\"" >> ~/.bashrc
+    echo "# -----------------------------------------------" >> ~/.bashrc
+    echo "export PATH=~/.linuxbrew/bin:\$PATH" >> ~/.bashrc
+    echo "export MANPATH=~/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
+    echo "export INFOPATH=~/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
     source ~/.bashrc
 }
 
@@ -230,10 +231,16 @@ function downloadJDKAndConfig() {
         downloadFileAndExtractTo $JDK_URL ${WORK_DIR}
 
         if [ $? -eq 0 ]; then
+            fileName=`basename "$JDK_URL"`
+            dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
+            javaHome=${WORK_DIR}/${dirName}
+
             #配置环境变量
-            echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bashrc
+            echo "# -----------------------------------------------" >> ~/.bashrc
+            echo "export JAVA_HOME=${javaHome}" >> ~/.bashrc
             echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
             echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
+            source ~/.bashrc
         fi
     fi
 }
@@ -241,6 +248,7 @@ function downloadJDKAndConfig() {
 # 配置环境变量
 function configAndroidSDKEnv() {
     androidHome=${WORK_DIR}/android-sdk-linux
+    echo "# -----------------------------------------------" >> ~/.bashrc
     echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
     echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
 

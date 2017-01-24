@@ -140,7 +140,7 @@ function installBrew() {
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum groupinstall 'Development Tools' && \
+        sudo yum groupinstall -y 'Development Tools' && \
         sudo yum install -y irb python-setuptools && \
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
@@ -287,14 +287,26 @@ function main() {
 
     echo "----------------------------------------------------------------"
 
-    if [ $docker ] ; then
-        brew install docker
-        echo "----------------------------------------------------------------"
-    fi
+    if [ -f "/etc/lsb-release" ] ; then
+        if [ $docker ] ; then
+            sudo apt-get install -y docker
+            echo "----------------------------------------------------------------"
+        fi
 
-    if [ $httpie ] ; then
-        brew install httpie
-        echo "----------------------------------------------------------------"
+        if [ $httpie ] ; then
+            sudo apt-get install -y httpie
+            echo "----------------------------------------------------------------"
+        fi
+    elif [ -f "/etc/redhat-release" ] ; then
+        if [ $docker ] ; then
+            sudo yum install -y docker
+            echo "----------------------------------------------------------------"
+        fi
+
+        if [ $httpie ] ; then
+            sudo yum install -y httpie
+            echo "----------------------------------------------------------------"
+        fi
     fi
 
     downloadJDKAndConfig

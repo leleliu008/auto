@@ -119,9 +119,9 @@ function installDependency() {
 
 # 配置Brew的环境变量
 function configBrewEnv() {
-    echo "export PATH=\"~/.linuxbrew/bin:\$PATH\"" > ~/.bashrc
-    echo "export MANPATH=\"~/.linuxbrew/share/man:\$MANPATH\"" > ~/.bashrc
-    echo "export INFOPATH=\"~/.linuxbrew/share/info:\$INFOPATH\"" > ~/.bashrc
+    echo "export PATH=\"~/.linuxbrew/bin:\$PATH\"" >> ~/.bashrc
+    echo "export MANPATH=\"~/.linuxbrew/share/man:\$MANPATH\"" >> ~/.bashrc
+    echo "export INFOPATH=\"~/.linuxbrew/share/info:\$INFOPATH\"" >> ~/.bashrc
     source ~/.bashrc
 }
 

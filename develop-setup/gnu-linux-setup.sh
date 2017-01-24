@@ -141,6 +141,7 @@ function installBrew() {
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum groupinstall 'Development Tools' && \
         sudo yum install -y irb python-setuptools && \
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     fi
 }

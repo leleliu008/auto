@@ -72,48 +72,14 @@ function installDependency() {
         echo "----------------------------------------------------------------"
         sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
         echo "----------------------------------------------------------------"
-        sudo apt-get install -y git
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y subversion
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y curl
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y wget
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y zip
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y unzip
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y tree
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y vim
-        echo "----------------------------------------------------------------"
-        sudo apt-get install -y ruby
-        echo "----------------------------------------------------------------"
+        sudo apt-get install -y git subversion curl wget zip unzip tree vim ruby
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum update
         echo "----------------------------------------------------------------"
         sudo yum install -y glibc.i686 zlib.i686 libstdc++.i686
         echo "----------------------------------------------------------------"
-        sudo yum install -y git
-        echo "----------------------------------------------------------------"
-        sudo yum install -y subversion
-        echo "----------------------------------------------------------------"
-        sudo yum install -y curl
-        echo "----------------------------------------------------------------"
-        sudo yum install -y wget
-        echo "----------------------------------------------------------------"
-        sudo yum install -y zip
-        echo "----------------------------------------------------------------"
-        sudo yum install -y unzip
-        echo "----------------------------------------------------------------"
-        sudo yum install -y tree
-        echo "----------------------------------------------------------------"
-        sudo yum install -y vim
-        echo "----------------------------------------------------------------"
-        sudo yum install -y ruby
-        echo "----------------------------------------------------------------"
+        sudo yum install -y git subversion curl wget zip unzip tree vim ruby
     fi
 }
 
@@ -143,7 +109,7 @@ function installBrew() {
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum groupinstall -y 'Development Tools' && \
         sudo yum install -y irb python-setuptools
-        
+
         ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     fi
@@ -275,8 +241,17 @@ function main() {
     cd ~
 
     installDependency
+    if [ $? -ne 0 ]; then
+        echo "installDependency occur error!"
+        exit 1
+    fi
 
     installBrew
+    if [ $? -ne 0 ]; then
+        echo "installBrew occur error!"
+        exit 1
+    fi
+
 
     echo "----------------------------------------------------------------"
 

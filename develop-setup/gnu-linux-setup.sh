@@ -86,15 +86,15 @@ function installDependency() {
 # 配置Brew的环境变量
 function configBrewEnv() {
     echo "# -----------------------------------------------" >> ~/.bashrc
-    echo "export PATH=~/.linuxbrew/bin:\$PATH" >> ~/.bashrc
-    echo "export MANPATH=~/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
-    echo "export INFOPATH=~/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
+    echo "export PATH=${HOME}/.linuxbrew/bin:\$PATH" >> ~/.bashrc
+    echo "export MANPATH=${HOME}/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
+    echo "export INFOPATH=${HOME}/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
     source ~/.bashrc
 }
 
 # 安装LinuxBrew
 function installBrew() {
-    which brew
+    which brew > /dev/null
     if [ $? -eq 0 ] ; then
         echo "brew is already installed!"
         return 0
@@ -192,7 +192,7 @@ function downloadFileAndExtractTo() {
 
 # 下载JDK
 function downloadJDKAndConfig() {
-    which java
+    which java > /dev/null
     if [ $? -eq 0 ] ; then
         echo "JDK is already installed! so, not need to download and config"
     else
@@ -230,6 +230,37 @@ function updateAndroidSDK() {
     echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
 }
 
+function installDocker() {
+    if [ $docker ] ; then
+        which docker > /dev/null
+        if [ $? -eq 0 ] ; then
+            echo "docker already installed!"
+        else
+            if [ -f "/etc/lsb-release" ] ; then
+                sudo apt-get install -y docker.io
+                
+            elif [ -f "/etc/redhat-release" ] ; then
+                sudo yum install -y docker
+            fi
+        fi
+    fi
+}
+
+function installHttpie() {
+    if [ $httpie ] ; then
+        which http > /dev/null
+        if [ $? -eq 0 ] ; then
+            echo "httpie already installed!"
+        else
+            if [ -f "/etc/lsb-release" ] ; then
+                sudo apt-get install -y httpie
+            elif [ -f "/etc/redhat-release" ] ; then
+                sudo yum install -y httpie
+            fi
+        fi
+    fi
+}
+
 
 function main() {
 
@@ -255,6 +286,14 @@ function main() {
 
     echo "----------------------------------------------------------------"
 
+    installDocker
+
+    echo "----------------------------------------------------------------"
+
+    installHttpie
+
+    echo "----------------------------------------------------------------"
+
     brew install node
 
     echo "----------------------------------------------------------------"
@@ -263,28 +302,6 @@ function main() {
     npm config set registry https://registry.npm.taobao.org
 
     echo "----------------------------------------------------------------"
-
-    if [ -f "/etc/lsb-release" ] ; then
-        if [ $docker ] ; then
-            sudo apt-get install -y docker
-            echo "----------------------------------------------------------------"
-        fi
-
-        if [ $httpie ] ; then
-            sudo apt-get install -y httpie
-            echo "----------------------------------------------------------------"
-        fi
-    elif [ -f "/etc/redhat-release" ] ; then
-        if [ $docker ] ; then
-            sudo yum install -y docker
-            echo "----------------------------------------------------------------"
-        fi
-
-        if [ $httpie ] ; then
-            sudo yum install -y httpie
-            echo "----------------------------------------------------------------"
-        fi
-    fi
 
     downloadJDKAndConfig
 

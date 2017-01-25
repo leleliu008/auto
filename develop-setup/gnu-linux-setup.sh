@@ -26,14 +26,14 @@ jenkins=true  #持续集成工具
 maven=true    #Java EE开发必备
 gradle=true   #Java EE开发备选
 
+mysql=true
+docker=true
+nginx=true
+
 androidSDK=true    #Android开发环境
 androidNDK=true    #Android开发环境
 androidStudio=true #Android开发工具
 apktool=true       #Android反编译工具
-
-mysql=true
-
-docker=true
 
 #------------------------下面的变量可以根据自己的需要修改----------------------#
 
@@ -41,22 +41,11 @@ docker=true
 # 不要修改到需要root权限的目录下，修改到~的任意子目录都可以
 WORK_DIR=~/bin
 
-JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u65-b17/jdk-8u65-linux-x64.tar.gz
-
-TOMCAT_URL=http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.9/bin/apache-tomcat-8.5.9.tar.gz
-
-# Google专门为中国的开发者提供了中国版本的服务，但是下载地址仍然是国外的
-# https://developer.android.google.cn/studio/index.html
-ANDROID_SDK_URL=http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
-
 # SDK framework API level
 ANDROID_SDK_FRAMEWORK_VERSION=23
 
 # 构建工具的版本
 ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
-
-# https://developer.android.google.cn/ndk/index.html
-ANDROID_NDK_URL=http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
 
 # http://tools.android.com/download/studio/canary
 # https://developer.android.google.cn/studio/index.html
@@ -112,6 +101,19 @@ function installBrew() {
 
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
+    fi
+}
+
+# 用LinuxBrew安装软件
+# $1是要安装的包
+# $2是安装的包里面的命令
+function installByBrew() {
+    which $2 > /dev/null
+    if [ $? -eq 0 ] ; then
+        echo "$1 is already installed!"
+        return 1
+    else
+        brew install $1
     fi
 }
 
@@ -190,35 +192,18 @@ function downloadFileAndExtractTo() {
     fi
 }
 
-# 下载JDK
-function downloadJDKAndConfig() {
-    which java > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "JDK is already installed! so, not need to download and config"
-    else
-        downloadFileAndExtractTo $JDK_URL ${WORK_DIR}
-
-        if [ $? -eq 0 ]; then
-            fileName=`basename "$JDK_URL"`
-            dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
-            javaHome=${WORK_DIR}/${dirName}
-
-            #配置环境变量
-            echo "# -----------------------------------------------" >> ~/.bashrc
-            echo "export JAVA_HOME=${javaHome}" >> ~/.bashrc
-            echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
-            echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
-            source ~/.bashrc
-        fi
-    fi
+# 配置JDK环境变量
+function configJDKEnv() {
+    echo "# -----------------------------------------------" >> ~/.bashrc
+    echo "export JAVA_HOME=`brew --prefix jdk`" >> ~/.bashrc
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
+    source ~/.bashrc
 }
 
-# 配置环境变量
+# 配置AndroidSDK环境变量
 function configAndroidSDKEnv() {
-    androidHome=${WORK_DIR}/android-sdk-linux
     echo "# -----------------------------------------------" >> ~/.bashrc
-    echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
-    echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
+    echo "export ANDROID_HOME=`brew --prefix android-sdk`" >> ~/.bashrc
 
     source ~/.bashrc
 }
@@ -230,40 +215,8 @@ function updateAndroidSDK() {
     echo y | android update sdk --no-ui --all --filter android-${ANDROID_SDK_FRAMEWORK_VERSION},platform-tools,build-tools-${ANDROID_SDK_BUILD_TOOLS_VERSION},extra-android-m2repository
 }
 
-function installDocker() {
-    if [ $docker ] ; then
-        which docker > /dev/null
-        if [ $? -eq 0 ] ; then
-            echo "docker already installed!"
-        else
-            if [ -f "/etc/lsb-release" ] ; then
-                sudo apt-get install -y docker.io
-                
-            elif [ -f "/etc/redhat-release" ] ; then
-                sudo yum install -y docker
-            fi
-        fi
-    fi
-}
-
-function installHttpie() {
-    if [ $httpie ] ; then
-        which http > /dev/null
-        if [ $? -eq 0 ] ; then
-            echo "httpie already installed!"
-        else
-            if [ -f "/etc/lsb-release" ] ; then
-                sudo apt-get install -y httpie
-            elif [ -f "/etc/redhat-release" ] ; then
-                sudo yum install -y httpie
-            fi
-        fi
-    fi
-}
-
 
 function main() {
-
     # 如果不存在此文件夹，就创建
     if [ ! -d "${WORK_DIR}" ] ; then
         mkdir -p ${WORK_DIR}
@@ -272,70 +225,85 @@ function main() {
     cd ~
 
     installDependency
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ] ; then
         echo "installDependency occur error!"
         exit 1
     fi
 
     installBrew
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ] ; then
         echo "installBrew occur error!"
         exit 1
     fi
 
+    echo "----------------------------------------------------------------"
+
+    echo "update brew ..."
+    brew update
 
     echo "----------------------------------------------------------------"
 
-    installDocker
+    installByBrew node node
 
     echo "----------------------------------------------------------------"
 
-    installHttpie
-
-    echo "----------------------------------------------------------------"
-
-    brew install node
-
-    echo "----------------------------------------------------------------"
-
-    brew install npm && \
+    installByBrew npm npm && \
     npm config set registry https://registry.npm.taobao.org
 
     echo "----------------------------------------------------------------"
 
-    downloadJDKAndConfig
+    installByBrew jdk java && \
+    configJDKEnv
 
-    echo "----------------------------------------------------------------"
+    if [ $docker ] ; then
+        installByBrew docker docker
+        echo "----------------------------------------------------------------"
+    fi
+
+    if [ $nginx ] ; then
+        installByBrew nginx nginx
+        echo "----------------------------------------------------------------"
+    fi
+
+    if [ $httpie ] ; then
+        installByBrew httpie http
+        echo "----------------------------------------------------------------"
+    fi
 
     if [ $maven ] ; then
-        brew install maven
+        installByBrew maven mvn
         echo "----------------------------------------------------------------"
     fi
 
     if [ $gradle ] ; then
-        brew install gradle
+        installByBrew gradle gradle
         echo "----------------------------------------------------------------"
     fi
 
     if [ $jenkins ] ; then
-        brew install jenkins
+        installByBrew jenkins jenkins
         echo "----------------------------------------------------------------"
     fi
 
     if [ $tomcat ] ; then
-        downloadFileAndExtractTo "$TOMCAT_URL" "$WORK_DIR"
+        installByBrew tomcat catalina
         echo "----------------------------------------------------------------"
     fi
 
     if [ $androidSDK ] ; then
-        downloadFileAndExtractTo "$ANDROID_SDK_URL" "$WORK_DIR" && \
+        installByBrew android-sdk android && \
         configAndroidSDKEnv && \
         updateAndroidSDK
         echo "----------------------------------------------------------------"
     fi
 
+    if [ $androidNDK ] ; then
+        installByBrew android-ndk ndk-build
+        echo "----------------------------------------------------------------"
+    fi
+
     if [ $apktool ]; then
-        brew install apktool
+        installByBrew apktool apktool
         echo "----------------------------------------------------------------"
     fi
 

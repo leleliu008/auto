@@ -7,9 +7,9 @@ fi
 
 # 在Ubuntu中安装GNUstep的v1版（不支持Objectie-C 2.0）
 function installGNUstepV1OnUbuntu() {
-    $role apt-get install gobjc
-    $role apt-get install gnustep
-    $role apt-get install gnustep-devel
+    $role apt-get -y install gobjc
+    $role apt-get -y install gnustep
+    $role apt-get -y install gnustep-devel
     $role bash /usr/share/GNUstep/Makefiles/GNUstep.sh
 }
 

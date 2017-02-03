@@ -210,7 +210,7 @@ function runSVN() {
 
 # 替换local.properties中的Android SDK路径
 function setAndroidSDKHomeInLocalProperties() {
-    if [ -z "ANDROID_HOME" ] ; then
+    if [ -z "$ANDROID_HOME" ] ; then
         echo "[warning]:please config ANDROID_HOME environment first!"
         exit 1
     fi

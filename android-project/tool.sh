@@ -280,8 +280,6 @@ function changeEnvTo() {
     setVersionCodeInBuildGradle ${currentDate}
     setPackageNameInBuildGradle
 
-    cp SDK-Getui/src/main/${packageName}.$1.AndroidManifest.xml SDK-Getui/src/main/AndroidManifest.xml
-
     #修改Debug开关
     if [ "$1" = "release" ] ; then
         setDebugable false
@@ -292,15 +290,7 @@ function changeEnvTo() {
     packagePath=${packageName//.//}
     echo "packagePath = $packagePath"
 
-    #替换Logo
-    cp buildRes/drawable-ldpi/ic_launcher_member.png CustomDrawable/src/main/res/drawable-ldpi/ic_launcher.png
-    cp buildRes/drawable-mdpi/ic_launcher_member.png CustomDrawable/src/main/res/drawable-mdpi/ic_launcher.png
-    cp buildRes/drawable-hdpi/ic_launcher_member.png CustomDrawable/src/main/res/drawable-hdpi/ic_launcher.png
-    cp buildRes/drawable-xhdpi/ic_launcher_member.png CustomDrawable/src/main/res/drawable-xhdpi/ic_launcher.png
-    cp buildRes/drawable-xxhdpi/ic_launcher_member.png CustomDrawable/src/main/res/drawable-xxhdpi/ic_launcher.png
-
-    setEnvInJava "$1" Business-Config/src/main/java/com/unionx/yilingdoctor/config/ConfigFactory.java
-    setEnvInJava "$1" SDK-YouYunIM/src/main/java/com/ucfgroup/im/EngineConfiguration.java
+    setEnvInJava "$1" src/main/java/${packagePath}/config/Config.java
 }
 
 # 编译后的apk名称

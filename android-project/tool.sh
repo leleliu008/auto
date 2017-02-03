@@ -402,7 +402,7 @@ elif [ $1 = 'build' ] ; then
     if [ -z "$2" ] ; then
         showHelp
     else
-		runBuild "$2"
+        runBuild "$2"
     fi
 else
     echo "unrecognized sub-cmd "$1"!"

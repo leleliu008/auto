@@ -29,3 +29,4 @@ set ofu=syntaxcomplete#Complete
 
 set ts=4      "ts是tabstop的缩写，设置TAB宽为4个空格
 set expandtab
+set number    "显示行号

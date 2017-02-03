@@ -14,12 +14,21 @@ function installCommandLineDeveloperToolsOnMacOSX() {
     fi
 }
 
+# 配置Brew的环境变量
+function configBrewEnv() {
+    echo "# -----------------------------------------------" >> ~/.bashrc
+    echo "export PATH=${HOME}/.linuxbrew/bin:\$PATH" >> ~/.bashrc
+    echo "export MANPATH=${HOME}/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
+    echo "export INFOPATH=${HOME}/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
+    source ~/.bashrc
+}
+
 function installBrewOnMacOSX() {
     which brew > /dev/null
     if [ $? -eq 0 ] ; then
         echo "brew already installed!"
     else
-        /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
     fi
 }
 

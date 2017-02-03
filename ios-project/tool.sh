@@ -143,22 +143,26 @@ function runBuild() {
 }
 
 function showHelp() {
-    echo "./tool.sh sonar .         check you oc language"
+    echo "Usage:"
+    echo "./tool.sh -h|--help       display help"
+    echo "./tool.sh sonar           check you oc language with SonarQube"
     echo "./tool.sh build Debug     generate debug ipa"
     echo "./tool.sh build Release   generate release ipa"
 }
 
 #正文
-if [ $# = 0 ] ; then
+if [ -z "$1" ] ; then
     showHelp
-elif [ $# = 1 ] ; then
-    if [ $1 = '-h' -o $1 = '--help' ] ; then
+elif [ "$1" = '-h' -o "$1" = '--help' ] ; then
+    showHelp
+elif [ "$1" = 'sonar' ] ; then
+    runSonar
+elif [ "$1" = 'build' ] ; then
+    if [ -z "$2" ] ; then
         showHelp
+    else
+        runBuild "$2"
     fi
-elif [ $# = 2 ] ; then
-    if [ $1 = 'sonar' ] ; then
-        runSonar
-    elif [ $1 = 'build' ] ; then
-        runBuild $2
-    fi
+else
+    showHelp
 fi

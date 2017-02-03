@@ -1,5 +1,10 @@
 #!/bin/bash
 
+role=""
+if [ `whoami` != "root" ]
+    role=sudo
+fi
+
 function installCommandLineDeveloperToolsOnMacOSX() {
     which git > /dev/null
     if [ $? -eq 0 ] ; then
@@ -41,7 +46,7 @@ function installOnUbuntu() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        sudo apt-get install "$2"
+        $role apt-get install "$2"
     fi
 }
 
@@ -50,7 +55,7 @@ function installOnCentOS() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        sudo yum install "$2"
+        $role yum install "$2"
     fi
 }
 

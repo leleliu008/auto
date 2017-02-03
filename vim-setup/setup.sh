@@ -1,7 +1,7 @@
 #!/bin/bash
 
 role=""
-if [ `whoami` != "root" ]
+if [ `whoami` != "root" ] ; then
     role=sudo
 fi
 

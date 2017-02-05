@@ -1,10 +1,5 @@
 #!/bin/bash
 
-role=
-if [ `whoami` != "root" ] ; then
-    role=sudo
-fi
-
 # 配置Brew的环境变量
 function configBrewEnv() {
     echo "# -----------------------------------------------" >> ~/.bashrc
@@ -25,11 +20,11 @@ function installBrew() {
     if [ `uname -s` = "Darwin" ] ; then
         echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
     elif [ -f "/etc/lsb-release" ] ; then
-        $role apt-get install -y build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
+        sudo apt-get install -y build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     elif [ -f "/etc/redhat-release" ] ; then
-        $role yum groupinstall -y 'Development Tools' && \
-        $role yum install -y irb python-setuptools
+        sudo yum groupinstall -y 'Development Tools' && \
+        sudo yum install -y irb python-setuptools
 
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     else
@@ -37,4 +32,12 @@ function installBrew() {
     fi
 }
 
-installBrew
+function main() {
+    if [ `whoami` != "root" ] ; then
+        echo "don't run as root!"
+    else
+        installBrew
+    fi
+}
+
+main

@@ -55,7 +55,7 @@ function installOnUbuntu() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        $role apt-get install "$2"
+        $role apt-get -y install "$2"
     fi
 }
 
@@ -64,7 +64,7 @@ function installOnCentOS() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        $role yum install "$2"
+        $role yum -y install "$2"
     fi
 }
 

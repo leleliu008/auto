@@ -23,7 +23,7 @@ function installGNUstepV1OnCentOS() {
     cd gnustep-startup-0.32.0 && \
     ./configure && \
     echo -e "\n" | make && \
-    $role bash /usr/share/GNUstep/Makefiles/GNUstep.sh
+    $role bash /usr/GNUstep/System/Library/Makefiles/GNUstep.sh
 }
 
 function main() {

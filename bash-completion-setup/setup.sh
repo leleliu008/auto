@@ -84,6 +84,13 @@ function installByYumOnCentOS() {
     fi
 }
 
+# $1是要安装到的目录
+function installBashCompletionExt() {
+    cd "$1"
+    curl -L -O https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
+    cd -
+}
+
 function main() {
     osType=`uname -s`
     echo "osType=$osType"
@@ -93,10 +100,18 @@ function main() {
         installBrewOnMacOSX
         installByBrewOnMacOSX curl curl
         installByBrewOnMacOSX bash-completion 
+
+        $role echo "[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion" >> /etc/profile && source /etc/profile
+
+        installBashCompletionExt "/usr/local/etc/bash_completion.d"
     elif [ $osType = "Linux" ] ; then
         if [ -f '/etc/lsb-release' ] ; then
             installByAptOnUbuntu curl curl
             installByAptOnUbuntu bash-completion
+
+            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile && source /etc/profile
+
+            installBashCompletionExt "/etc/bash_completion.d"
         elif [ -f '/etc/redhat-release' ] ; then
             installByYumOnCentOS curl curl
             installByYumOnCentOS bash-completion

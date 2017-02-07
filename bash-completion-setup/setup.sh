@@ -63,7 +63,7 @@ function installByAptOnUbuntu() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        $role apt-get -y install "$1"
+        $role apt-get install -y "$1"
     fi
 }
 
@@ -72,7 +72,7 @@ function installByAptOnUbuntu() {
 # $2是这个软件包中的一个可执行文件，可以为空
 function installByYumOnCentOS() {
     if [ -z "$2" ] ; then
-        $role apt-get install -y "$1"
+        $role yum install -y "$1"
         return 0
     fi
 
@@ -80,7 +80,7 @@ function installByYumOnCentOS() {
     if [ $? -eq 0 ] ; then
         echo "$1 already installed!"
     else
-        $role yum -y install "$1"
+        $role yum install -y "$1"
     fi
 }
 
@@ -115,6 +115,10 @@ function main() {
         elif [ -f '/etc/redhat-release' ] ; then
             installByYumOnCentOS curl curl
             installByYumOnCentOS bash-completion
+            
+            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile && source /etc/profile
+
+            installBashCompletionExt "/etc/bash_completion.d"
         fi
     fi
     

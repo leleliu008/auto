@@ -18,6 +18,10 @@ let Tlist_Exit_OnlyWindow=1       "如果taglist窗口是最后一个窗口，�
 "let Tlist_Use_Right_Window=1     "在右侧窗口中显示taglist窗口
 "let Tlist_Use_Left_Windo =1      "在左侧窗口中显示taglist窗口
 
+Bundle 'Valloric/YouCompleteMe'
+
+Bundle 'godlygeek/tabular'
+
 filetype plugin indent on     " required!
 
 syntax enable

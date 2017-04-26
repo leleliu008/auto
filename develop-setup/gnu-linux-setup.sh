@@ -2,8 +2,8 @@
 
 #------------------------------------------------------------------------------#
 # 开发环境搭建脚本
-# 目前只支持Ubuntu、CentOS、MacOSX系统
-# 搭建的环境包括Java、Android、iOS、Node.js
+# 目前只支持Ubuntu、CentOS系统
+# 搭建的环境包括Java、Android、Node.js
 #
 # 默认安装的软件：
 # brew、git、subversion、curl、wget、zip、unzip、tree、ruby、vim、node.js、npm、jdk

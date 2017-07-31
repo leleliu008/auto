@@ -42,7 +42,12 @@ function getVersionNameFromBuildGradle() {
 
 #更新Android SDK
 function updateAndroidSDK() {
-    echo y | android update sdk --no-ui --all --filter android-${android_sdk_framework_version},platform-tools,build-tools-${android_sdk_build_tools_version},extra-android-m2repository
+	which sdkmanager >& /dev/null
+    if [ $? -eq 0 ] ; then
+        sdkmanager "platforms;android-${android_sdk_framework_version}" "platform-tools" "build-tools;${android_sdk_build_tools_version}" "extras;android;m2repository" "extras;google;m2repository" "cmake;3.6.3155560" "tools"
+    else
+        echo y | android update sdk --no-ui --all --filter android-${android_sdk_framework_version},platform-tools,build-tools-${android_sdk_build_tools_version},extra-android-m2repository
+    fi
 }
 
 #执行单元测试

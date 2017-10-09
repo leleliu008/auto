@@ -1,168 +1,159 @@
 #!/bin/sh
 
+#================================================================#
+#将此脚本放置于您的iOS WorkSpace或Project的根目录下
+#================================================================#
+
+
 #===============下面的变量的取值根据自己的情况修改===============#
+# 当前登陆用户的登录密码（导入P12文件的时候需要授权使用）
+LOGIN_PASSWORD=
 
-# 工程名称
-PROJECT_NAME="newton"
+# P12文件路径（P12文件是用密码进行保护的，因为它里面包含有私钥）
+P12_PATH=ios_development.p12
 
-# 生成的ipa文件的名称前缀
-IPA_NAME=${PROJECT_NAME}_for_iOS;
+# P12文件的访问密码
+P12_PASSWORD=
+
+# 设备描述文件路径
+PROVISIONING_PROFILE_PATH=ios_provisioning_profile.mobileprovision
+
+#使用的SDK和版本，用xcodebuild -showsdks可以查看到
+SDK='iphoneos11.0'
+#================================================================#
 
 # 钥匙串路径
 LOGIN_KEYCHAIN=~/Library/Keychains/login.keychain
 
-# 用户登陆密码
-LOGIN_PASSWORD=xxxx
-
-# P12文件路径
-P12_PATH=个人_测试_证书.p12
-
-# 开发者签名 
-CODE_SIGN_IDENTITY="vvvvvv"
-
-PROVISIONING_PROFILE=""
-
-#================================================================#
-
-# 导入证书
-function importCer() {
-    # 解锁，否则回弹框等待输入密码
+# 导入P12文件
+function importP12() {
+    # 解锁，否则系统会弹框等待用户输入密码
     security unlock-keychain -p ${LOGIN_PASSWORD} ${LOGIN_KEYCHAIN}
 
     # 导入证书
-    security import ${P12_PATH} -k ${LOGIN_KEYCHAIN} -P 111 -T /usr/bin/codesign
+    security import ${P12_PATH} -k ${LOGIN_KEYCHAIN} -P ${P12_PASSWORD} -T /usr/bin/codesign
 }
 
+# 运行静态代码检测
 function runSonar() {
     # 导入证书
-    importCer
+    importP12
 
-    filepath=${PROJECT_NAME}.xcodeproj/project.pbxproj
-                
-    functhParam() {
-        orgin=$(grep -i -n $1 $filepath | head -n 1 | awk -F ':' '{print $1}')
-        count=$(grep -i -A 200 $1 $filepath | grep -i -n 'PROVISIONING_PROFILE' | head -n 1 |awk -F ':' '{print $1}')
-        let line=$orgin+count-1
-        echo $line
-        sed -i '' $line"s/^.*/$2/g" $filepath
-    }
-
-    # 修改配置
-    functhParam "^.*332573121A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573131A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573151A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573161A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573181A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573191A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-
-    open ${PROJECT_NAME}.xcworkspace
-    sleep 10
-
+    # 把设备描述文件放到指定目录下
+    cpProvisioningProfile
+    
+    workspaceName=`find . -name "*.xcworkspace" -d 1`
+    projectName=`basename $workspaceName .xcworkspace`
+    
     # 编译
-    xcodebuild -workspace ${PROJECT_NAME}.xcworkspace -scheme ${PROJECT_NAME} clean build | tee xcodebuild.log | xcpretty -t -r json-compilation-database -o compile_commands.json
-    oclint-json-compilation-database -e Pods -e ${PROJECT_NAME}/Vendors -v -- -report-type pmd -o sonar-reports/oclint.xml
+    xcodebuild -workspace ${workspaceName} -scheme ${projectName} clean build | tee xcodebuild.log | xcpretty -t -r json-compilation-database -o compile_commands.json
+    oclint-json-compilation-database -e Pods -e ${projectName}/Vendors -v -- -report-type pmd -o sonar-reports/oclint.xml
+    
     current_date=`date +%Y%m%d`;
-    echo current_date=$current_date
-
+    
     sed -i "s#[0-9]\{8\}#${current_date}#g" sonar-project.properties
     
     sonar-runner
 }
 
+# 构建
+# $1构建类型：Debug、Release
 function runBuild() {
-    MODE=$1;
-
-    current_date=`date +%Y%m%d`;
-    echo current_date=$current_date
-
     # 导入证书
-    importCer
-
-    filepath=${PROJECT_NAME}.xcodeproj/project.pbxproj
-
-    functhParam() {
-        orgin=$(grep -i -n $1 $filepath | head -n 1 | awk -F ':' '{print $1}')
-        count=$(grep -i -A 200 $1 $filepath | grep -i -n 'PROVISIONING_PROFILE' | head -n 1 |awk -F ':' '{print $1}')
-        let line=$orgin+count-1
-        echo $line
-        sed -i '' $line"s/^.*/$2/g" $filepath
-    }
-
-    functhParam2() {
-        orgin=$(grep -i -n $1 $filepath | head -n 1 | awk -F ':' '{print $1}')
-        count=$(grep -i -A 200 $1 $filepath | grep -i -n 'CODE_SIGN_IDENTITY' | head -n 1 |awk -F ':' '{print $1}')
-        let line=$orgin+count-1
-        echo $line
-        sed -i '' $line"s/^.*/$2/g" $filepath
-    }
-
-    functhParam3() {
-        orgin=$(grep -i -n $1 $filepath | head -n 1 | awk -F ':' '{print $1}')
-        count=$(grep -i -A 200 $1 $filepath | grep -i -n '\"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]\"' | head -n 1 |awk -F ':' '{print $1}')
-        let line=$orgin+count-1
-        echo $line
-        sed -i '' $line"s/^.*/$2/g" $filepath
-    }
-
-    # 修改配置
-    functhParam "^.*332573121A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573131A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573151A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573161A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573181A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-    functhParam "^.*332573191A2EFCC30002ECA1.*=" 'PROVISIONING_PROFILE = "47f32d57-cead-47d8-aeab-67127c65ca83";'
-
-    functhParam2 "^.*332573151A2EFCC30002ECA1.*=" 'CODE_SIGN_IDENTITY = "${CODE_SIGN_IDENTITY}";'
-    functhParam2 "^.*332573161A2EFCC30002ECA1.*=" 'CODE_SIGN_IDENTITY = "${CODE_SIGN_IDENTITY}";'
-    functhParam2 "^.*332573181A2EFCC30002ECA1.*=" 'CODE_SIGN_IDENTITY = "${CODE_SIGN_IDENTITY}";'
-    functhParam2 "^.*332573191A2EFCC30002ECA1.*=" 'CODE_SIGN_IDENTITY = "${CODE_SIGN_IDENTITY}";'
-
-    functhParam3 "^.*332573151A2EFCC30002ECA1.*=" '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "${CODE_SIGN_IDENTITY}";'
-    functhParam3 "^.*332573161A2EFCC30002ECA1.*=" '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "${CODE_SIGN_IDENTITY}";'
-    functhParam3 "^.*332573181A2EFCC30002ECA1.*=" '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "${CODE_SIGN_IDENTITY}";'
-    functhParam3 "^.*332573191A2EFCC30002ECA1.*=" '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "${CODE_SIGN_IDENTITY}";'
-
-
-    appInfoPList=${PROJECT_NAME}/Info.plist
+    importP12
+    
+    # 把设备描述文件放到指定目录下
+    security cms -D -i $PROVISIONING_PROFILE_PATH > tmp.xml 2> /dev/null
+    uuid=`getValueFromPListFile tmp.xml UUID`
+    rm tmp.xml
+    cp $PROVISIONING_PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision 
+    
+    workspaceName=`find . -name "*.xcworkspace" -d 1`
+    projectName=`basename $workspaceName .xcworkspace`
+    appInfoPList=${projectName}/Info.plist
     # 取版本号
-    bundleShortVersion=$(/usr/libexec/PlistBuddy -c "print CFBundleShortVersionString" ${appInfoPList})
+    bundleShortVersion=`getValueFromPListFile ${appInfoPList} CFBundleShortVersionString`
     # 取build值
-    bundleVersion=$(/usr/libexec/PlistBuddy -c "print CFBundleVersion" ${appInfoPList})
-    # 取displayName
-    displayName=$(/usr/libexec/PlistBuddy -c "print CFBundleDisplayName" ${appInfoPList})
+    bundleVersion=`getValueFromPListFile ${appInfoPList} CFBundleVersion`
     # IPA名称
-    ipaName=${IPA_NAME}_${bundleVersion}_$(date +"%Y%m%d").ipa
-    echo $ipaName
+    ipaName=${projectName}_${bundleVersion}_`date +%Y%m%d`.ipa
+    
+    # 获得证书签名
+    codeSignIdentity=`openssl pkcs12 -in $P12_PATH -passin pass:"$P12_PASSWORD" -nodes | grep "friendlyName: iPhone"`
+    codeSignIdentity=`echo ${codeSignIdentity:18}`
 
-    open ${PROJECT_NAME}.xcworkspace
-    sleep 10
+    configFile="${projectName}.xcodeproj/project.pbxproj"
+    
+    # 将设备描述文件自动管理改为手动管理
+    #if [ `uname -s` == 'Darwin' ] ; then
+    #    sed -i ""  "s#ProvisioningStyle = Automatic#ProvisioningStyle = Manual#g" $configFile
+    #else
+    #    sed -i "s#ProvisioningStyle = Automatic#ProvisioningStyle = Manual#g" $configFile
+    #fi
 
+    buildPath=`pwd`/build
+    archivePath=${buildPath}/${projectName}.xcarchive
     # 编译
-    xcodebuild -workspace ${PROJECT_NAME}.xcworkspace -scheme ${PROJECT_NAME} -configuration ${MODE} -sdk "iphoneos9.3" VALID_ARCHS="arm64 armv7 armv7s" CODE_SIGN_IDENTITY="${CODE_SIGN_IDENTITY}" PROVISIONING_PROFILE="${PROVISIONING_PROFILE}" CONFIGURATION_BUILD_DIR=`pwd`/build clean build
-    xcrun -sdk iphoneos PackageApplication -v `pwd`/build/${PROJECT_NAME}.app -o `pwd`/build/${ipaName}
+    xcodebuild \
+            -workspace $workspaceName \
+            -scheme ${projectName} \
+            -configuration $1 \
+            -sdk $SDK \
+            -archivePath ${archivePath} \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="${codeSignIdentity}" \
+            PROVISIONING_PROFILE="${uuid}" \
+            CONFIGURATION_BUILD_DIR="${buildPath}" \
+            VALID_ARCHS="arm64 armv7 armv7s"
+            clean archive
+    # 封包
+    xcodebuild -exportArchive -archivePath $archivePath -exportOptionsPlist xx.plist -exportPath ${buildPath}
+}
+
+#把设备描述文件复制到指定目录下
+function cpProvisioningProfile() {
+    security cms -D -i $PROVISIONING_PROFILE_PATH > tmp.xml 2> /dev/null
+    uuid=`getValueFromPListFile tmp.xml UUID`
+    rm tmp.xml
+    cp $PROVISIONING_PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision  
+}
+
+#从plist文件中获取指定Key的值
+#$1是plist文件路径
+#$2是key
+function getValueFromPListFile() {
+    /usr/libexec/PlistBuddy -c "print $2" $1
 }
 
 function showHelp() {
     echo "Usage:"
-    echo "./tool.sh -h|--help       display help"
+    echo "./tool.sh -h              display help"
+    echo "./tool.sh --help          display help"
     echo "./tool.sh sonar           check you oc language with SonarQube"
     echo "./tool.sh build Debug     generate debug ipa"
     echo "./tool.sh build Release   generate release ipa"
 }
 
 #正文
-if [ -z "$1" ] ; then
-    showHelp
-elif [ "$1" = '-h' -o "$1" = '--help' ] ; then
-    showHelp
-elif [ "$1" = 'sonar' ] ; then
-    runSonar
-elif [ "$1" = 'build' ] ; then
-    if [ -z "$2" ] ; then
+function main() {
+    if [ `uname -s` != 'Darwin' ] ; then
+        echo "your os is not MacOSX!"
+        exit
+    elif [ -z "$1" ] ; then
         showHelp
+    elif [ "$1" = '-h' -o "$1" = '--help' ] ; then
+        showHelp
+    elif [ "$1" = 'sonar' ] ; then
+        runSonar
+    elif [ "$1" = 'build' ] ; then
+        if [ -z "$2" ] ; then
+            showHelp
+        else
+            runBuild "$2"
+        fi
     else
-        runBuild "$2"
+        showHelp
     fi
-else
-    showHelp
-fi
+}
+
+main $*

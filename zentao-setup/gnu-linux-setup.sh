@@ -55,13 +55,13 @@ function downloadAndUnzip() {
 function main() {
     # 如果是Ubuntu系统
     if [ -f "/etc/lsb-release" ] ; then
-        sudo apt-get undate
+        sudo apt-get update
         sudo apt-get install -y curl
     
         downloadAndUnzip
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum undate
+        sudo yum update
         sudo yum install -y curl
     
         downloadAndUnzip

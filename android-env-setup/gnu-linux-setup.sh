@@ -12,13 +12,13 @@ JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u65-b17/jdk-8u65-linux-x64.
 
 # Google专门为中国的开发者提供了中国版本的服务，但是下载地址仍然是国外的
 # https://developer.android.google.cn/studio/index.html
-ANDROID_SDK_URL=http://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+ANDROID_SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
 
 # SDK framework API level
-ANDROID_SDK_FRAMEWORK_VERSION=23
+ANDROID_SDK_FRAMEWORK_VERSION=27
 
 # 构建工具的版本
-ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
+ANDROID_SDK_BUILD_TOOLS_VERSION=27.0.3
 
 # 此开关控制是否要安装Android Studio
 # 如果您用于桌面环境，通常是用于开发的，开启的可能行很大
@@ -28,7 +28,7 @@ ANDROID_STUDIO_NEED=true
 # 查看要安装的版本：
 # http://tools.android.com/download/studio/canary
 # https://developer.android.google.cn/studio/index.html
-ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/2.2.3.0/android-studio-ide-145.3537739-linux.zip
+ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/3.1.1.0/android-studio-ide-173.4697961-linux.zip
 
 #------------------------------------------------------------------------------#
 
@@ -70,22 +70,23 @@ function downloadTGZFile() {
 
 # 下载并解压.zip
 # $1是要下载文件的URL
+# $2是要解压的目录
 function downloadZipFile() {
     fileName=`basename "$1"`
 
     if [ -f "${fileName}" ] ; then
         unzip -t ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            unzip ${fileName} -d ${WORK_DIR}
+            unzip ${fileName} -d ${WORK_DIR}/$2
         else
             rm ${fileName}
             
             wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
-            unzip ${fileName} -d ${WORK_DIR}
+            unzip ${fileName} -d ${WORK_DIR}/$2
         fi
     else
         wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1" && \
-        unzip ${fileName} -d ${WORK_DIR}
+        unzip ${fileName} -d ${WORK_DIR}/$2
     fi
 }
 
@@ -125,12 +126,12 @@ function configJDKEnv() {
 
 # 配置Android SDK的环境变量
 function configAndroidSDKEnv() {
-    fileName=`basename "$ANDROID_SDK_URL"`
-    dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
-    androidHome=${WORK_DIR}/${dirName}
+    #fileName=`basename "$ANDROID_SDK_URL"`
+    #dirName=`tar -tf ${fileName} | awk -F "/" '{print $1}' | sort | uniq`
+    androidHome=${WORK_DIR}/android-sdk
 
     echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
-    echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
+    echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/tools/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
 
     source ~/.bashrc
 }
@@ -159,7 +160,7 @@ function main() {
 
     configJDKEnv
 
-    downloadFile $ANDROID_SDK_URL
+    downloadFile $ANDROID_SDK_URL android-sdk
 
     configAndroidSDKEnv
 

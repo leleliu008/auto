@@ -1,11 +1,13 @@
 #!/bin/bash
 
 function installOhMyZsh() {
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" && \
-    git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-syntax-highlighting.git && \
-    git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-autosuggestions.git && \
-    git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-completions.git
-
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
+    
+    if [ -f "~/.oh-my-zsh/plugins" ] ; then
+        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-syntax-highlighting.git && \
+        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-autosuggestions.git && \
+        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-completions.git
+    fi
 }
 
 function main() {

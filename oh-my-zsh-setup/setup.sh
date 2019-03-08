@@ -24,7 +24,7 @@ function main() {
         if [ -f "/etc/lsb-release" ] ; then
             $sudo apt-get update && \
             $sudo apt-get install -y curl git zsh && \
-            $installOhMyZsh
+            installOhMyZsh
         # 如果是CentOS系统
         elif [ -f "/etc/redhat-release" ] ; then
             $sudo yum update && \

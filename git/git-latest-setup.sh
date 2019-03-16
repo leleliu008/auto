@@ -1,30 +1,25 @@
 #!/bin/bash
 
-if [ "`which curl 2> /dev/null`" == "" ] ; then
-    osKernelName=`uname -s`
-    if [ "$osKernelName" == "Linux" ] ; then
-        sudo=`which sudo 2> /dev/null`;
-        if [ -f "/etc/lsb-release" ] ; then
-            $sudo apt-get update;
-            $sudo apt-get install -y curl;
-        elif [ -f "/etc/redhat-release" ] ; then
-            $sudo yum update;
-            $sudo yum install -y curl gawk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
-        else
-            echo "please install curl, then rerun this script!!";
-            exit 1;
-        fi
-    elif [ "$osKernelName" == "Drawin" ] ; then
-        if [ "" == "" ] ; then
-            echo "please install curl, then rerun this script!!";
-            exit 1;
-        else
-            brew install curl;
-        fi
+osKernelName=`uname -s`
+if [ "$osKernelName" == "Linux" ] ; then
+    sudo=`which sudo 2> /dev/null`;
+    if [ -f "/etc/lsb-release" ] ; then
+        $sudo apt-get update;
+        $sudo apt-get install -y curl;
+    elif [ -f "/etc/redhat-release" ] ; then
+        $sudo yum update;
+        $sudo yum install -y curl gawk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
     else
-        echo "we don't recognize your os~~";
-        exit 1
+        echo "\e[37;31;1mplease install curl, then rerun this script!!\e[39;49;0m";
+        exit 1;
     fi
+elif [ "$osKernelName" == "Drawin" ] ; then
+    brew update;
+    brew install git;
+    exit 0;
+else
+    echo -e "\e[37;31;1mwe don't recognize your os~~\e[39;49;0m";
+    exit 1
 fi
 
 URL=https://mirrors.edge.kernel.org/pub/software/scm/git
@@ -49,13 +44,12 @@ if [ $? -eq 0 ] ; then
         SHELL=`awk -F: '{print $7}' /etc/passwd`
     fi
     SHELL=`basename $SHELL`
-    echo "current shell is $SHELL";
-    
+     
     if [ "$SHELL" == "bash" ] ; then
         echo "export PATH=/usr/local/git/bin:$PATH" >> ~/.bashrc
         source ~/.bashrc
     elif [ "$SHELL" == "zsh" ] ; then
-        echo -e "\e[37;32;1mgit has install in /usr/local/git, please execute command as follow in your terminal:\e[39;49;0m"
+        echo -e "\e[37;32;1mgit has been installed into /usr/local/git, please execute command as follow in your terminal:\e[39;49;0m"
         echo -e "\e[37;32;1mecho \"export PATH=/usr/local/git/bin:\$PATH\" >> ~/.zshrc\e[39;49;0m"
     fi
 fi

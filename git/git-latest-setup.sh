@@ -9,7 +9,7 @@ if [ "`which curl 2> /dev/null`" == "" ] ; then
             $sudo apt-get install -y curl;
         elif [ -f "/etc/redhat-release" ] ; then
             $sudo yum update;
-            $sudo yum install -y curl awk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
+            $sudo yum install -y curl gawk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
         else
             echo "please install curl, then rerun this script!!";
             exit 1;

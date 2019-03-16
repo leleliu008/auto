@@ -25,7 +25,7 @@ fi
 echo -e "\e[37;31;1mfetching the latest git version info...\e[39;49;0m";
 
 URL=https://mirrors.edge.kernel.org/pub/software/scm/git
-latestFileName=`curl -sSL# "$URL" | grep "git-\d.\d\{1,2\}.\d.tar\.xz" | awk -F\" '{print $2}' | awk -F- '{print $2}' | sort -V | awk 'END{print}'`;
+latestFileName=`curl -sSL# "$URL" | grep "git-[0-9]\{1,2\}.[0-9]\{1,2\}.[0-9]\{1,2\}.tar.xz" | awk -F\" '{print $2}' | awk -F- '{print $2}' | sort -V | awk 'END{print}'`;
 fileExtension=`echo "$latestFileName" | awk -F "." '{print $NF}'`;
 
 [ -f "$latestFileName" ] && rm -rf "$latestFileName";

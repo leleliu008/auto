@@ -7,7 +7,7 @@ if [ "$osKernelName" == "Linux" ] ; then
         $sudo apt-get update;
         $sudo apt-get install -y curl;
     elif [ -f "/etc/redhat-release" ] ; then
-        $sudo yum update;
+        $sudo yum update -y;
         $sudo yum install -y curl gawk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
     else
         echo "\e[37;31;1mplease install curl, then rerun this script!!\e[39;49;0m";

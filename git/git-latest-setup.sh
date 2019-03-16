@@ -37,7 +37,7 @@ echo "currentShell=$SHELL"
 URL=https://mirrors.edge.kernel.org/pub/software/scm/git
 latestFileName=`curl -L "$URL" | grep "git-[0-9].[0-9].[0-9].tar.[x|g]z" | awk -F\" '{print $2}' | awk 'END{print}'`
 curl -LO "$URL/$latestFileName" && \
-cd git-2.9.2 && \
+cd `tar -tf $latestFileName | sed -n "1p"` && \
 make prefix=/usr/local/git all && \
 make prefix=/usr/local/git install
 

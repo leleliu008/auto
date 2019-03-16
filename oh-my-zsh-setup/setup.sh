@@ -3,7 +3,7 @@
 function installOhMyZsh() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
     
-    if [ -f "~/.oh-my-zsh/plugins" ] ; then
+    if [ -d "~/.oh-my-zsh/plugins" ] ; then
         git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-syntax-highlighting.git && \
         git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-autosuggestions.git && \
         git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-completions.git
@@ -11,11 +11,6 @@ function installOhMyZsh() {
 }
 
 function main() {
-    if [ -f "~/.oh-my-zsh" ] ; then
-        echo "Oh-My-Zsh has already installed!"
-        exit 1
-    fi
-
     local sudo=`which sudo`;
     local osType=`uname -s`;
 

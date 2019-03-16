@@ -2,16 +2,17 @@
 
 function installOhMyZsh() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
-    
-    if [ -d "~/.oh-my-zsh/plugins" ] ; then
-        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-syntax-highlighting.git && \
-        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-autosuggestions.git && \
-        git -C ~/.oh-my-zsh/plugins clone https://github.com/zsh-users/zsh-completions.git
+    pluginsDir=~/.oh-my-zsh/plugins;    
+    if [ -d "$pluginsDir" ] ; then
+        #这里不使用-C参数的因为是，CentOS里的git命令的版本比较低，没有此参数
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $pluginsDir/zsh-syntax-highlighting && \
+        git clone https://github.com/zsh-users/zsh-autosuggestions.git $pluginsDir/zsh-autosuggestions  && \
+        git clone https://github.com/zsh-users/zsh-completions.git $pluginsDir/zsh-completions
     fi
 }
 
 function main() {
-    local sudo=`which sudo`;
+    local sudo=`which sudo 2> /dev/null`;
     local osType=`uname -s`;
 
     if [ "$osType" == "Linux" ] ; then

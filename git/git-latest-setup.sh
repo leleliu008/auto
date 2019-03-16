@@ -22,7 +22,7 @@ else
     exit 1
 fi
 
-echo -e "\e[37;31;1mfetching latest git version...\e[39;49;0m";
+echo -e "\e[37;31;1mfetching the latest git version info...\e[39;49;0m";
 
 URL=https://mirrors.edge.kernel.org/pub/software/scm/git
 latestFileName=`curl -sSL# "$URL" | grep "git-[0-9].[0-9].[0-9].tar.[x|g]z" | awk -F\" '{print $2}' | awk 'END{print}'`;

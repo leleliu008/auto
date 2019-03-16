@@ -9,7 +9,7 @@ if [ "`which curl 2> /dev/null`" == "" ] ; then
             $sudo apt-get install -y curl;
         elif [ -f "/etc/redhat-release" ] ; then
             $sudo yum update;
-            $sudo yum install -y curl;
+            $sudo yum install -y curl awk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel;
         else
             echo "please install curl, then rerun this script!!";
             exit 1;
@@ -52,10 +52,10 @@ if [ $? -eq 0 ] ; then
     echo "current shell is $SHELL";
     
     if [ "$SHELL" == "bash" ] ; then
-        echo "export PATH=$PATH:/usr/local/git/bin" >> ~/.bashrc
+        echo "export PATH=/usr/local/git/bin:$PATH" >> ~/.bashrc
         source ~/.bashrc
     elif [ "$SHELL" == "zsh" ] ; then
-        echo "export PATH=$PATH:/usr/local/git/bin" >> ~/.zshrc
-        source ~/.zshrc
+        echo -e "\e[37;32;1mgit has install in /usr/local/git, please execute command as follow in your terminal:\e[39;49;0m"
+        echo -e "\e[37;32;1mecho \"export PATH=/usr/local/git/bin:\$PATH\" >> ~/.zshrc\e[39;49;0m"
     fi
 fi

@@ -28,7 +28,11 @@ URL=https://mirrors.edge.kernel.org/pub/software/scm/git
 latestFileName=`curl -sSL# "$URL" | grep "git-[0-9].[0-9].[0-9].tar.[x|g]z" | awk -F\" '{print $2}' | awk 'END{print}'`;
 fileExtension=`echo "$latestFileName" | awk -F "." '{print $NF}'`;
 
-echo -e "\e[37;31;1mthe latest git version is $latestFileName , start downloading ...\e[39;49;0m";
+[ -f "$latestFileName" ] && rm -rf "$latestFileName";
+
+echo -e "\e[37;31;1mthe latest git version is $latestFileName\e[39;49;0m";
+echo -e "\e[37;31;1mdownloading $URL/$latestFileName\e[39;49;0m";
+
 curl -LO "$URL/$latestFileName";
 
 if [ $? -eq 0 ] ; then

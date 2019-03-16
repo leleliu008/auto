@@ -53,7 +53,7 @@ if [ $? -eq 0 ] ; then
     SHELL=`basename $SHELL`
      
     if [ "$SHELL" == "bash" ] ; then
-        echo "export PATH=/usr/local/git/bin:$PATH" >> ~/.bashrc
+        echo "export PATH=/usr/local/git/bin:\$PATH" >> ~/.bashrc
         source ~/.bashrc
     elif [ "$SHELL" == "zsh" ] ; then
         echo -e "\e[37;32;1mgit has been installed into /usr/local/git, please execute command as follow in your terminal:\e[39;49;0m"

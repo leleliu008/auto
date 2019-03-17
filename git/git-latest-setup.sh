@@ -6,7 +6,7 @@ if [ "$osKernelName" == "Linux" ] ; then
     if [ -f "/etc/lsb-release" ] ; then
         $sudo apt-get update;
         $sudo apt-get install -y curl gawk sed tar xz-utils make gcc libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev;
-    elif [ -f "/etc/redhat-release" ] ; then
+    elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
         $sudo yum update -y;
         $sudo yum install -y curl gawk sed tar xz make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker;
     else

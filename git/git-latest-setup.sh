@@ -2,7 +2,7 @@
 
 osKernelName=`uname -s`
 if [ "$osKernelName" == "Linux" ] ; then
-    sudo=`which sudo 2> /dev/null`;
+    sudo=`command -v sudo 2> /dev/null`;
     if [ -f "/etc/lsb-release" ] ; then
         $sudo apt-get update;
         $sudo apt-get install -y curl gawk sed tar xz-utils make gcc libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev;

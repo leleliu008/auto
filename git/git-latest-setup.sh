@@ -5,7 +5,7 @@ if [ "$osKernelName" == "Linux" ] ; then
     sudo=`which sudo 2> /dev/null`;
     if [ -f "/etc/lsb-release" ] ; then
         $sudo apt-get update;
-        $sudo apt-get install -y curl;
+        $sudo apt-get install -y curl gawk sed make gcc libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev;
     elif [ -f "/etc/redhat-release" ] ; then
         $sudo yum update -y;
         $sudo yum install -y curl gawk sed make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker;
@@ -44,7 +44,9 @@ if [ $? -eq 0 ] ; then
 
     cd `tar -tf $latestFileName | sed -n "1p"` && \
     make prefix=/usr/local/git all && \
-    make prefix=/usr/local/git install
+    make prefix=/usr/local/git install || {
+        exit 1
+    }
 
     SHELL=`echo $SHELL`
     if [ "$SHELL" == "" ] ; then

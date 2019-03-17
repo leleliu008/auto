@@ -43,6 +43,6 @@ curl -LO "$URL/$latestFileName" && {
     cd `tar -tf $latestFileName | sed -n "1p"` && \
     make prefix=/usr/local/git all && \
     make prefix=/usr/local/git install && \
-    $sudo -s /usr/local/git/bin/git /usr/local/bin/git && \
+    $sudo ln -sfF /usr/local/git/bin/git /usr/local/bin/git && \
     echo -e "\e[37;32;1mgit has been installed into /usr/local/git\e[39;49;0m"
 }

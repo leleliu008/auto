@@ -37,13 +37,13 @@ function installDependency() {
     # 如果是Ubuntu系统
     if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
         sudo apt-get update
-        sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
-        sudo apt-get install -y git subversion vim curl wget zip unzip
+        sudo apt-get -y install gcc-multilib lib32z1 lib32stdc++6
+        sudo apt-get -y install git subversion vim curl wget zip unzip
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum update
-        sudo yum install -y glibc.i686 zlib.i686 libstdc++.i686
-        sudo yum install -y git subversion vim curl wget
+        sudo yum -y install glibc.i686 zlib.i686 libstdc++.i686
+        sudo yum -y install git subversion vim curl wget
     fi
 }
 
@@ -138,7 +138,7 @@ function configAndroidSDKEnv() {
 
 # 更新Android SDK
 function updateAndroidSDK() {
-	which sdkmanager 2> /dev/null
+	command -v sdkmanager &> /dev/null
 	if [ $? -eq 0 ] ; then
 		sdkmanager "platforms;android-${ANDROID_SDK_FRAMEWORK_VERSION}" "platform-tools" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" "extras;android;m2repository" "extras;google;m2repository" "cmake;3.6.3155560" "tools"
 	else

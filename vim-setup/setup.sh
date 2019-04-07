@@ -31,11 +31,11 @@ function installCurlOnMacOSX() {
 }
 
 function installOnUbuntu() {
-    command -v "$1" &> /dev/null || $role apt-get install -y "$2"
+    command -v "$1" &> /dev/null || $role apt-get -y install "$2"
 }
 
 function installOnCentOS() {
-    command -v "$1" &> /dev/null || $role yum install -y "$2"
+    command -v "$1" &> /dev/null || $role yum -y install "$2"
 }
 
 function installVundle() {

@@ -56,13 +56,13 @@ function main() {
     # 如果是Ubuntu系统
     if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
         sudo apt-get update
-        sudo apt-get install -y curl
+        sudo apt-get -y install curl
     
         downloadAndUnzip
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum update
-        sudo yum install -y curl
+        sudo yum -y install curl
     
         downloadAndUnzip
     else

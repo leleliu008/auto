@@ -19,11 +19,11 @@ function installBrew() {
     if [ "`uname -s`" = "Darwin" ] ; then
         echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
     elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
-        sudo apt-get install -y build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
+        sudo apt-get -y install build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum groupinstall -y 'Development Tools' && \
-        sudo yum install -y irb python-setuptools
+        sudo yum -y groupinstall 'Development Tools' && \
+        sudo yum -y install irb python-setuptools
 
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     else

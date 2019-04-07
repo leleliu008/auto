@@ -46,26 +46,26 @@ function setMySQLRootPassword() {
 function installMySQL() {
     # 如果是Ubuntu系统
     if [ -f "/etc/lsb-release" ] ; then
-        sudo apt-get undate
-        sudo apt-get install -y curl wget unzip zip
+        sudo apt-get -y update
+        sudo apt-get -y install curl wget unzip zip
         
-        which mysqld
+        command -v mysqld &> /dev/null
         if [ $? -eq 0 ] ; then
             echo "mysql already installed!"
         else
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server
+            sudo DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
             setMySQLRootPassword
         fi
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum undate
-        sudo yum install -y curl wget unzip zip
+        sudo yum -y update
+        sudo yum -y install curl wget unzip zip
         
-        which mysqld
+        command -v mysqld &> /dev/null
         if [ $? -eq 0 ] ; then
             echo "mysql already installed!"
         else
-            sudo yum install -y mysql-server
+            sudo yum -y install mysql-server
             setMySQLRootPassword
         fi
     else
@@ -150,7 +150,7 @@ function downloadFileAndExtractTo() {
 
 # 下载JDK
 function downloadJDKAndConfig() {
-    which java
+    command -v java &> /dev/null
     if [ $? -eq 0 ] ; then
         echo "JDK is already installed! so, not need to download and config"
     else
@@ -192,7 +192,7 @@ function main() {
     # 启动Tomcat服务
     sh ${tomcatHomeDir}/bin/startup.sh
     
-    cd -
+    cd - > /dev/null
 }
 
 main

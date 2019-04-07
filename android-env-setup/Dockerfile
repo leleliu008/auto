@@ -28,8 +28,8 @@ ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_
 # 更新软件库，安装依赖库和依赖工具
 RUN \
     apt-get update && \
-    apt-get install -y gcc-multilib lib32z1 lib32stdc++6 && \
-    apt-get install -y git subversion vim curl wget openssh-server &&\
+    apt-get -y install gcc-multilib lib32z1 lib32stdc++6 && \
+    apt-get -y install git subversion vim curl wget openssh-server &&\
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

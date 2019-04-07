@@ -28,12 +28,12 @@ function main() {
         # 如果是Ubuntu系统
         if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             $sudo apt-get update && \
-            $sudo apt-get install -y curl git zsh && \
+            $sudo apt-get -y install curl git zsh && \
             installOhMyZsh
         # 如果是CentOS系统
         elif [ -f "/etc/redhat-release" ] ; then
             $sudo yum update && \
-            $sudo yum install -y curl git zsh && \
+            $sudo yum -y install curl git zsh && \
             installOhMyZsh
         else
             echo "your system os is not ubuntu or centos"!

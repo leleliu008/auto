@@ -14,60 +14,22 @@
 installByHomeBrew=(curl wget zip unzip tree vim node npm httpie tomcat jenkins maven gradle apktool);
 installByHomeBrewCask=(iterm2 firefox google-chrome sublime webstorm eclipse-jee docker android-sdk android-ndk android-studioi genymotion skitch);
 
-#------------------------------------------------------------------------------#
-
-function installCommandLineDeveloperTools() {
-    which git > /dev/null
-    if [ $? -eq 0 ] ; then
-        which svn > /dev/null
-        if [ $? -eq 0 ] ; then
-            echo "CommandLineDeveloperTools already installed!"
-        else
-            xcode-select --install
-        fi
-    else
-        xcode-select --install
-    fi
-}
-
 # 安装HomeBrew
 function installHomeBrew() {
-    which brew > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "brew is already installed!"
-    else
-        echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && brew update
-    fi
-}
-
-# 用HomeBrew安装软件
-# $1是要安装的包
-# $2是安装的包里面的命令
-function installByHomeBrew() {
-    which $2 > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 is already installed!"
-        return 1
-    else
-        brew install $1
-    fi
+    command -v brew &> /dev/null || (echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && brew update)
 }
 
 function main() {
-    installCommandLineDeveloperTools
+    command -v git &> /dev/null || command -v svn &> /dev/null || xcode-select --install
 
-    installHomeBrew
-    if [ $? -ne 0 ] ; then
+    installHomeBrew || (
         echo "installBrew occur error!"
         exit 1
-    fi
-
-    echo "----------------------------------------------------------------"
+    )
 
     for name in ${installByHomeBrew[*]}
     do
         brew install $name
-        echo "----------------------------------------------------------------"
     done
 
     npm config set registry https://registry.npm.taobao.org
@@ -75,7 +37,6 @@ function main() {
     for name in ${installByHomeBrewCask[*]}
     do
         brew cask install $name
-        echo "----------------------------------------------------------------"
     done
 
 }

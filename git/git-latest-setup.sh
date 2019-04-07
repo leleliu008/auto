@@ -4,11 +4,11 @@ osKernelName=`uname -s`
 if [ "$osKernelName" == "Linux" ] ; then
     sudo=`command -v sudo 2> /dev/null`;
     if [ -f "/etc/lsb-release" ] ; then
-        $sudo apt-get update;
-        $sudo apt-get install -y curl gawk sed tar xz-utils make gcc libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev;
+        $sudo apt-get -y update;
+        $sudo apt-get -y install curl gawk sed tar xz-utils make gcc libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev;
     elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
-        $sudo yum update -y;
-        $sudo yum install -y curl gawk sed tar xz make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker;
+        $sudo yum -y update;
+        $sudo yum -y install curl gawk sed tar xz make gcc curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker;
     else
         echo "\e[37;31;1mplease install curl, then rerun this script!!\e[39;49;0m";
         exit 1;

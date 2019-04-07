@@ -59,16 +59,16 @@ function installDependency() {
     if [ -f "/etc/lsb-release" ] ; then
         sudo apt-get update
         echo "----------------------------------------------------------------"
-        sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
+        sudo apt-get -y install gcc-multilib lib32z1 lib32stdc++6
         echo "----------------------------------------------------------------"
-        sudo apt-get install -y git subversion curl wget zip unzip tree vim ruby
+        sudo apt-get -y install git subversion curl wget zip unzip tree vim ruby
     # 如果是CentOS系统
     elif [ -f "/etc/redhat-release" ] ; then
         sudo yum update
         echo "----------------------------------------------------------------"
-        sudo yum install -y glibc.i686 zlib.i686 libstdc++.i686
+        sudo yum -y install glibc.i686 zlib.i686 libstdc++.i686
         echo "----------------------------------------------------------------"
-        sudo yum install -y git subversion curl wget zip unzip tree vim ruby
+        sudo yum -y install git subversion curl wget zip unzip tree vim ruby
     fi
 }
 
@@ -83,21 +83,20 @@ function configBrewEnv() {
 
 # 安装LinuxBrew
 function installBrew() {
-    which brew > /dev/null
-    if [ $? -eq 0 ] ; then
+    command -v brew &> /dev/null && (
         echo "brew is already installed!"
         return 0
-    fi
+    )
 
     if [ -f "/etc/lsb-release" ] ; then
-        sudo apt-get install -y build-essential m4 python-setuptools texinfo libbz2-dev \
+        sudo apt-get -y install build-essential m4 python-setuptools texinfo libbz2-dev \
                                 libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
 
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
     elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum groupinstall -y 'Development Tools' && \
-        sudo yum install -y irb python-setuptools
+        sudo yum -y groupinstall 'Development Tools' && \
+        sudo yum -y install irb python-setuptools
 
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
         configBrewEnv
@@ -108,13 +107,7 @@ function installBrew() {
 # $1是要安装的包
 # $2是安装的包里面的命令
 function installByBrew() {
-    which $2 > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 is already installed!"
-        return 1
-    else
-        brew install $1
-    fi
+    command -v $2 &> /dev/null || brew install $1
 }
 
 # 下载并解压.tar.gz或者.tgz文件
@@ -212,7 +205,7 @@ function configAndroidSDKEnv() {
 function updateAndroidSDK() {
     echo "----------------------------------------------------------------"
     echo "updateAndroidSDK..."
-    which sdkmanager >& /dev/null
+    command -v sdkmanager &> /dev/null
     if [ $? -eq 0 ] ; then
         sdkmanager "platforms;android-${ANDROID_SDK_FRAMEWORK_VERSION}" "platform-tools" "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}" "extras;android;m2repository" "extras;google;m2repository" "cmake;3.6.3155560" "tools"
     else

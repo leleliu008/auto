@@ -6,12 +6,7 @@ if [ `whoami` != "root" ] ; then
 fi
 
 function installCommandLineDeveloperToolsOnMacOSX() {
-    which git >& /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "CommandLineDeveloperTools already installed!"
-    else
-        xcode-select --install
-    fi
+    command -v git &> /dev/null || xcode-select --install
 }
 
 # 配置Brew的环境变量
@@ -25,12 +20,7 @@ function configBrewEnv() {
 
 # 在Mac OSX上安装HomeBrew
 function installBrewOnMacOSX() {
-    which brew >& /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "brew already installed!"
-    else
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
-    fi
+    command -v brew &> /dev/null || (echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update)
 }
 
 # Mac OSX上用HomeBrew安装软件
@@ -42,12 +32,7 @@ function installByBrewOnMacOSX() {
         return 0
     fi
 
-    which "$2"  >& /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        brew install "$1"
-    fi
+    command -v "$2"  &> /dev/null || brew install "$1"
 }
 
 # 在Ubuntu上用apt-get安装软件
@@ -55,16 +40,11 @@ function installByBrewOnMacOSX() {
 # $2是这个软件包中的一个可执行文件，可以为空
 function installByAptOnUbuntu() {
     if [ -z "$2" ] ; then
-        $role apt-get install -y "$1"
+        $role apt-get -y install "$1"
         return 0
     fi
 
-    which "$2" >& /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        $role apt-get install -y "$1"
-    fi
+    command -v "$2" &> /dev/null || $role apt-get -y install "$1"
 }
 
 # 在CentOS上用yum安装软件
@@ -72,30 +52,24 @@ function installByAptOnUbuntu() {
 # $2是这个软件包中的一个可执行文件，可以为空
 function installByYumOnCentOS() {
     if [ -z "$2" ] ; then
-        $role yum install -y "$1"
+        $role yum -y install "$1"
         return 0
     fi
 
-    which "$2" >& /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        $role yum install -y "$1"
-    fi
+    command -v "$2" &> /dev/null || $role yum -y install "$1"
 }
 
 # $1是要安装到的目录
 function installBashCompletionExt() {
     cd "$1"
     curl -L -O https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
-    cd -
+    cd - > /dev/null
 }
 
 function main() {
     osType=`uname -s`
-    echo "osType=$osType"
-
-    if [ $osType = "Darwin" ] ; then
+    
+    if [ "$osType" == "Darwin" ] ; then
         installCommandLineDeveloperToolsOnMacOSX
         installBrewOnMacOSX
         installByBrewOnMacOSX curl curl
@@ -104,7 +78,7 @@ function main() {
         $role echo "[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion" >> /etc/profile && source /etc/profile
 
         installBashCompletionExt "/usr/local/etc/bash_completion.d"
-    elif [ $osType = "Linux" ] ; then
+    elif [ "$osType" == "Linux" ] ; then
         if [ -f '/etc/lsb-release' ] ; then
             installByAptOnUbuntu curl curl
             installByAptOnUbuntu bash-completion

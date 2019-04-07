@@ -73,7 +73,7 @@ function main() {
         installVimOnMacOSX
         installCurlOnMacOSX
     elif [ "$osType" = "Linux" ] ; then
-        if [ -f '/etc/lsb-release' ] ; then
+        if [ -f '/etc/lsb-release' || -f '/etc/os-release' ] ; then
             installOnUbuntu git git
             installOnUbuntu curl curl
             installOnUbuntu vim vim

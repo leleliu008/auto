@@ -16,48 +16,32 @@ ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
 #------------------------------------------------------------------------------#
 
 function installCommandLineDeveloperTools() {
-    which git > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "CommandLineDeveloperTools already installed!"
-    else
-        xcode-select --install
-    fi
+    command -v git &> /dev/null || xcode-select --install
 }
 
 function installBrew() {
-    which brew > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "brew already installed!"
-    else
-        echo -e '\n' | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    fi                                                                         
+    command -v brew &> /dev/null || echo -e '\n' | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
 
 function installByBrew() {
-    which "$1"  > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        brew install "$2"
-    fi
+    command -v "$1" &> /dev/null || brew install "$1"
 }
 
 function main() {
-    # 如果不是MacOSX系统就退出
-    if [ `uname -s` != "Darwin" ] ; then
+    [ "`uname -s`" == "Darwin" ] || {
         echo "your system os is not MacOSX"
         exit 1;
-    fi
+    }
 
     installCommandLineDeveloperTools
 
     installBrew && brew update
 
-    installByBrew curl curl
-    installByBrew wget wget
-    installByBrew vim vim
+    installByBrew curl
+    installByBrew wget
+    installByBrew vim
     
-    brew cask install java
+    brew cask install java8
     brew cask install android-sdk
     brew cask install android-ndk
     brew cask install android-studio

@@ -12,12 +12,12 @@ function installOhMyZsh() {
 }
 
 function main() {
-    local sudo=`which sudo 2> /dev/null`;
+    local sudo=`command -v sudo 2> /dev/null`;
     local osType=`uname -s`;
 
     if [ "$osType" == "Linux" ] ; then
         # 如果是Ubuntu系统
-        if [ -f "/etc/lsb-release" ] ; then
+        if [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
             $sudo apt-get update && \
             $sudo apt-get install -y curl git zsh && \
             installOhMyZsh

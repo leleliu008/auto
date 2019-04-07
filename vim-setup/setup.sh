@@ -6,7 +6,7 @@ if [ `whoami` != "root" ] ; then
 fi
 
 function installCommandLineDeveloperToolsOnMacOSX() {
-    command -v git 2&> /dev/null || xcode-select --install
+    command -v git &> /dev/null || xcode-select --install
 }
 
 # 配置Brew的环境变量
@@ -19,23 +19,23 @@ function configBrewEnv() {
 }
 
 function installBrewOnMacOSX() {
-    command -v brew 2&> /dev/null || echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
+    command -v brew &> /dev/null || echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
 }
 
 function installVimOnMacOSX() {
-    command -v vim  2&> /dev/null || brew install vim
+    command -v vim  &> /dev/null || brew install vim
 }
 
 function installCurlOnMacOSX() {
-    command -v curl 2&> /dev/null || brew install curl
+    command -v curl &> /dev/null || brew install curl
 }
 
 function installOnUbuntu() {
-    command -v "$1" 2&> /dev/null || $role apt-get install -y "$2"
+    command -v "$1" &> /dev/null || $role apt-get install -y "$2"
 }
 
 function installOnCentOS() {
-    command -v "$1" 2&> /dev/null || $role yum install -y "$2"
+    command -v "$1" &> /dev/null || $role yum install -y "$2"
 }
 
 function installVundle() {
@@ -43,7 +43,7 @@ function installVundle() {
     if [ -d "$vundleDir" ] ; then
         cd $vundleDir
         git pull > /dev/null || git clone http://github.com/VundleVim/Vundle.vim.git
-        cd - 2&> /dev/null
+        cd - &> /dev/null
     else
         mkdir -p $vundleDir
         git clone http://github.com/VundleVim/Vundle.vim.git $vundleDir

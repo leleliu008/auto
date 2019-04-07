@@ -11,15 +11,14 @@ function configBrewEnv() {
 
 # 安装LinuxBrew
 function installBrew() {
-    which brew >& /dev/null
-    if [ $? -eq 0 ] ; then
+    command -v brew &> /dev/null && {
         echo "brew is already installed!"
-        return 0
-    fi
+        exit 0
+  }
 
-    if [ `uname -s` = "Darwin" ] ; then
+    if [ "`uname -s`" = "Darwin" ] ; then
         echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
-    elif [ -f "/etc/lsb-release" ] ; then
+    elif [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
         sudo apt-get install -y build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     elif [ -f "/etc/redhat-release" ] ; then
@@ -33,7 +32,7 @@ function installBrew() {
 }
 
 function main() {
-    if [ `whoami` != "root" ] ; then
+    if [ "`whoami`" != "root" ] ; then
         echo "don't run as root!"
     else
         installBrew

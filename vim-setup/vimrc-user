@@ -115,8 +115,8 @@ set number    "显示行号
 set sm        "自动匹配} ] ) ,编程时用
 set sw=6      "shift+>> 右移一次6个字符
 set encoding=UTF-8
-set langmenu=zh_CN.UTF-8
-language message zh_CN.UTF-8
+"set langmenu=zh_CN.UTF-8
+"language message zh_CN.UTF-8
 
 "https://www.cnblogs.com/leisurelylicht/p/Mac-deVIM-zhongdelete-jian-shi-xiao-de-yuan-yin-he.html
 set backspace=2

@@ -35,7 +35,7 @@ ANDROID_STUDIO_URL=https://dl.google.com/dl/android/studio/ide-zips/3.1.1.0/andr
 # 安装依赖库和工具
 function installDependency() {
     # 如果是Ubuntu系统
-    if [ -f "/etc/lsb-release" ] ; then
+    if [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
         sudo apt-get update
         sudo apt-get install -y gcc-multilib lib32z1 lib32stdc++6
         sudo apt-get install -y git subversion vim curl wget zip unzip

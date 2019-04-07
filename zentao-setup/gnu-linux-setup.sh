@@ -22,7 +22,7 @@ MYSQL_PORT=3306
 function downloadAndUnzip() {
     # 32位还是64位
     x=32
-    if [ `uname -m` = "x86_64" ] ; then
+    if [ "`uname -m`" == "x86_64" ] ; then
         x=64
     fi
     
@@ -54,7 +54,7 @@ function downloadAndUnzip() {
 
 function main() {
     # 如果是Ubuntu系统
-    if [ -f "/etc/lsb-release" ] ; then
+    if [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
         sudo apt-get update
         sudo apt-get install -y curl
     

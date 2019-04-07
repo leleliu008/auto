@@ -6,12 +6,7 @@ if [ `whoami` != "root" ] ; then
 fi
 
 function installCommandLineDeveloperToolsOnMacOSX() {
-    which git > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "CommandLineDeveloperTools already installed!"
-    else
-        xcode-select --install
-    fi
+    command -v git 2&> /dev/null || xcode-select --install
 }
 
 # 配置Brew的环境变量
@@ -24,67 +19,34 @@ function configBrewEnv() {
 }
 
 function installBrewOnMacOSX() {
-    which brew > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "brew already installed!"
-    else
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
-    fi
+    command -v brew 2&> /dev/null || echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
 }
 
 function installVimOnMacOSX() {
-    which vim  > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "vim already installed!"
-    else
-        brew install vim
-    fi
+    command -v vim  2&> /dev/null || brew install vim
 }
 
 function installCurlOnMacOSX() {
-    which curl > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "curl already installed!"
-    else
-        brew install curl
-    fi
+    command -v curl 2&> /dev/null || brew install curl
 }
 
 function installOnUbuntu() {
-    which "$1" > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        $role apt-get -y install "$2"
-    fi
+    command -v "$1" 2&> /dev/null || $role apt-get install -y "$2"
 }
 
 function installOnCentOS() {
-    which "$1" > /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "$1 already installed!"
-    else
-        $role yum -y install "$2"
-    fi
+    command -v "$1" 2&> /dev/null || $role yum install -y "$2"
 }
 
 function installVundle() {
-    vundleDir="${HOME}/.vim/bundle/vundle"
+    vundleDir="${HOME}/.vim/bundle/Vundle.vim"
     if [ -d "$vundleDir" ] ; then
         cd $vundleDir
-        
-        git pull > /dev/null
-
-        if [ $? -eq 0 ] ; then
-            echo "Vundle already installed!"
-        else
-            git clone http://github.com/gmarik/vundle.git $vundleDir
-        fi
-
-        cd - > /dev/null
+        git pull > /dev/null || git clone http://github.com/VundleVim/Vundle.vim.git
+        cd - 2&> /dev/null
     else
         mkdir -p $vundleDir
-        git clone http://github.com/gmarik/vundle.git $vundleDir
+        git clone http://github.com/VundleVim/Vundle.vim.git $vundleDir
     fi
 }
 
@@ -105,12 +67,12 @@ function main() {
     osType=`uname -s`
     echo "osType=$osType"
 
-    if [ $osType = "Darwin" ] ; then
+    if [ "$osType" = "Darwin" ] ; then
         installCommandLineDeveloperToolsOnMacOSX
         installBrewOnMacOSX
         installVimOnMacOSX
         installCurlOnMacOSX
-    elif [ $osType = "Linux" ] ; then
+    elif [ "$osType" = "Linux" ] ; then
         if [ -f '/etc/lsb-release' ] ; then
             installOnUbuntu git git
             installOnUbuntu curl curl
@@ -129,10 +91,7 @@ function main() {
     if [ -f 'vimrc-user' ] ; then
         updateVimrcOfCurrentUser
     else
-        curl -O https://raw.githubusercontent.com/leleliu008/auto/master/vim-setup/vimrc-user
-        if [ $? -eq 0 ] ; then
-            updateVimrcOfCurrentUser
-        fi
+        curl -O https://raw.githubusercontent.com/leleliu008/auto/master/vim-setup/vimrc-user && updateVimrcOfCurrentUser
     fi
 }
 

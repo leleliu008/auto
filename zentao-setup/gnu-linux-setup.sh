@@ -54,7 +54,7 @@ function downloadAndUnzip() {
 
 function main() {
     # 如果是Ubuntu系统
-    if [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
+    if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
         sudo apt-get update
         sudo apt-get install -y curl
     

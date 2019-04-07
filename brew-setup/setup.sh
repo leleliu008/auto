@@ -18,7 +18,7 @@ function installBrew() {
 
     if [ "`uname -s`" = "Darwin" ] ; then
         echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
-    elif [ -f "/etc/lsb-release" ] || [ -f "/etc/os-release" ] ; then
+    elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
         sudo apt-get install -y build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
     elif [ -f "/etc/redhat-release" ] ; then

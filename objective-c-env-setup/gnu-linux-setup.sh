@@ -27,11 +27,11 @@ function installGNUstepV1OnCentOS() {
 }
 
 function main() {
-    if [ `uname -s` = "Darwin" ] ; then
+    if [ "`uname -s`" == "Darwin" ] ; then
         echo "your os is not GNU/Linux";
         exit 1
     else
-        if [ -f "/etc/lsb-release" ] ; then
+        if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             installGNUstepV1OnUbuntu
         elif [ -f "/etc/redhat-release" ] ; then
             installGNUstepV1OnCentOS

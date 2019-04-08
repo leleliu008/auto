@@ -1,16 +1,19 @@
 #!/bin/bash
 
 function installOhMyZsh() {
-    curl -fsSL -o oh-my-zsh-install.sh https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
+    local scriptFileName="`date +%Y%m%d%H%M%S`.sh"
+    [ -f "$scriptFileName" ] && rm "$scriptFileName"
+
+    curl -fsSL -o "$scriptFileName" https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
     
-    local lineNumber=`grep "env zsh -l" -n oh-my-zsh-install.sh | awk -F: '{print $1}'`
+    local lineNumber=`grep "env zsh -l" -n $scriptFileName | awk -F: '{print $1}'`
     if [ "$osType" == "Darwin" ] ; then
-        gsed -i "${lineNumber}d" oh-my-zsh-install.sh
+        gsed -i "${lineNumber}d" $scriptFileName
     else 
-        sed -i "${lineNumber}d" oh-my-zsh-install.sh
+        sed -i "${lineNumber}d" $scriptFileName
     fi
 
-    source oh-my-zsh-install.sh && rm oh-my-zsh-install.sh || exit 1
+    source $scriptFileName && rm $scriptFileName || exit 1
     
     local pluginsDir=~/.oh-my-zsh/plugins
     
@@ -40,7 +43,6 @@ function installOhMyZsh() {
             done
             echo "autoload -U compinit && compinit" >> ~/.zshrc
             env zsh -l
-            source ~/.zshrc
         }
     fi
 }

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 function installOhMyZsh() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
@@ -43,7 +43,7 @@ function main() {
         # 如果是Ubuntu系统
         if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             $sudo apt-get -y update && \
-            $sudo apt-get -y install curl git zsh gnu-sed && \
+            $sudo apt-get -y install curl git zsh sed && \
             installOhMyZsh
         # 如果是CentOS系统
         elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
@@ -52,7 +52,7 @@ function main() {
             installOhMyZsh
         elif [ -f "/etc/alpine-release" ] ; then
             $sudo apk update && \
-            $sudo apk add -y curl git zsh sed && \
+            $sudo apk add curl git zsh sed && \
             installOhMyZsh
         else
             echo "your os is unrecognized!!"

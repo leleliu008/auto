@@ -2,7 +2,6 @@
 
 function installOhMyZsh() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
-    exit
     pluginsDir=~/.oh-my-zsh/plugins;    
     if [ -d "$pluginsDir" ] ; then
         #这里不使用-C参数的因为是，CentOS里的git命令的版本比较低，没有此参数
@@ -30,7 +29,6 @@ function installOhMyZsh() {
             done
             echo "autoload -U compinit && compinit" >> ~/.zshrc
             source ~/.zshrc
-            env zsh -l
         }
     fi
 }

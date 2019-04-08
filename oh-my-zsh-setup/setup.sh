@@ -10,7 +10,7 @@ function installOhMyZsh() {
         sed -i "${lineNumber}d" oh-my-zsh-install.sh
     fi
 
-    ./oh-my-zsh-install.sh || exit 1
+    source oh-my-zsh-install.sh && rm oh-my-zsh-install.sh || exit 1
     
     local pluginsDir=~/.oh-my-zsh/plugins
     
@@ -39,6 +39,7 @@ function installOhMyZsh() {
                 fi
             done
             echo "autoload -U compinit && compinit" >> ~/.zshrc
+            env zsh -l
             source ~/.zshrc
         }
     fi

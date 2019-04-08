@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function installOhMyZsh() {
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
@@ -48,7 +48,7 @@ function main() {
         # 如果是CentOS系统
         elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
             $sudo yum -y update && \
-            $sudo yum -y install curl git zsh gnu-sed && \
+            $sudo yum -y install curl git zsh sed && \
             installOhMyZsh
         elif [ -f "/etc/alpine-release" ] ; then
             $sudo apk update && \

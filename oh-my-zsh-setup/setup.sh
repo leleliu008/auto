@@ -13,7 +13,7 @@ function installOhMyZsh() {
         sed -i "${lineNumber}d" $scriptFileName
     fi
 
-    source $scriptFileName && rm $scriptFileName || exit 1
+    (source $scriptFileName && rm $scriptFileName) || exit 1
     
     local pluginsDir=~/.oh-my-zsh/plugins
     

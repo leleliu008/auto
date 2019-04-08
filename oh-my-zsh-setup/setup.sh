@@ -1,8 +1,19 @@
 #!/bin/bash
 
 function installOhMyZsh() {
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";
-    pluginsDir=~/.oh-my-zsh/plugins;    
+    curl -fsSL -o oh-my-zsh-install.sh https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
+    
+    local lineNumber=`grep "env zsh -l" -n oh-my-zsh-install.sh | awk -F: '{print $1}'`
+    if [ "$osType" == "Darwin" ] ; then
+        gsed -i "${lineNumber}d" oh-my-zsh-install.sh
+    else 
+        sed -i "${lineNumber}d" oh-my-zsh-install.sh
+    fi
+
+    ./oh-my-zsh-install.sh || exit 1
+    
+    local pluginsDir=~/.oh-my-zsh/plugins
+    
     if [ -d "$pluginsDir" ] ; then
         #这里不使用-C参数的因为是，CentOS里的git命令的版本比较低，没有此参数
         git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $pluginsDir/zsh-syntax-highlighting && \

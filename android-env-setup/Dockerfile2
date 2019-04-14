@@ -1,10 +1,16 @@
+#参考：https://hub.docker.com/r/jacekmarchwicki/android/dockerfile
+
 FROM ubuntu:18.04
 
 MAINTAINER 792793182@qq.com
 
 # Android SDK Tools下载地址：https://developer.android.google.cn/studio
 RUN apt-get update && \
-    apt-get install -y curl unzip openjdk-8-jdk && \
+    apt-get install -y curl unzip software-properties-common && \
+    add-apt-repository -y ppa:webupd8team/java && \
+    (echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections) && \
+    apt-get update && \
+    apt-get install -y oracle-java8-installer && \
     apt-get clean && \
     rm -fr /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir -p /usr/local/share/android-sdk && \
@@ -17,7 +23,7 @@ RUN apt-get update && \
     echo y | ./sdkmanager "platform-tools" && \
     echo y | ./sdkmanager "build-tools;28.0.3"
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 ENV ANDROID_HOME /usr/local/share/android-sdk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV LANG C.UTF-8

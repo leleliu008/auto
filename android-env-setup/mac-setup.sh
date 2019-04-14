@@ -6,15 +6,6 @@
 # 所有软件均通过HomeBrew进行安装
 #------------------------------------------------------------------------------#
 
-# SDK framework API level
-ANDROID_SDK_FRAMEWORK_VERSION=23
-
-# 构建工具的版本
-ANDROID_SDK_BUILD_TOOLS_VERSION=23.0.2
-
-
-#------------------------------------------------------------------------------#
-
 function installCommandLineDeveloperTools() {
     command -v git &> /dev/null || xcode-select --install
 }
@@ -41,12 +32,12 @@ function main() {
     installByBrew wget
     installByBrew vim
     
-    brew cask install java8
-    brew cask install android-sdk
-    brew cask install android-ndk
-    brew cask install android-studio
-    brew cask install genymotion
-    brew cask install iterm2
+    brew cask reinstall java8
+    brew cask reinstall android-sdk
+    brew cask reinstall android-ndk
+    brew cask reinstall android-studio
+    brew cask reinstall genymotion
+    brew cask reinstall iterm2
 }
 
 main

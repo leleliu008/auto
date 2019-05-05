@@ -52,16 +52,25 @@ function main() {
     osType=`uname -s`;
 
     if [ "$osType" == "Linux" ] ; then
-        # 如果是Ubuntu系统
+        # 如果是ArchLinux或ManjaroLinux系统
+        if [ -f "/etc/arch-release" ] || [ -f "/etc/manjaro-release" ] ; then
+            $sudo pacman -Syy && \
+            command -v curl &> /dev/null || $sudo pacman -S curl --noconfirm && \
+            command -v git  &> /dev/null || $sudo pacman -S git  --noconfirm && \
+            command -v zsh  &> /dev/null || $sudo pacman -S zsh  --noconfirm && \
+            command -v sed  &> /dev/null || $sudo pacman -S sed  --noconfirm && \
+            installOhMyZsh
+        # 如果是Ubuntu或Debian GNU/Linux系统
         if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             $sudo apt-get -y update && \
             $sudo apt-get -y install curl git zsh sed && \
             installOhMyZsh
-        # 如果是CentOS系统
+        # 如果是CentOS或Fedora系统
         elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
             $sudo yum -y update && \
             $sudo yum -y install curl git zsh sed && \
             installOhMyZsh
+        # 如果是AlpineLinux系统
         elif [ -f "/etc/alpine-release" ] ; then
             $sudo apk update && \
             $sudo apk add curl git zsh sed && \

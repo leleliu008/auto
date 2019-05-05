@@ -61,7 +61,7 @@ function main() {
             command -v sed  &> /dev/null || $sudo pacman -S sed  --noconfirm && \
             installOhMyZsh
         # 如果是Ubuntu或Debian GNU/Linux系统
-        if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
+        elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             $sudo apt-get -y update && \
             $sudo apt-get -y install curl git zsh sed && \
             installOhMyZsh

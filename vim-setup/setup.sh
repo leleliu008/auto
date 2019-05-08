@@ -9,33 +9,32 @@ function installCommandLineDeveloperToolsOnMacOSX() {
     command -v git &> /dev/null || xcode-select --install
 }
 
-# 配置Brew的环境变量
-function configBrewEnv() {
-    echo "# -----------------------------------------------" >> ~/.bashrc
-    echo "export PATH=${HOME}/.linuxbrew/bin:\$PATH" >> ~/.bashrc
-    echo "export MANPATH=${HOME}/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
-    echo "export INFOPATH=${HOME}/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
-    source ~/.bashrc
+function installHomeBrewIfNeeded() {
+      command -v brew &> /dev/null || (echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && brew update)
 }
 
-function installBrewOnMacOSX() {
-    command -v brew &> /dev/null || echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
+function installViaHomeBrew() {
+    command -v "$1" &> /dev/null || brew install "$2"
 }
 
-function installVimOnMacOSX() {
-    command -v vim  &> /dev/null || brew install vim
-}
-
-function installCurlOnMacOSX() {
-    command -v curl &> /dev/null || brew install curl
-}
-
-function installOnUbuntu() {
+function installViaApt() {
     command -v "$1" &> /dev/null || $role apt-get -y install "$2"
 }
 
-function installOnCentOS() {
+function installViaYum() {
     command -v "$1" &> /dev/null || $role yum -y install "$2"
+}
+
+function installViaDnf() {
+    command -v "$1" &> /dev/null || $role dnf -y install "$2"
+}
+
+function installViaApk() {
+    command -v "$1" &> /dev/null || $role apk add "$2"
+}
+
+function installViaPacman() {
+    command -v "$1" &> /dev/null || $role pacman -S --nocofirm "$2"
 }
 
 function installVundle() {
@@ -69,20 +68,46 @@ function main() {
 
     if [ "$osType" = "Darwin" ] ; then
         installCommandLineDeveloperToolsOnMacOSX
-        installBrewOnMacOSX
-        installVimOnMacOSX
-        installCurlOnMacOSX
+        installHomeBrewIfNeeded
+        installViaHomeBrew vim vim
+        installViaHomeBrew curl curl
+        installViaHomeBrew ctags ctags
     elif [ "$osType" = "Linux" ] ; then
-        if [ -f '/etc/lsb-release' ] || [ -f '/etc/debian_version' ] ; then
-            installOnUbuntu git git
-            installOnUbuntu curl curl
-            installOnUbuntu vim vim
-            installOnUbuntu ctags exuberant-ctags
+        #ArchLinux ManjaroLinux
+        if [ -f '/etc/archlinux-release' ] || [ -f '/etc/manjaro-release' ] ; then
+            $role pacman -Syy update
+            installViaPacman git git
+            installViaPacman curl curl
+            installViaPacman vim vim
+            installViaPacman ctags ctags
+        #AlpineLinux
+        elif [ -f '/etc/alpine-release' ] ; then
+            $role apk update
+            installViaApk git git
+            installViaApk curl curl
+            installViaApk vim vim
+            installViaApk ctags ctags
+        #Debian Ubuntu
+        elif [ -f '/etc/lsb-release' ] || [ -f '/etc/debian_version' ] ; then
+            $role apt-get -y update
+            installViaApt git git
+            installViaApt curl curl
+            installViaApt vim vim
+            installViaApt ctags exuberant-ctags
+        #Fedora
+        elif [ -f '/etc/fedora-release' ] ; then
+            $role dnf -y update
+            installViaDnf git git
+            installViaDnf curl curl
+            installViaDnf vim vim
+            installViaDnf ctags ctags-etags
+        #RHEL CentOS
         elif [ -f '/etc/redhat-release' ] ; then
-            installOnCentOS git git
-            installOnCentOS curl curl
-            installOnCentOS vim vim
-            installOnCentOS ctags ctags-etags
+            $role yum -y update
+            installViaYum git git
+            installViaYum curl curl
+            installViaYum vim vim
+            installViaYum ctags ctags-etags
         fi
     fi
     

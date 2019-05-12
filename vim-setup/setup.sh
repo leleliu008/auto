@@ -34,18 +34,19 @@ function installViaApk() {
 }
 
 function installViaPacman() {
-    command -v "$1" &> /dev/null || $role pacman -S --nocofirm "$2"
+    command -v "$1" &> /dev/null || $role pacman -S --noconfirm "$2"
 }
 
 function installVundle() {
-    vundleDir="${HOME}/.vim/bundle/Vundle.vim"
+    local pluginDir="${HOME}/.vim/bundle"
+    local vundleDir="${pluginDir}/Vundle.vim"
     if [ -d "$vundleDir" ] ; then
         cd $vundleDir
-        git pull > /dev/null || git clone http://github.com/VundleVim/Vundle.vim.git
+        git pull > /dev/null || (cd .. && git clone http://github.com/VundleVim/Vundle.vim.git)
         cd - &> /dev/null
     else
-        mkdir -p $vundleDir
-        git clone http://github.com/VundleVim/Vundle.vim.git $vundleDir
+        mkdir -p $pluginDir
+        git clone http://github.com/VundleVim/Vundle.vim.git $pluginDir
     fi
 }
 
@@ -75,49 +76,45 @@ function main() {
     elif [ "$osType" = "Linux" ] ; then
         #ArchLinux ManjaroLinux
         if [ -f '/etc/archlinux-release' ] || [ -f '/etc/manjaro-release' ] ; then
-            $role pacman -Syy update
-            installViaPacman git git
-            installViaPacman curl curl
-            installViaPacman vim vim
+            $role pacman -Syyu --noconfirm &&
+            installViaPacman git git &&
+            installViaPacman curl curl &&
+            installViaPacman vim vim &&
             installViaPacman ctags ctags
         #AlpineLinux
         elif [ -f '/etc/alpine-release' ] ; then
-            $role apk update
-            installViaApk git git
-            installViaApk curl curl
-            installViaApk vim vim
+            $role apk update &&
+            installViaApk git git &&
+            installViaApk curl curl &&
+            installViaApk vim vim &&
             installViaApk ctags ctags
         #Debian Ubuntu
         elif [ -f '/etc/lsb-release' ] || [ -f '/etc/debian_version' ] ; then
-            $role apt-get -y update
-            installViaApt git git
-            installViaApt curl curl
-            installViaApt vim vim
+            $role apt-get -y update &&
+            installViaApt git git &&
+            installViaApt curl curl &&
+            installViaApt vim vim &&
             installViaApt ctags exuberant-ctags
         #Fedora
         elif [ -f '/etc/fedora-release' ] ; then
-            $role dnf -y update
-            installViaDnf git git
-            installViaDnf curl curl
-            installViaDnf vim vim
+            $role dnf -y update &&
+            installViaDnf git git &&
+            installViaDnf curl curl &&
+            installViaDnf vim vim &&
             installViaDnf ctags ctags-etags
         #RHEL CentOS
         elif [ -f '/etc/redhat-release' ] ; then
-            $role yum -y update
-            installViaYum git git
-            installViaYum curl curl
-            installViaYum vim vim
+            $role yum -y update &&
+            installViaYum git git &&
+            installViaYum curl curl &&
+            installViaYum vim vim &&
             installViaYum ctags ctags-etags
         fi
     fi
     
     installVundle
 
-    if [ -f 'vimrc-user' ] ; then
-        updateVimrcOfCurrentUser
-    else
-        curl -O https://raw.githubusercontent.com/leleliu008/auto/master/vim-setup/vimrc-user && updateVimrcOfCurrentUser
-    fi
+    updateVimrcOfCurrentUser
 }
 
 main

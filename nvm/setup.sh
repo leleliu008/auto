@@ -71,6 +71,21 @@ function main() {
     fi
 
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    
+    [ -f "~/.bashrc" ] && {
+        echo "export NVM_DIR=~/.nvm" >> ~/.bashrc
+        echo "source \"\$NVM_DIR/nvm.sh\"" >> ~/.bashrc
+    }
+
+    [ -f "~/.bash_profile" ] && {
+        echo "export NVM_DIR=~/.nvm" >> ~/.bash_profile
+        echo "source \"\$NVM_DIR/nvm.sh\"" >> ~/.bash_profile
+    }
+    
+    [ -f "~/.zshrc" ] && {
+        echo "export NVM_DIR=~/.nvm" >> ~/.zshrc
+        echo "source \"\$NVM_DIR/nvm.sh\"" >> ~/.zshrc
+    }
 }
 
 main

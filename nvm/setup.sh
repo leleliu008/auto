@@ -49,7 +49,7 @@ function main() {
         }
     elif [ "$osType" = "Linux" ] ; then
         if [ "`uname -o 2> /dev/null`" == "Android" ] ; then
-            pkg install curl
+            pkg install -y curl
         else
             #ArchLinux ManjaroLinux
             if [ -f '/etc/archlinux-release' ] || [ -f '/etc/manjaro-release' ] ; then

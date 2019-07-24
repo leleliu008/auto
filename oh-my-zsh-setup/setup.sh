@@ -6,7 +6,7 @@ function installOhMyZsh() {
 
     curl -fsSL -o "$scriptFileName" https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
     
-    local lineNumber=`grep "env zsh -l" -n $scriptFileName | awk -F: '{print $1}'`
+    local lineNumber=`grep "exec zsh -l" -n $scriptFileName | awk -F: '{print $1}'`
     if [ "$osType" == "Darwin" ] ; then
         gsed -i "${lineNumber}d" $scriptFileName
     else 
@@ -59,21 +59,22 @@ function main() {
             command -v git  &> /dev/null || $sudo pacman -S git  --noconfirm && \
             command -v zsh  &> /dev/null || $sudo pacman -S zsh  --noconfirm && \
             command -v sed  &> /dev/null || $sudo pacman -S sed  --noconfirm && \
+            command -v awk  &> /dev/null || $sudo pacman -S gawk --noconfirm && \
             installOhMyZsh
         # 如果是Ubuntu或Debian GNU/Linux系统
         elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
             $sudo apt-get -y update && \
-            $sudo apt-get -y install curl git zsh sed && \
+            $sudo apt-get -y install curl git zsh sed gawk && \
             installOhMyZsh
         # 如果是CentOS或Fedora系统
         elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
             $sudo yum -y update && \
-            $sudo yum -y install curl git zsh sed && \
+            $sudo yum -y install curl git zsh sed gawk && \
             installOhMyZsh
         # 如果是AlpineLinux系统
         elif [ -f "/etc/alpine-release" ] ; then
             $sudo apk update && \
-            $sudo apk add curl git zsh sed && \
+            $sudo apk add curl git zsh sed gawk && \
             installOhMyZsh
         else
             echo "your os is unrecognized!!"
@@ -84,6 +85,7 @@ function main() {
         command -v curl &> /dev/null || brew install curl
         command -v git  &> /dev/null || brew install git
         command -v gsed &> /dev/null || brew install gnu-sed
+        command -v awk  &> /dev/null || brew install gawk
         installOhMyZsh
     else
         echo "your os is unrecognized!!"

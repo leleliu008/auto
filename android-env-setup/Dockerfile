@@ -3,7 +3,13 @@ FROM ubuntu:18.04
 MAINTAINER 792793182@qq.com
 
 # Android SDK Tools下载地址：https://developer.android.google.cn/studio
-RUN apt-get update && \
+RUN rm /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
+    apt-get update && \
     apt-get install -y curl unzip openjdk-8-jdk && \
     apt-get clean && \
     rm -fr /var/lib/apt/lists/* /tmp/* /var/tmp/* && \

@@ -1,6 +1,3 @@
-#参考：https://hub.docker.com/r/jacekmarchwicki/android/dockerfile
-#此方式已经失效，参考：https://launchpad.net/~webupd8team/+archive/ubuntu/java
-
 FROM ubuntu:18.04
 
 MAINTAINER 792793182@qq.com
@@ -13,11 +10,7 @@ RUN rm /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y curl unzip software-properties-common && \
-    add-apt-repository -y ppa:webupd8team/java && \
-    (echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections) && \
-    apt-get update && \
-    apt-get install -y oracle-java8-installer && \
+    apt-get install -y curl unzip openjdk-8-jdk git make g++ automake autoconf autoconf-archive libtool libboost-all-dev liblz4-dev liblzma-dev zlib1g-dev binutils-dev libjemalloc-dev libiberty-dev libjsoncpp-dev && \
     apt-get clean && \
     rm -fr /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     mkdir -p /usr/local/share/android-sdk && \
@@ -28,9 +21,17 @@ RUN rm /etc/apt/sources.list && \
     cd tools/bin && \
     echo y | ./sdkmanager "platforms;android-28" && \
     echo y | ./sdkmanager "platform-tools" && \
-    echo y | ./sdkmanager "build-tools;28.0.3"
+    echo y | ./sdkmanager "build-tools;28.0.3" && \
+    git clone https://github.com/facebook/redex.git && \
+    cd redex && \
+    autoreconf -ivf && \
+    ./configure && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf redex
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ANDROID_HOME /usr/local/share/android-sdk
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 ENV LANG C.UTF-8

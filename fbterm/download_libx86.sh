@@ -1,3 +1,3 @@
 #!/bin/bash
 
-curl -LO https://master.dl.sourceforge.net/project/libx86/libx86/libx86-0.02/libx86-0.02.tbz2
+curl -LO http://www.codon.org.uk/~mjg59/libx86/downloads/libx86-1.1.tar.gz

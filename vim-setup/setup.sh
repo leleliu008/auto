@@ -45,8 +45,8 @@ function installVundle() {
         git pull > /dev/null || (cd .. && git clone http://github.com/VundleVim/Vundle.vim.git)
         cd - &> /dev/null
     else
-        mkdir -p $pluginDir
-        git clone http://github.com/VundleVim/Vundle.vim.git $pluginDir
+        mkdir -p $vundleDir
+        git clone http://github.com/VundleVim/Vundle.vim.git $vundleDir
     fi
 }
 

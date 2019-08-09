@@ -90,8 +90,8 @@ function main() {
 
         # 如果是OpenSUSE系统
         command -v zypper &> /dev/null && { 
-            $sudo zypper -y update && \
-            $sudo zypper -y install curl git zsh sed gawk && \
+            $sudo zypper update -y && \
+            $sudo zypper install -y curl git zsh sed gawk && \
             installOhMyZsh
             exit
         }

@@ -53,33 +53,59 @@ function main() {
 
     if [ "$osType" == "Linux" ] ; then
         # 如果是ArchLinux或ManjaroLinux系统
-        if [ -f "/etc/arch-release" ] || [ -f "/etc/manjaro-release" ] ; then
-            $sudo pacman -Syy && \
+        command -v pacman &> /dev/null && {
+            $sudo pacman -Syyuu --noconfirm && \
             command -v curl &> /dev/null || $sudo pacman -S curl --noconfirm && \
             command -v git  &> /dev/null || $sudo pacman -S git  --noconfirm && \
             command -v zsh  &> /dev/null || $sudo pacman -S zsh  --noconfirm && \
             command -v sed  &> /dev/null || $sudo pacman -S sed  --noconfirm && \
             command -v awk  &> /dev/null || $sudo pacman -S gawk --noconfirm && \
             installOhMyZsh
+            exit
+        }
+        
         # 如果是Ubuntu或Debian GNU/Linux系统
-        elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
+        command -v apt-get &> /dev/null && {
             $sudo apt-get -y update && \
             $sudo apt-get -y install curl git zsh sed gawk && \
             installOhMyZsh
-        # 如果是CentOS或Fedora系统
-        elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
+            exit
+        }
+        
+        # 如果是Fedora或CentOS8系统
+        command -v dnf &> /dev/null && {
+            $sudo dnf -y update && \
+            $sudo dnf -y install curl git zsh sed gawk && \
+            installOhMyZsh
+            exit
+        }
+        
+        # 如果是CentOS8以下的系统
+        command -v yum &> /dev/null && { 
             $sudo yum -y update && \
             $sudo yum -y install curl git zsh sed gawk && \
             installOhMyZsh
+            exit
+        }
+
+        # 如果是OpenSUSE系统
+        command -v zypper &> /dev/null && { 
+            $sudo zypper -y update && \
+            $sudo zypper -y install curl git zsh sed gawk && \
+            installOhMyZsh
+            exit
+        }
+        
         # 如果是AlpineLinux系统
-        elif [ -f "/etc/alpine-release" ] ; then
+        command -v apk &> /dev/null && {
             $sudo apk update && \
             $sudo apk add curl git zsh sed gawk && \
             installOhMyZsh
-        else
-            echo "your os is unrecognized!!"
-            exit 1
-        fi
+            exit
+        }
+            
+        echo "your os is unrecognized!!"
+        exit 1
     elif [ "$osType" == "Darwin" ] ; then
         command -v brew &> /dev/null || (echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && brew update)
         command -v curl &> /dev/null || brew install curl

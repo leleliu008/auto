@@ -37,6 +37,10 @@ function installViaPacman() {
     command -v "$1" &> /dev/null || $role pacman -S --noconfirm "$2"
 }
 
+function installViaZypper() {
+    command -v "$1" &> /dev/null || $role zypper install -y "$2"
+}
+
 function installVundle() {
     local pluginDir="${HOME}/.vim/bundle"
     local vundleDir="${pluginDir}/Vundle.vim"
@@ -73,48 +77,81 @@ function main() {
         installViaHomeBrew vim vim
         installViaHomeBrew curl curl
         installViaHomeBrew ctags ctags
+        installVundle
+        updateVimrcOfCurrentUser
     elif [ "$osType" = "Linux" ] ; then
         #ArchLinux ManjaroLinux
-        if [ -f '/etc/archlinux-release' ] || [ -f '/etc/manjaro-release' ] ; then
-            $role pacman -Syyu --noconfirm &&
+        command -v pacman &> /dev/null && {
+            $role pacman -Syyuu --noconfirm &&
             installViaPacman git git &&
             installViaPacman curl curl &&
             installViaPacman vim vim &&
             installViaPacman ctags ctags
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
+        
         #AlpineLinux
-        elif [ -f '/etc/alpine-release' ] ; then
+        command -v apk &> /dev/null && {
             $role apk update &&
             installViaApk git git &&
             installViaApk curl curl &&
             installViaApk vim vim &&
             installViaApk ctags ctags
-        #Debian Ubuntu
-        elif [ -f '/etc/lsb-release' ] || [ -f '/etc/debian_version' ] ; then
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
+        
+        #Debian GNU/Linux系
+        command -v apt-get &> /dev/null && {
             $role apt-get -y update &&
             installViaApt git git &&
             installViaApt curl curl &&
             installViaApt vim vim &&
             installViaApt ctags exuberant-ctags
-        #Fedora
-        elif [ -f '/etc/fedora-release' ] ; then
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
+        
+        #Fedora CnetOS8
+        command -v dnf &> /dev/null && {
             $role dnf -y update &&
             installViaDnf git git &&
             installViaDnf curl curl &&
             installViaDnf vim vim &&
             installViaDnf ctags ctags-etags
-        #RHEL CentOS
-        elif [ -f '/etc/redhat-release' ] ; then
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
+        
+        #RHEL CentOS8以下
+        command -v yum &> /dev/null && {
             $role yum -y update &&
             installViaYum git git &&
             installViaYum curl curl &&
             installViaYum vim vim &&
             installViaYum ctags ctags-etags
-        fi
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
+        
+        #OpenSUSE
+        command -v zypper &> /dev/null && {
+            $role zypper update -y &&
+            installViaZypper git git &&
+            installViaZypper curl curl &&
+            installViaZypper vim vim &&
+            installViaZypper ctags ctags
+            installVundle
+            updateVimrcOfCurrentUser
+            exit
+        }
     fi
-    
-    installVundle
-
-    updateVimrcOfCurrentUser
 }
 
 main

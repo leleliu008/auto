@@ -1,9 +1,6 @@
 #!/bin/bash
 
-role=""
-if [ `whoami` != "root" ] ; then
-    role=sudo
-fi
+[ `whoami` == "root" ] || role=sudo
 
 function installCommandLineDeveloperToolsOnMacOSX() {
     command -v git &> /dev/null || xcode-select --install

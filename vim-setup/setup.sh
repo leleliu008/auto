@@ -1,9 +1,6 @@
 #!/bin/bash
 
-role=""
-if [ `whoami` != "root" ] ; then
-    role=sudo
-fi
+[ `whoami` == "root" ] || role=sudo
 
 function installCommandLineDeveloperToolsOnMacOSX() {
     command -v git &> /dev/null || xcode-select --install
@@ -29,16 +26,16 @@ function installViaDnf() {
     command -v "$1" &> /dev/null || $role dnf -y install "$2"
 }
 
+function installViaZypper() {
+    command -v "$1" &> /dev/null || $role zypper install -y "$2"
+}
+
 function installViaApk() {
     command -v "$1" &> /dev/null || $role apk add "$2"
 }
 
 function installViaPacman() {
     command -v "$1" &> /dev/null || $role pacman -S --noconfirm "$2"
-}
-
-function installViaZypper() {
-    command -v "$1" &> /dev/null || $role zypper install -y "$2"
 }
 
 function installVundle() {

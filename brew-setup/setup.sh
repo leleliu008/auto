@@ -11,32 +11,53 @@ function configBrewEnv() {
 
 # 安装LinuxBrew
 function installBrew() {
-    command -v brew &> /dev/null && {
-        echo "brew is already installed!"
-        exit 0
-  }
-
-    if [ "`uname -s`" = "Darwin" ] ; then
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && configBrewEnv && brew update
-    elif [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
-        sudo apt-get -y install build-essential curl git m4 python-setuptools ruby texinfo libbz2-dev libcurl4-openssl-dev libexpat-dev libncurses-dev zlib1g-dev
-        echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
-    elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum -y groupinstall 'Development Tools' && \
-        sudo yum -y install irb python-setuptools
-
-        echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configBrewEnv && brew update
+    if [ "`uname -s`" == "Darwin" ] ; then
+        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && \
+        configBrewEnv && brew update
     else
+        command -v apt-get &> /dev/null && {
+             sudo apt-get -y install build-essential \
+                                     curl \
+                                     git \
+                                     m4 \
+                                     python-setuptools \
+                                     ruby \
+                                     texinfo \
+                                     libbz2-dev \
+                                     libcurl4-openssl-dev \
+                                     libexpat-dev \
+                                     libncurses-dev \
+                                     zlib1g-dev
+            echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
+            configBrewEnv && brew update
+            exit
+        }
+        
+        command -v yum &> /dev/null && { 
+            sudo yum -y groupinstall 'Development Tools' && \
+            sudo yum -y install irb python-setuptools
+            echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
+            configBrewEnv && brew update
+            exit
+        }
+        
         echo "who are you ?"
+        exit 1
     fi
 }
 
 function main() {
-    if [ "`whoami`" != "root" ] ; then
+    command -v brew &> /dev/null && {
+        echo "brew is already installed!"
+        exit 0
+    }
+    
+    [ "`whoami`" == "root" ] && {
         echo "don't run as root!"
-    else
-        installBrew
-    fi
+        exit 1
+    }
+    
+    installBrew
 }
 
 main

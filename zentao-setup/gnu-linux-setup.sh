@@ -9,7 +9,7 @@
 #------------------下面的变量可以根据需要修改------------------#
 
 # 您要安装的版本，只需要修改此处即可
-VERSION=9.0.beta
+VERSION=11.5.1
 
 # Apache的端口，可以修改成你自己想要的
 APACHE_PORT=8080
@@ -19,55 +19,46 @@ MYSQL_PORT=3306
 
 #--------------------------------------------------------------#
 
-function downloadAndUnzip() {
+function downloadExtractStart() {
     # 32位还是64位
-    x=32
-    if [ "`uname -m`" == "x86_64" ] ; then
-        x=64
-    fi
+    local x=32
+    [ "`uname -m`" == "x86_64" ] && x=64
     
-    fileName=ZenTaoPMS.${VERSION}.zbox_${x}.tar.gz
-    url=http://dl.cnezsoft.com/zentao/${VERSION}/${fileName}
+    local fileName=ZenTaoPMS.${VERSION}.zbox_${x}.tar.gz
+    local url=http://dl.cnezsoft.com/zentao/${VERSION}/${fileName}
     
     cd ~ 
     
-    if [ -f "${fileName}" ] ; then
-        tar -tf ${fileName}
-        if [ $? -eq 0 ] ; then
-            sudo tar zvxf ${fileName} -C /opt && \
-            sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
-        else
-            rm ${fileName}
+    [ -f "${fileName}" ] && tar -tf ${fileName} &> /dev/null && {
+        extractAndStartService "$fileName"
+        exit $?
+    }
+    curl -C - -LO ${url} && extractAndStartService "$fileName"
+}
 
-            curl -O ${url} && \
-            sudo tar zvxf ${fileName} -C /opt && \
-            sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
-        fi
-    else
-        curl -O ${url} && \
-        sudo tar zvxf ${fileName} -C /opt && \
-        sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
-    fi
-
-    cd - > /dev/null
+function extractAndStartService() {
+    $sudo tar zvxf "$1" -C /opt && \
+    $sudo /opt/zbox/zbox start -ap ${APACHE_PORT} -mp ${MYSQL_PORT}
 }
 
 function main() {
-    # 如果是Ubuntu系统
-    if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
-        sudo apt-get update
-        sudo apt-get -y install curl
+    [ `whoami` == "root" ] || sudo=sudo
+
+    command -v apt-get &> /dev/null && {
+        $sudo apt-get -y update
+        $sudo apt-get -y install curl
+        downloadExtractStart
+        exit $?
+    }
     
-        downloadAndUnzip
-    # 如果是CentOS系统
-    elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum update
-        sudo yum -y install curl
+    command -v yum &> /dev/null && {
+        $sudo yum -y update
+        $sudo yum -y install curl
+        downloadExtractStart
+        exit $?
+    }
     
-        downloadAndUnzip
-    else
-        echo "your system os is not ubuntu or centos"! 
-    fi
+    echo "don't support your os!!"
 }
 
 main

@@ -2,10 +2,10 @@
 
 #------------------------------------------------------------------------------#
 # Android开发环境搭建脚本
-# 目前只支持Debian GNU/Linux、Ubuntu、CentOS、Fedora等系统
+# 只支持GNU/Linux 64bit 系统
 #------------------------------------------------------------------------------#
 
-JDK_URL=https://download.oracle.com/otn-pub/java/jdk/8u201-b09/42970487e3af4f5aa5bca3f542482c60/jdk-8u201-linux-x64.tar.gz
+JDK_URL=https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u192-b12/OpenJDK8U-jdk_x64_linux_hotspot_8u192b12.tar.gz
 
 # https://developer.android.google.cn/studio/index.html
 ANDROID_SDK_URL=https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
@@ -20,85 +20,42 @@ ANDROID_SDK_FRAMEWORK_VERSION=28
 # 构建工具的版本
 ANDROID_SDK_BUILD_TOOLS_VERSION=28.0.3
 
-#安装目录，要修改的话，注意权限问题
-WORK_DIR=/usr/local/share
+# 安装目录
+DEST_DIR=/usr/local/opt
 
 #------------------------------------------------------------------------------#
-
-# 安装依赖库和工具
-function installDependency() {
-    # 如果是Debian GNU/Linux、Ubuntu系统
-    if [ -f "/etc/lsb-release" ] || [ -f "/etc/debian_version" ] ; then
-        sudo apt-get -y update
-        sudo apt-get -y install gcc-multilib lib32z1 lib32stdc++6
-        sudo apt-get -y install git subversion vim curl wget zip unzip
-    # 如果是CentOS、Fedora系统
-    elif [ -f "/etc/redhat-release" ] || [ -f "/etc/fedora-release" ] ; then
-        sudo yum -y update
-        sudo yum -y install glibc.i686 zlib.i686 libstdc++.i686
-        sudo yum -y install git subversion vim curl wget
-    fi
-}
-
-# 下载JDK
-function downloadJDKIfNeeded() {
-    fileName=`basename "$JDK_URL"`
-
-    if [ -f "${fileName}" ] ; then
-        tar -tf ${fileName} &> /dev/null || {
-            rm ${fileName}
-            downloadingJDK
-      }
-    else
-        downloadingJDK
-    fi
-}
-
-function downloadingJDK() {
-    echo "downloadingJDK..."
-    wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$JDK_URL"
-}
-
-function untarJDK() {
-    tar zxf `basename "$JDK_URL"` -C ${WORK_DIR}
-}
 
 # 配置JDK环境变量
 function configJDKEnv() {
     local fileName=`basename "$JDK_URL"`
-    local dirName=`tar -tf ${fileName} | awk -F/ '{print $1}' | sort | uniq`
-    local javaHome=${WORK_DIR}/${dirName}
+    local dirName=`tar -tf "$fileName" | awk -F/ '{print $2}' | sort | uniq`
+    local javaHome=${DEST_DIR}/${dirName}
     
-    if [ -f "~/.bashrc" ] ; then
-        echo "export JAVA_HOME=${javaHome}" >> ~/.bashrc
-        echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
-        echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
-        source ~/.bashrc
-    elif [ -f "~/.zshrc" ] ; then
-        echo "export JAVA_HOME=${javaHome}" >> ~/.zshrc
-        echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.zshrc
-        echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.zshrc
-        source ~/.zshrc
-    fi
+    [ -f "jdk-env" ] && rm jdk-env
+    cat > jdk-env << EOF
+export JAVA_HOME=${javaHome}
+export PATH=\$JAVA_HOME/bin:\$PATH
+export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar
+EOF
+    echo "source \"$DEST_DIR/jdk-env\"" >> ~/.bashrc
+    echo "source \"$DEST_DIR/jdk-env\"" >> ~/.zshrc
+
+    source "$DEST_DIR/jdk-env"
 }
 
 # 下载文件
 function downloadFile() {
     local fileName=`basename "$1"`
-
-    if [ -f "${fileName}" ] ; then
-        unzip -t ${fileName} &> /dev/null || {
-            rm ${fileName}
-            wget "$1"
-        }
+    local extension=`echo "$fileName" | awk -F. '{print $NF}'`
+    if [ -f "$fileName" ] ; then
+        if [ "$extension" == "zip" ] ; then
+            unzip -t "$fileName" &> /dev/null || curl -C - -LO "$1"
+        elif [ "$extension" == "gz" ] ; then 
+            tar -tf "$fileName" &> /dev/null || curl -C - -LO "$1"
+        fi
     else
-        wget "$1"
+        curl -C - -LO "$1"
     fi
-}
-
-function unzipAndroidSDK() {
-    [ -d "android-sdk" ] || mkdir android-sdk
-    unzip `basename "$ANDROID_SDK_URL"` -d android-sdk
 }
 
 # 更新Android SDK
@@ -107,40 +64,71 @@ function updateAndroidSDK() {
     echo y | $sdkmanager "platforms;android-${ANDROID_SDK_FRAMEWORK_VERSION}" && \
     echo y | $sdkmanager "platform-tools" && \
     echo y | $sdkmanager "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}"
+    echo y | $sdkmanager "ndk-bundle"
 }
 
 # 配置Android SDK的环境变量
 function configAndroidSDKEnv() {
-    local androidHome=${WORK_DIR}/android-sdk
+    local androidHome="${DEST_DIR}/android-sdk"
     
-    if [ -f "~/.bashrc" ] ; then
-        echo "export ANDROID_HOME=${androidHome}" >> ~/.bashrc
-        echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/tools/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.bashrc
-        source ~/.bashrc
-    elif [ -f "~/.zshrc" ] ; then
-        echo "export ANDROID_HOME=${androidHome}" >> ~/.zshrc
-        echo "export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/tools/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH" >> ~/.zshrc
-        source ~/.zshrc
-    fi
-}
+    [ -f "android-env" ] && rm android-env
+    cat > android-env << EOF
+export ANDROID_HOME=${androidHome}
+export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/tools/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH
+export ANDROID_NDK_HOME=\$ANDROID_HOME/ndk-bundle
+export PATH=\$PATH:\$ANDROID_NDK_HOME
+EOF
+    
+    echo "source \"$DEST_DIR/android-env\"" >> ~/.bashrc
+    echo "source \"$DEST_DIR/android-env\"" >> ~/.zshrc
 
-function unzipAndroidStudio() {
-    unzip `basename "$ANDROID_STUDIO_URL"`
+    source "$DEST_DIR/android-env"
 }
 
 function main() {
-    # 如果不存在此文件夹，就创建
-    ([ -d "${WORK_DIR}" ] || mkdir -p ${WORK_DIR}) && cd $WORK_DIR
+    [ `uname -s` == "Linux" ] || {
+        echo "your os is not GNU/Linux!!"
+        exit 1
+    }
 
-    installDependency
-
-    downloadJDKIfNeeded && untarJDK && configJDKEnv
-
-    dowloadFile "$ANDROID_SDK_URL" && unzipAndroidSDK && configAndroidSDKEnv && updateAndroidSDK
-
-    downloadFile "$ANDROID_STUDIO_URL" unzipAndroidStudio
+    [ `whoami` == "root" ] || sudo=sudo
     
-    cd - &> /dev/null
+    command -v apt-get &> /dev/null && {
+        $sudo apt-get -y update
+        $sudo apt-get -y install git vim curl httpie zip unzip
+    }
+     
+    command -v dnf &> /dev/null && {
+        $sudo dnf -y update
+        $sudo dnf -y install git vim curl httpie zip unzip
+        installed=true
+    }
+    
+    [ "$installed" == "true" ] || command -v yum &> /dev/null && {
+        $sudo yum -y update
+        $sudo yum -y install git vim curl httpie zip unzip
+    }
+    
+    command -v zypper &> /dev/null && {
+        $sudo zypper update -y
+        $sudo zypper install -y git vim curl httpie zip unzip
+    }
+    
+    [ -d "$DEST_DIR" ] || $sudo mkdir -p "$DEST_DIR"
+    $sudo chown -R `whoami` "$DEST_DIR"
+    cd "$DEST_DIR"
+
+    downloadFile "$JDK_URL" && \
+    tar zvxf `basename "$JDK_URL"` && \
+    configJDKEnv
+
+    downloadFile "$ANDROID_SDK_URL" && \
+    unzip -o `basename "$ANDROID_SDK_URL"` -d android-sdk && \
+    updateAndroidSDK && \
+    configAndroidSDKEnv
+
+    downloadFile "$ANDROID_STUDIO_URL" && \
+    unzip -o `basename "$ANDROID_STUDIO_URL"`
 }
 
 main

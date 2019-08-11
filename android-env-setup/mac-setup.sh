@@ -6,11 +6,11 @@
 # 所有软件均通过HomeBrew进行安装
 #------------------------------------------------------------------------------#
 
-function installCommandLineDeveloperTools() {
+function installCommandLineDeveloperToolsIfNeeded() {
     command -v git &> /dev/null || xcode-select --install
 }
 
-function installBrew() {
+function installBrewIfNeeded() {
     command -v brew &> /dev/null || echo -e '\n' | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
 
@@ -20,22 +20,24 @@ function installByBrew() {
 
 function main() {
     [ "`uname -s`" == "Darwin" ] || {
-        echo "your system os is not MacOSX"
+        echo "your os is not macOS!!"
         exit 1;
     }
 
-    installCommandLineDeveloperTools
+    installCommandLineDeveloperToolsIfNeeded
 
-    installBrew && brew update
+    installBrewIfNeeded && brew update
 
     installByBrew curl
-    installByBrew wget
+    installByBrew httpie
     installByBrew vim
     
-    brew cask reinstall java8
+    brew cask reinstall adoptopenjdk8
     brew cask reinstall android-sdk
     brew cask reinstall android-ndk
     brew cask reinstall android-studio
+    brew cask reinstall virtualbox
+    brew cask reinstall virtualbox-extension-pack
     brew cask reinstall genymotion
     brew cask reinstall iterm2
 }

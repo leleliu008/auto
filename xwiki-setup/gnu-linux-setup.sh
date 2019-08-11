@@ -10,8 +10,6 @@
 
 WORK_DIR=~/bin
 
-JDK_URL=http://download.oracle.com/otn-pub/java/jdk/8u65-b17/jdk-8u65-linux-x64.tar.gz
-
 TOMCAT_URL=http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.9/bin/apache-tomcat-8.5.9.tar.gz
 
 XWIKI_URL=http://download.forge.ow2.org/xwiki/xwiki-enterprise-web-8.4.4.war
@@ -44,32 +42,34 @@ function setMySQLRootPassword() {
 
 # 安装MySQL
 function installMySQL() {
-    # 如果是Ubuntu系统
-    if [ -f "/etc/lsb-release" ] ; then
-        sudo apt-get -y update
-        sudo apt-get -y install curl wget unzip zip
+    [ `whoami` == "root" ] || sudo=sudo
+
+    if [ -n "`command -v apt-get &> /dev/null`" ] ; then
+        $sudo apt-get -y update
+        $sudo apt-get -y install curl unzip zip openjdk-8-jdk
         
-        command -v mysqld &> /dev/null
-        if [ $? -eq 0 ] ; then
-            echo "mysql already installed!"
-        else
-            sudo DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
+        command -v mysqld &> /dev/null || {
+            $sudo DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
             setMySQLRootPassword
-        fi
-    # 如果是CentOS系统
-    elif [ -f "/etc/redhat-release" ] ; then
-        sudo yum -y update
-        sudo yum -y install curl wget unzip zip
+        }
+    elif [ -n "`command -v dnf &> /dev/null`" ] ; then
+        $sudo dnf -y update
+        $sudo dnf -y install curl unzip zip java-1.8.0-openjdk
         
-        command -v mysqld &> /dev/null
-        if [ $? -eq 0 ] ; then
-            echo "mysql already installed!"
-        else
-            sudo yum -y install mysql-server
+        command -v mysqld &> /dev/null || {
+            $sudo dnf -y install mysql-server
+            $setMySQLRootPassword
+        }
+    elif [ -n "`command -v yum &> /dev/null`" ] ; then
+        $sudo yum -y update
+        $sudo yum -y install curl wget unzip zip java-1.8.0-openjdk
+        
+        command -v mysqld &> /dev/null || {
+            $sudo yum -y install mysql-server
             setMySQLRootPassword
-        fi
+        }
     else
-        echo "your system os is not ubuntu or centos"! 
+        echo "We don't recognize your os!!"
     fi
 }
 
@@ -77,26 +77,16 @@ function installMySQL() {
 # $1是要下载文件的URL
 # $2是要解压到到目录，如果为空字符串，就表示不解压
 function downloadTGZFileAndExtractTo() {
-    fileName=`basename "$1"`
+    local fileName=`basename "$1"`
     if [ -f "${fileName}" ] ; then
         tar -tf ${fileName} > /dev/null
         if [ $? -eq 0 ] ; then
-            if [ "$2" != "" ] ; then
-                tar zxf ${fileName} -C "$2"
-            fi
+            [ -z "$2" ] || tar zxf ${fileName} -C "$2"
         else
-            rm ${fileName}
-            
-            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1"
-            if [ $? -eq 0 ] && [ "$2" != "" ] ; then
-                tar zxf ${fileName} -C "$2"
-            fi
+            curl -C - -LO "$1" && [ -n "$2" ] && tar zxf ${fileName} -C "$2"
         fi
     else
-        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1"
-        if [ $? -eq 0 ] && [ "$2" != "" ] ; then
-            tar zxf ${fileName} -C "$2"
-        fi
+        curl -LO "$1" && [ -n "$2" ] && tar zxf ${fileName} -C "$2"
     fi
 }
     
@@ -104,25 +94,16 @@ function downloadTGZFileAndExtractTo() {
 # $1是要下载文件的URL
 # $2是要解压到到目录，如果字符串为空，就表示不解压
 function downloadZipFileAndExtractTo() {
-    fileName=`basename "$1"`
+    local fileName=`basename "$1"`
     if [ -f "${fileName}" ] ; then
-        unzip -t ${fileName} > /dev/null
+        unzip -t ${fileName} &> /dev/null
         if [ $? -eq 0 ] ; then
-            if [ "$2" != "" ] ; then
-                unzip ${fileName} -d "$2" > /dev/null
-            fi
+            [ -z "$2" ] || unzip ${fileName} -d "$2" > /dev/null
         else
-            rm ${fileName}
-            wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1"
-            if [ $? -eq 0 ] && [ "$2" != "" ] ; then
-                unzip ${fileName} -d "$2" > /dev/null
-            fi
+            curl -C - -LO "$1" && unzip ${fileName} -d "$2" > /dev/null
         fi
     else
-        wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "$1"
-        if [ $? -eq 0 ] && [ "$2" != "" ] ; then
-            unzip ${fileName} -d "$2" > /dev/null
-        fi
+        curl -C - -LO "$1" && unzip ${fileName} -d "$2" > /dev/null
     fi
 }
 
@@ -130,69 +111,61 @@ function downloadZipFileAndExtractTo() {
 # $1是要下载文件的URL
 # $2是要解压到到目录
 function downloadFileAndExtractTo() {
-    fileName=`basename "$1"`
-    extension=`echo "${fileName##*.}"`
+    local fileName=`basename "$1"`
+    local extension=`echo "${fileName##*.}"`
     
     echo "downloadFile() url=$1 | fileName=$fileName | extension=$extension"
     
-    if [ "$extension" = "tgz" ] ; then
+    if [ "$extension" == "tgz" ] ; then
         downloadTGZFileAndExtractTo $1 $2
-    elif [ "$extension" = "gz" ] ; then
+    elif [ "$extension" == "gz" ] ; then
         downloadTGZFileAndExtractTo $1 $2
-    elif [ "$extension" = "zip" ] ; then
+    elif [ "$extension" == "zip" ] ; then
         downloadZipFileAndExtractTo $1 $2
-    elif [ "$extension" = "war" ] ; then
+    elif [ "$extension" == "war" ] ; then
         downloadZipFileAndExtractTo $1 $2
-    elif [ "$extension" = "jar" ] ; then
+    elif [ "$extension" == "jar" ] ; then
         downloadZipFileAndExtractTo $1 $2
     fi
 }
 
-# 下载JDK
-function downloadJDKAndConfig() {
-    command -v java &> /dev/null
-    if [ $? -eq 0 ] ; then
-        echo "JDK is already installed! so, not need to download and config"
-    else
-        downloadFileAndExtractTo $JDK_URL ${WORK_DIR}
-
-        #配置环境变量
-        echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bashrc
-        echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
-        echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
-    fi
+# 配置JDK的环境变量
+function configJDKEnv() {
+    echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.bashrc
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.bashrc
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.bashrc
+    
+    echo "export JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> ~/.zshrc
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.zshrc
+    echo "export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar" >> ~/.zshrc
 }
 
 # 正文
 function main() {
     cd ~
     
-    if [ ! -d "${WORK_DIR}" ] ; then
-        mkdir -p ${WORK_DIR}
-    fi
+    [ -d "${WORK_DIR}" ] || mkdir -p ${WORK_DIR}
     
     installMySQL
     
     createXWikiDB   
     
-    downloadJDKAndConfig
+    configJDKEnv
 
     downloadFileAndExtractTo $TOMCAT_URL ${WORK_DIR}
 
-    tomcatFileName=`basename "$TOMCAT_URL"`
-    tomcatHomeDir=${WORK_DIR}/`basename ${tomcatFileName} .tar.gz`
+    local tomcatFileName=`basename "$TOMCAT_URL"`
+    local tomcatHomeDir=${WORK_DIR}/`basename ${tomcatFileName} .tar.gz`
 
     downloadFileAndExtractTo $XWIKI_URL ${tomcatHomeDir}/webapps/xwiki
     
     downloadFileAndExtractTo $MYSQL_JDBC_DRIVER_URL
     
-    mysqlJdbcDriverFileName=`basename "$MYSQL_JDBC_DRIVER_URL"`
+    local mysqlJdbcDriverFileName=`basename "$MYSQL_JDBC_DRIVER_URL"`
     cp ${mysqlJdbcDriverFileName} ${tomcatHomeDir}/webapps/xwiki/WEB-INF/lib/
     
     # 启动Tomcat服务
     sh ${tomcatHomeDir}/bin/startup.sh
-    
-    cd - > /dev/null
 }
 
 main

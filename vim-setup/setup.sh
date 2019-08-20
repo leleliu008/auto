@@ -2,10 +2,6 @@
 
 [ `whoami` == "root" ] || role=sudo
 
-function installCommandLineDeveloperToolsOnMacOSX() {
-    command -v git &> /dev/null || xcode-select --install
-}
-
 function installHomeBrewIfNeeded() {
       command -v brew &> /dev/null || (echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && brew update)
 }
@@ -52,10 +48,9 @@ function installVundle() {
 }
 
 function updateVimrcOfCurrentUser() {
-    if [ -f "${HOME}/.vimrc" ] ; then
-        mv ~/.vimrc ~/.vimrc.bak
-    fi
+    [ -f ~/.vimrc ] && mv ~/.vimrc ~/.vimrc.bak
     cp vimrc-user ~/.vimrc
+    cp .tern-project ~
 
     echo "---------------------------------------------------"
     echo "~/.vimrc config file is updated! "
@@ -65,11 +60,10 @@ function updateVimrcOfCurrentUser() {
 }
 
 function main() {
-    osType=`uname -s`
+    local osType=`uname -s`
     echo "osType=$osType"
 
     if [ "$osType" = "Darwin" ] ; then
-        installCommandLineDeveloperToolsOnMacOSX
         installHomeBrewIfNeeded
         installViaHomeBrew vim vim
         installViaHomeBrew curl curl

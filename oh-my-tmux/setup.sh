@@ -2,8 +2,8 @@
 
 function installOhMyTmux() {
     [ -f ~/.tmux.conf ] && mv ~/.tmux.conf ~/.tmux.conf.bak
-    curl -LO https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf
-    curl -LO https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf.local
+    curl -L -o ~/.tmux.conf https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf
+    curl -L -o ~/.tmux.conf.local https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf.local
 }
 
 function main() {

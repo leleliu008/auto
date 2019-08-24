@@ -166,7 +166,6 @@ function updateVimrcOfCurrentUser() {
         success "~/.vimrc config file is updated! "
         success "your ~/.vimrc config file is bak to $backup"
     }
-    success "cd ~/.vim/bundle/YouCompleteMe to go on install with command python install.py"
     success "open vim and use :BundleInstall to install plugins!"
     success "---------------------------------------------------"
 }

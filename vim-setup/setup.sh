@@ -99,11 +99,10 @@ function installYouCompleteMe() {
         else
             command -v java &> /dev/null && local options="--java-completer"
             info "compiling YouCompleteMe..."
-            $python install.py --clang-completer --ts-completer --go-completer $options --ninja
-            if [ $? -eq 0 ] ; then
+            $python install.py --clang-completer --ts-completer --go-completer $options --ninja || {
                 info "recompiling YouCompleteMe..."
                 $python install.py --clang-completer --ts-completer --go-completer $options
-            fi
+            }
             if [ $? -eq 0 ] ; then
                 success "installed YouCompleteMe"
             else

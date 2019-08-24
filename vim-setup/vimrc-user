@@ -11,7 +11,7 @@ call vundle#begin()
 "http://github.com/VundleVim/Vundle.vim
 Plugin 'VundleVim/Vundle.vim'
 
-Plugin 'git:https://gitee.com/mirrors/youcompleteme.git'
+Plugin 'git:https://gitee.com/YouCompleteMe/YouCompleteMe.git'
 
 "https://github.com/ervandew/supertab
 "Plugin 'ervandew/supertab'

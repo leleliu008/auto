@@ -107,7 +107,9 @@ function installYouCompleteMe() {
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
-            ($python install.py --clang-completer --ts-completer --go-completer --ninja || $python install.py --clang-completer --ts-completer --go-completer) && success "installed YouCompleteMe"
+            local options="--clang-completer --ts-completer --go-completer"
+            [ -z "$(command -v java &> /dev/null)" ] || options="$options --java-completer"
+            ($python install.py "$options" --ninja || $python install.py "$options") && success "installed YouCompleteMe"
         fi
     }
 }
@@ -133,18 +135,31 @@ function installNodeJSIfNeeded() {
 }
 
 function updateVimrcOfCurrentUser() {
-    [ -f ~/.vimrc ] && {
-        mv ~/.vimrc ~/.vimrc.bak
-        backup=true
+    [ -f "${HOME}/.vimrc" ] && {
+        if [ -f "${HOME}/.vimrc.bak" ] ; then
+            for i in $(seq 1 1000)
+            do
+                if [ -f "${HOME}/.vimrc${i}.bak" ] ; then
+                    continue
+                else
+                    backup="${HOME}/.vimrc${i}.bak"
+                    break
+                fi
+            done
+        else
+            backup="${HOME}/.vimrc.bak"
+        fi
+        [ -z "$backup" ] || "${HOME}/.vimrc.bak"
+        mv "${HOME}/.vimrc" "$backup"
     }
     
     cp "$currentScriptDir/vimrc-user" ~/.vimrc
     cp "$currentScriptDir/.tern-project" ~
 
     success "---------------------------------------------------"
-    [ "$backup" == "true" ] && {
+    [ -z "$backup" ] || {
         success "~/.vimrc config file is updated! "
-        success "your ~/.vimrc config file is bak to ~/.vimrc.bak"
+        success "your ~/.vimrc config file is bak to $backup"
     }
     success "cd ~/.vim/bundle/youcompleteme to go on install with command python install.py"
     success "open vim and use :BundleInstall to install plugins!"
@@ -166,8 +181,8 @@ function main() {
         installViaHomeBrew ctags ctags && \
         installViaHomeBrew python3 python3 && \
         installVundle && \
-        installYouCompleteMe && \
         installNodeJSIfNeeded && \
+        installYouCompleteMe && \
         updateVimrcOfCurrentUser
     elif [ "$osType" = "Linux" ] ; then
         #ArchLinux ManjaroLinux
@@ -184,8 +199,8 @@ function main() {
             installViaPacman ctags ctags && \
             installViaPacman python3 python && \
             installVundle && \
-            installYouCompleteMe && \
             installNodeJSIfNeeded && \
+            installYouCompleteMe && \
             updateVimrcOfCurrentUser
             exit
         }
@@ -204,8 +219,8 @@ function main() {
             installViaApk ctags ctags && \
             installViaApk python3 python3 && \
             installVundle && \
-            installYouCompleteMe && \
             installNodeJSIfNeeded && \
+            installYouCompleteMe && \
             updateVimrcOfCurrentUser
             exit
         }
@@ -224,8 +239,8 @@ function main() {
             installViaApt ctags exuberant-ctags && \
             installViaApt python3 python3 && \
             installVundle && \
-            installYouCompleteMe && \
             installNodeJSIfNeeded && \
+            installYouCompleteMe && \
             updateVimrcOfCurrentUser
             exit
         }
@@ -244,8 +259,8 @@ function main() {
             installViaDnf ctags ctags-etags && \
             installViaDnf python3 python3 && \
             installVundle && \
-            installYouCompleteMe && \
             installNodeJSIfNeeded && \
+            installYouCompleteMe && \
             updateVimrcOfCurrentUser
             exit
         }
@@ -264,8 +279,8 @@ function main() {
             installViaYum ctags ctags-etags && \
             installViaYum python3 python36 && \
             installVundle && \
-            installYouCompleteMe && \
             installNodeJSIfNeeded && \
+            installYouCompleteMe && \
             updateVimrcOfCurrentUser
             exit
         }
@@ -283,8 +298,9 @@ function main() {
         installViaZypper ninja ninja && \
         installViaZypper ctags ctags && \
         installViaZypper python3 python3 && \
-        installYouCompleteMe && \
+        installVundle && \
         installNodeJSIfNeeded && \
+        installYouCompleteMe && \
         updateVimrcOfCurrentUser && \
         exit
     fi

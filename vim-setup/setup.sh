@@ -1,5 +1,7 @@
 #!/bin/bash
 
+currentScriptDir="$(cd $(dirname $0); pwd)"
+
 Black='\033[0;30m'        # Black
 Red='\033[0;31m'          # Red
 Green='\033[0;32m'        # Green
@@ -76,8 +78,10 @@ function installVundle() {
     
     [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
     [ -d "$vundleDir" ] && rm -rf "$vundleDir"
-
-    git clone http://github.com/VundleVim/Vundle.vim.git "$vundleDir"
+    
+    info "installing Vundle..." && \
+    git clone http://github.com/VundleVim/Vundle.vim.git "$vundleDir" && \
+    success "installed Vundle"
 }
 
 function installYouCompleteMe() {
@@ -86,7 +90,8 @@ function installYouCompleteMe() {
     
     [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
     [ -d "$youCompleteMeDir" ] && rm -rf "$youCompleteMeDir"
-
+    
+    info "installing YouCompleteMe..."
     git clone https://gitee.com/mirrors/youcompleteme.git "$youCompleteMeDir" && \
     cd "$youCompleteMeDir" && \
     git submodule update --init && {
@@ -98,35 +103,51 @@ function installYouCompleteMe() {
     } && {
         export GO111MODULE=on
         export GOPROXY=https://goproxy.io
-    } && git submodule update --init --recursive
+    } && git submodule update --init --recursive && \
+    success "installed YouCompleteMe"
 }
 
 function installNodeJSIfNeeded() {
     (command -v node &> /dev/null && command -v npm &> /dev/null) || {
         command -v nvm &> /dev/null || {
+            info "installing nvm..." && \
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash && \
             export NVM_DIR="${HOME}/.nvm" && \
-            source "$NVM_DIR/nvm.sh"
+            source "$NVM_DIR/nvm.sh" && \
+            success "installed nvm"
         }
-        nvm install v10.15.1
+        
+        info "installing node.js v10.15.1" && \
+        nvm install v10.15.1 && \
+        success "installed node.js v10.15.1"
     }
-    [ $(npm config get registry) == "https://registry.npmjs.org" ] && npm config set registry "https://registry.npm.taobao.org/"
+    
+    if [ "$(npm config get registry)" == "https://registry.npmjs.org" ] ; then
+        npm config set registry "https://registry.npm.taobao.org/"
+    fi
 }
 
 function updateVimrcOfCurrentUser() {
-    [ -f ~/.vimrc ] && mv ~/.vimrc ~/.vimrc.bak
-    cp vimrc-user ~/.vimrc
-    cp .tern-project ~
+    [ -f ~/.vimrc ] && {
+        mv ~/.vimrc ~/.vimrc.bak
+        backup=true
+    }
+    
+    cp "$currentScriptDir/vimrc-user" ~/.vimrc
+    cp "$currentScriptDir/.tern-project" ~
 
     success "---------------------------------------------------"
-    info "~/.vimrc config file is updated! "
-    info "your ~/.vimrc config file is bak to ~/.vimrc.bak"
-    info "open vim and use :BundleInstall to install plugins!"
+    [ "$backup" == "true" ] && {
+        success "~/.vimrc config file is updated! "
+        success "your ~/.vimrc config file is bak to ~/.vimrc.bak"
+    }
+    success "cd ~/.vim/bundle/youcompleteme to go on install with command python install.py"
+    success "open vim and use :BundleInstall to install plugins!"
     success "---------------------------------------------------"
 }
 
 function main() {
-    local osType=$(uname -s)
+    local osType="$(uname -s)"
     echo "osType=$osType"
 
     if [ "$osType" = "Darwin" ] ; then

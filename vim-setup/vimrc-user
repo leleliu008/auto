@@ -11,17 +11,19 @@ call vundle#begin()
 "http://github.com/VundleVim/Vundle.vim
 Plugin 'VundleVim/Vundle.vim'
 
+Plugin 'git:https://gitee.com/mirrors/youcompleteme.git'
+
 "https://github.com/ervandew/supertab
 "Plugin 'ervandew/supertab'
 
 "https://github.com/scrooloose/nerdtree
 Plugin 'scrooloose/nerdtree'
 
+"https://github.com/Xuyuanp/nerdtree-git-plugin
+"Plugin 'Xuyuanp/nerdtree-git-plugin'
+
 "https://github.com/vim-scripts/taglist.vim
 Plugin 'taglist.vim'
-
-"https://github.com/Valloric/YouCompleteMe
-Plugin 'Valloric/YouCompleteMe'
 
 "https://github.com/godlygeek/tabular
 Plugin 'godlygeek/tabular'
@@ -29,6 +31,8 @@ Plugin 'godlygeek/tabular'
 "https://github.com/mattn/emmet-vim
 Plugin 'mattn/emmet-vim'
 
+"https://github.com/mattn/emmet-vim
+Plugin 'dracula/vim'
 
 "Plugin 'udalov/kotlin-vim'
 "Plugin 'othree/html5.vim'
@@ -49,6 +53,19 @@ Plugin 'vim-airline/vim-airline'
 
 call vundle#end()
 
+let g:NERDTreeIndicatorMapCustom = {
+    \ "Modified"  : "✹",
+    \ "Staged"    : "✚",
+    \ "Untracked" : "✭",
+    \ "Renamed"   : "➜",
+    \ "Unmerged"  : "═",
+    \ "Deleted"   : "✖",
+    \ "Dirty"     : "✗",
+    \ "Clean"     : "✔︎",
+    \ 'Ignored'   : '☒',
+    \ "Unknown"   : "?"
+    \ }
+
 "vim-airline/vim-airline的配置
 let g:airline_powerline_fonts = 1
 if !exists('g:airline_symbols')
@@ -56,13 +73,19 @@ if !exists('g:airline_symbols')
 endif
 let g:airline_symbols.linenr                   = ''
 let g:airline_symbols.maxlinenr                = ' '
+
 let w:airline_skip_empty_sections              = 1
-"let g:airline_section_c                       = '%-0.50{getcwd()}/%t'
+let g:airline_section_b                        = '%{fugitive#head()}'
+let g:airline_section_c                        = ''
+let g:airline_section_x                        = '%{&filetype}'
 let g:airline_section_warning                  = ''
+
 let g:airline#extensions#tabline#enabled       = 1
 let g:airline#extensions#tabline#fnamemod      = ':~'
 let g:airline#extensions#tabline#fnamecollapse = 0
 
+let g:airline#extensions#branch#enabled = 1
+let g:airline#extensions#branch#displayed_head_limit = 10
 
 "taglist.vim的配置
 let Tlist_Ctags_Cmd         = 'ctags'
@@ -105,7 +128,10 @@ filetype plugin indent on     " required!
 syntax enable
 syntax on
 
-colorscheme desert
+"colorscheme desert
+colorsche dracula
+set background=light
+set background=dark
 
 set ofu=syntaxcomplete#Complete
 
@@ -113,10 +139,10 @@ set ts=4      "ts是tabstop的缩写，设置TAB宽为4个空格
 set expandtab
 set number    "显示行号
 set sm        "自动匹配} ] ) ,编程时用
-set sw=6      "shift+>> 右移一次6个字符
+set sw=4      "shiftwidth 右移一次4个字符
 set encoding=UTF-8
-"set langmenu=zh_CN.UTF-8
-"language message zh_CN.UTF-8
+set langmenu=en_US.UTF-8
+language message en_US.UTF-8
 
 "https://www.cnblogs.com/leisurelylicht/p/Mac-deVIM-zhongdelete-jian-shi-xiao-de-yuan-yin-he.html
 set backspace=2

@@ -3,7 +3,7 @@
 osType=`uname -s`
 echo "osType=$osType"
 
-BUILD_DIR=$PWD/build
+BUILD_DIR="$(cd $(dirname $0); pwd)/build"
 SOURCE_DIR=$BUILD_DIR/source
 ZIP_DIR=$BUILD_DIR/zip
 

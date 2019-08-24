@@ -101,8 +101,15 @@ function installYouCompleteMe() {
     } && {
         export GO111MODULE=on
         export GOPROXY=https://goproxy.io
-    } && git submodule update --init --recursive && \
-    success "installed YouCompleteMe"
+    } && git submodule update --init --recursive && {
+        local python="$(command -v python3)"
+        [ -z "$python" ] && python="$(command -v python)"
+        if [ -z "$python" ] ; then
+            warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
+        else
+            ($python install.py --clang-completer --ts-completer --go-completer --ninja || $python install.py --clang-completer --ts-completer --go-completer) success "installed YouCompleteMe"
+        fi
+    }
 }
 
 function installNodeJSIfNeeded() {
@@ -120,7 +127,7 @@ function installNodeJSIfNeeded() {
         success "installed node.js v10.15.1"
     }
     
-    if [ "$(npm config get registry)" == "https://registry.npmjs.org" ] ; then
+    if [ "$(npm config get registry)" == "https://registry.npmjs.org/" ] ; then
         npm config set registry "https://registry.npm.taobao.org/"
     fi
 }
@@ -153,7 +160,11 @@ function main() {
         installViaHomeBrew vim vim && \
         installViaHomeBrew curl curl && \
         installViaHomeBrew go go && \
+        installViaHomeBrew make make && \
+        installViaHomeBrew cmake cmake && \
+        installViaHomeBrew ninja ninja && \
         installViaHomeBrew ctags ctags && \
+        installViaHomeBrew python3 python3 && \
         installVundle && \
         installYouCompleteMe && \
         installNodeJSIfNeeded && \
@@ -167,7 +178,11 @@ function main() {
             installViaPacman vim vim && \
             installViaPacman go go && \
             installViaPacman sed sed && \
+            installViaPacman make make && \
+            installViaPacman cmake cmake && \
+            installViaPacman ninja ninja && \
             installViaPacman ctags ctags && \
+            installViaPacman python3 python && \
             installVundle && \
             installYouCompleteMe && \
             installNodeJSIfNeeded && \
@@ -183,7 +198,11 @@ function main() {
             installViaApk vim vim && \
             installViaApk go go && \
             installViaApk sed sed && \
+            installViaApk make make && \
+            installViaApk cmake cmake && \
+            installViaApk ninja ninja && \
             installViaApk ctags ctags && \
+            installViaApk python3 python3 && \
             installVundle && \
             installYouCompleteMe && \
             installNodeJSIfNeeded && \
@@ -199,7 +218,11 @@ function main() {
             installViaApt vim vim && \
             installViaApt go golang && \
             installViaApt sed sed && \
+            installViaApt make make && \
+            installViaApt cmake cmake && \
+            installViaApt ninja ninja-build && \
             installViaApt ctags exuberant-ctags && \
+            installViaApt python3 python3 && \
             installVundle && \
             installYouCompleteMe && \
             installNodeJSIfNeeded && \
@@ -215,7 +238,11 @@ function main() {
             installViaDnf vim vim && \
             installViaDnf go golang && \
             installViaDnf sed sed && \
+            installViaDnf make make && \
+            installViaDnf cmake cmake && \
+            installViaDnf ninja ninja-build && \
             installViaDnf ctags ctags-etags && \
+            installViaDnf python3 python3 && \
             installVundle && \
             installYouCompleteMe && \
             installNodeJSIfNeeded && \
@@ -231,7 +258,11 @@ function main() {
             installViaYum vim vim && \
             installViaYum go golang && \
             installViaYum sed sed && \
+            installViaYum make make && \
+            installViaYum cmake cmake && \
+            installViaYum ninja ninja-build && \
             installViaYum ctags ctags-etags && \
+            installViaYum python3 python36 && \
             installVundle && \
             installYouCompleteMe && \
             installNodeJSIfNeeded && \
@@ -247,8 +278,11 @@ function main() {
         installViaZypper vim vim && \
         installViaZypper go golang && \
         installViaZypper sed sed && \
+        installViaZypper make make && \
+        installViaZypper cmake cmake && \
+        installViaZypper ninja ninja && \
         installViaZypper ctags ctags && \
-        installVundle && \
+        installViaZypper python3 python3 && \
         installYouCompleteMe && \
         installNodeJSIfNeeded && \
         updateVimrcOfCurrentUser && \

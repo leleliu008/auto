@@ -146,7 +146,7 @@ function updateVimrcOfCurrentUser() {
                 fi
             done
         fi
-        [ -z "$backup" ] || backup="${myVIMRC}.bak"
+        [ -z "$backup" ] && backup="${myVIMRC}.bak"
         mv "$myVIMRC" "$backup"
     }
     

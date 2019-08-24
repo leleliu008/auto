@@ -107,7 +107,7 @@ function installYouCompleteMe() {
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
-            ($python install.py --clang-completer --ts-completer --go-completer --ninja || $python install.py --clang-completer --ts-completer --go-completer) success "installed YouCompleteMe"
+            ($python install.py --clang-completer --ts-completer --go-completer --ninja || $python install.py --clang-completer --ts-completer --go-completer) && success "installed YouCompleteMe"
         fi
     }
 }

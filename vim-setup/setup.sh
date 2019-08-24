@@ -92,7 +92,7 @@ function installYouCompleteMe() {
     info "installing YouCompleteMe..."
     git clone --recursive https://gitee.com/YouCompleteMe/YouCompleteMe.git "$youCompleteMeDir" && \
     cd "$youCompleteMeDir" && {
-        local python="$(command -v python3)"
+        python="$(command -v python3)"
         [ -z "$python" ] && python="$(command -v python)"
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
@@ -134,27 +134,34 @@ function installNodeJSIfNeeded() {
 }
 
 function updateVimrcOfCurrentUser() {
-    [ -f "${HOME}/.vimrc" ] && {
-        if [ -f "${HOME}/.vimrc.bak" ] ; then
+    local myVIMRC="${HOME}/.vimrc"
+    [ -f "$myVIMRC" ] && {
+        if [ -f "${myVIMRC}.bak" ] ; then
             for i in $(seq 1 1000)
             do
-                if [ -f "${HOME}/.vimrc${i}.bak" ] ; then
+                if [ -f "${myVIMRC}${i}.bak" ] ; then
                     continue
                 else
-                    backup="${HOME}/.vimrc${i}.bak"
+                    backup="${myVIMRC}${i}.bak"
                     break
                 fi
             done
-        else
-            backup="${HOME}/.vimrc.bak"
         fi
-        [ -z "$backup" ] || "${HOME}/.vimrc.bak"
-        mv "${HOME}/.vimrc" "$backup"
+        [ -z "$backup" ] || "${myVIMRC}.bak"
+        mv "$myVIMRC" "$backup"
     }
     
-    cp "$currentScriptDir/vimrc-user" ~/.vimrc
-    cp "$currentScriptDir/.tern-project" ~
-
+    cp "$currentScriptDir/vimrc-user" "$myVIMRC"
+    cp "$currentScriptDir/.tern-project" "${HOME}"
+    
+    [ -z "$python" ] || {
+        if [ "$(uname -s)" == "Darwin" ] ; then
+            sed -i ""  "s@/usr/local/bin/python3@${python}@g" "myVIMRC"
+        else
+            sed -i "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
+        fi
+    }
+    
     success "---------------------------------------------------"
     [ -z "$backup" ] || {
         success "~/.vimrc config file is updated! "

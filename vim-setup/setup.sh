@@ -98,7 +98,17 @@ function installYouCompleteMe() {
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
             command -v java &> /dev/null && local options="--java-completer"
-            ($python install.py --clang-completer --ts-completer $options --ninja || $python install.py --clang-completer --ts-completer $options) && success "installed YouCompleteMe"
+            info "compiling YouCompleteMe..."
+            $python install.py --clang-completer --ts-completer $options --ninja
+            if [ $? -eq 0 ] ; then
+                info "recompiling YouCompleteMe..."
+                $python install.py --clang-completer --ts-completer $options
+            fi
+            if [ $? -eq 0 ] ; then
+                success "installed YouCompleteMe"
+            else
+                warn "compiled failed!you can comiple it by hand"
+            fi
         fi
     }
 }

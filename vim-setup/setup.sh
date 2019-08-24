@@ -20,11 +20,11 @@ function success() {
 }
 
 function info() {
-    msg "${Purple}[➭]${Color_off} ${1}${2}"
+    msg "${Purple}[❉]${Color_off} ${1}${2}"
 }
 
 function warn() {
-    msg "${Yellow}[⚠]${Color_off} ${1}${2}"
+    msg "${Yellow}[⌘]${Color_off} ${1}${2}"
 }
 
 function error() {
@@ -84,32 +84,21 @@ function installVundle() {
 
 function installYouCompleteMe() {
     local pluginDir="${HOME}/.vim/bundle"
-    local youCompleteMeDir="${pluginDir}/youcompleteme"
+    local youCompleteMeDir="${pluginDir}/YouCompleteMe"
     
     [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
     [ -d "$youCompleteMeDir" ] && rm -rf "$youCompleteMeDir"
     
     info "installing YouCompleteMe..."
-    git clone https://gitee.com/mirrors/youcompleteme.git "$youCompleteMeDir" && \
-    cd "$youCompleteMeDir" && \
-    git submodule update --init && {
-        if [ "$(uname -s)" == "Darwin" ] ; then
-            sed -i ""  "s@go.googlesource.com@github.com/golang@g" ./third_party/ycmd/.gitmodules
-        else
-            sed -i "s@go.googlesource.com@github.com/golang@g" ./third_party/ycmd/.gitmodules
-        fi
-    } && {
-        export GO111MODULE=on
-        export GOPROXY=https://goproxy.io
-    } && git submodule update --init --recursive && {
+    git clone --recursive https://gitee.com/YouCompleteMe/YouCompleteMe.git "$youCompleteMeDir" && \
+    cd "$youCompleteMeDir" && {
         local python="$(command -v python3)"
         [ -z "$python" ] && python="$(command -v python)"
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
-            local options="--clang-completer --ts-completer --go-completer"
-            [ -z "$(command -v java &> /dev/null)" ] || options="$options --java-completer"
-            ($python install.py "$options" --ninja || $python install.py "$options") && success "installed YouCompleteMe"
+            command -v java &> /dev/null && local options="--java-completer"
+            ($python install.py --clang-completer --ts-completer $options --ninja || $python install.py --clang-completer --ts-completer $options) && success "installed YouCompleteMe"
         fi
     }
 }
@@ -161,7 +150,7 @@ function updateVimrcOfCurrentUser() {
         success "~/.vimrc config file is updated! "
         success "your ~/.vimrc config file is bak to $backup"
     }
-    success "cd ~/.vim/bundle/youcompleteme to go on install with command python install.py"
+    success "cd ~/.vim/bundle/YouCompleteMe to go on install with command python install.py"
     success "open vim and use :BundleInstall to install plugins!"
     success "---------------------------------------------------"
 }

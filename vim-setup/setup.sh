@@ -99,10 +99,10 @@ function installYouCompleteMe() {
         else
             command -v java &> /dev/null && local options="--java-completer"
             info "compiling YouCompleteMe..."
-            $python install.py --clang-completer --ts-completer $options --ninja
+            $python install.py --clang-completer --ts-completer --go-completer $options --ninja
             if [ $? -eq 0 ] ; then
                 info "recompiling YouCompleteMe..."
-                $python install.py --clang-completer --ts-completer $options
+                $python install.py --clang-completer --ts-completer --go-completer $options
             fi
             if [ $? -eq 0 ] ; then
                 success "installed YouCompleteMe"
@@ -147,7 +147,7 @@ function updateVimrcOfCurrentUser() {
                 fi
             done
         fi
-        [ -z "$backup" ] || "${myVIMRC}.bak"
+        [ -z "$backup" ] || backup="${myVIMRC}.bak"
         mv "$myVIMRC" "$backup"
     }
     

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resproguard>
+  <issue id="property">
+    <seventzip value="true"/>
+    <metaname value="META-INF"/>
+    <keeproot value="false"/>
+	<mergeDuplicatedRes value="true"/>
+  </issue>
+
+  <issue id="whitelist" isactive="true">
+    <path value="com.fpliu.newton.R.mipmap.ic_launcher"/>
+    <path value="com.fpliu.newton.R.mipmap.service*"/>
+
+    <path value="com.fpliu.newton.R.string.com.crashlytics.*"/>
+    
+    <path value="com.fpliu.newton.R.string.umeng*"/>
+    <path value="com.fpliu.newton.R.layout.umeng*"/>
+    <path value="com.fpliu.newton.R.drawable.umeng*"/>
+    <path value="com.fpliu.newton.R.anim.umeng*"/>
+    <path value="com.fpliu.newton.R.color.umeng*"/>
+    <path value="com.fpliu.newton.R.style.*UM*"/>
+    <path value="com.fpliu.newton.R.style.umeng*"/>
+    <path value="com.fpliu.newton.R.id.umeng*"/>
+    <path value="com.fpliu.newton.R.string.UM*"/>
+    <path value="com.fpliu.newton.R.string.tb_*"/>
+    <path value="com.fpliu.newton.R.layout.tb_*"/>
+    <path value="com.fpliu.newton.R.drawable.tb_*"/>
+    <path value="com.fpliu.newton.R.color.tb_*"/>
+  </issue>
+
+  <issue id="keepmapping" isactive="false">
+    <path value="{your_mapping_path}"/>
+  </issue>
+
+  <issue id="compress" isactive="true">
+    <path value="*.png"/>
+    <path value="*.jpg"/>
+    <path value="*.jpeg"/>
+    <path value="*.gif"/>
+    <path value="resources.arsc"/>
+  </issue>
+
+  <issue id="sign" isactive="false">
+    <path value="release.keystore"/>
+    <storepass value="testres"/>
+    <keypass value="testres"/>
+    <alias value="testres"/>
+  </issue>
+
+</resproguard>

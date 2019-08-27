@@ -6,10 +6,6 @@
 # 所有软件均通过HomeBrew进行安装
 #------------------------------------------------------------------------------#
 
-function installCommandLineDeveloperToolsIfNeeded() {
-    command -v git &> /dev/null || xcode-select --install
-}
-
 function installBrewIfNeeded() {
     command -v brew &> /dev/null || echo -e '\n' | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
@@ -23,8 +19,6 @@ function main() {
         echo "your os is not macOS!!"
         exit 1;
     }
-
-    installCommandLineDeveloperToolsIfNeeded
 
     installBrewIfNeeded && brew update
 

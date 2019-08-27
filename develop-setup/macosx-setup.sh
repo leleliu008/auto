@@ -15,17 +15,20 @@ installByHomeBrew=(curl wget zip unzip tree vim node npm httpie tomcat jenkins m
 installByHomeBrewCask=(iterm2 firefox google-chrome sublime webstorm eclipse-jee docker android-sdk android-ndk android-studioi genymotion skitch);
 
 # 安装HomeBrew
-function installHomeBrew() {
-    command -v brew &> /dev/null || (echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && brew update)
+function installOrUpdateHomeBrew() {
+    command -v brew &> /dev/null
+    if [ $? -eq 0 ] ; then
+        brew update
+    else
+        echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
+    fi
 }
 
 function main() {
-    command -v git &> /dev/null || command -v svn &> /dev/null || xcode-select --install
-
-    installHomeBrew || (
+    installOrUpdateHomeBrew || {
         echo "installBrew occur error!"
         exit 1
-    )
+    }
 
     for name in ${installByHomeBrew[*]}
     do

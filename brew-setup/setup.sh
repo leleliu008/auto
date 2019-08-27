@@ -1,19 +1,30 @@
 #!/bin/bash
 
-# 配置Brew的环境变量
-function configBrewEnv() {
-    echo "# -----------------------------------------------" >> ~/.bashrc
-    echo "export PATH=${HOME}/.linuxbrew/bin:\$PATH" >> ~/.bashrc
-    echo "export MANPATH=${HOME}/.linuxbrew/share/man:\$MANPATH" >> ~/.bashrc
-    echo "export INFOPATH=${HOME}/.linuxbrew/share/info:\$INFOPATH" >> ~/.bashrc
-    source ~/.bashrc
+# 配置LinuxBrew的环境变量
+function configLinuxBrewEnv() {
+    cat >> ${HOME}/.linuxbrew/env <<EOF
+export PATH=\${HOME}/.linuxbrew/bin:\$PATH
+export MANPATH=\${HOME}/.linuxbrew/share/man:\$MANPATH
+export INFOPATH=\${HOME}/.linuxbrew/share/info:\$INFOPATH
+EOF
+    source ${HOME}/.linuxbrew/env
+    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.bash_profile
+    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.bashrc
+    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.zshrc
 }
 
-# 安装LinuxBrew
+function installLinuxBrew() {
+    echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configLinuxBrewEnv
+}
+
+function installHomeBrew() {
+    echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+}
+
+# 安装HomeBrew或者LinuxBrew
 function installBrew() {
     if [ "`uname -s`" == "Darwin" ] ; then
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && \
-        configBrewEnv && brew update
+        installHomeBrew
     else
         command -v apt-get &> /dev/null && {
              sudo apt-get -y install build-essential \
@@ -27,17 +38,15 @@ function installBrew() {
                                      libcurl4-openssl-dev \
                                      libexpat-dev \
                                      libncurses-dev \
-                                     zlib1g-dev
-            echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
-            configBrewEnv && brew update
+                                     zlib1g-dev && \
+            installLinuxBrew
             exit
         }
         
         command -v yum &> /dev/null && { 
             sudo yum -y groupinstall 'Development Tools' && \
-            sudo yum -y install irb python-setuptools
-            echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && \
-            configBrewEnv && brew update
+            sudo yum -y install irb python-setuptools && \
+            installLinuxBrew
             exit
         }
         
@@ -48,6 +57,7 @@ function installBrew() {
 
 function main() {
     command -v brew &> /dev/null && {
+        brew update
         echo "brew is already installed!"
         exit 0
     }

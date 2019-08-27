@@ -126,26 +126,25 @@ function getValueFromPListFile() {
 }
 
 function showHelp() {
-    echo "Usage:"
-    echo "./tool.sh -h              display help"
-    echo "./tool.sh --help          display help"
-    echo "./tool.sh sonar           check you oc language with SonarQube"
-    echo "./tool.sh build Debug     generate debug ipa"
-    echo "./tool.sh build Release   generate release ipa"
+    cat <<EOF
+Usage:
+./tool.sh -h              display help
+./tool.sh --help          display help
+./tool.sh sonar           check you oc language with SonarQube
+./tool.sh build Debug     generate debug ipa
+./tool.sh build Release   generate release ipa
+EOF
 }
 
-#正文
 function main() {
-    if [ `uname -s` != 'Darwin' ] ; then
+    [ `uname -s` == 'Darwin' ] || {
         echo "your os is not MacOSX!"
         exit
-    elif [ -z "$1" ] ; then
-        showHelp
-    elif [ "$1" = '-h' -o "$1" = '--help' ] ; then
-        showHelp
-    elif [ "$1" = 'sonar' ] ; then
+    }
+
+    if [ "$1" == 'sonar' ] ; then
         runSonar
-    elif [ "$1" = 'build' ] ; then
+    elif [ "$1" == 'build' ] ; then
         if [ -z "$2" ] ; then
             showHelp
         else

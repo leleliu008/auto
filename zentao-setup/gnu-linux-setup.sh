@@ -19,6 +19,49 @@ MYSQL_PORT=3306
 
 #--------------------------------------------------------------#
 
+function installCurlIfPossible() {
+    command -v curl &> /dev/null || {
+        command -v apt-get &> /dev/null && {
+            $sudo apt-get -y update && \
+            $sudo apt-get -y install curl
+            return $?
+        }
+        
+        command -v dnf &> /dev/null && {
+            $sudo dnf -y update && \
+            $sudo dnf -y install curl
+            return $?
+        }
+    
+        command -v yum &> /dev/null && {
+            $sudo yum -y update && \
+            $sudo yum -y install curl
+            return $?
+        }
+        
+        command -v zypper &> /dev/null && {
+            $sudo zypper update -y && \
+            $sudo zypper install -y curl
+            return $?
+        }
+        
+        command -v pacman &> /dev/null && {
+            $sudo pacman -Syyuu --noconfirm && \
+            $sudo pacman -S     --noconfirm curl
+            return $?
+        }
+        
+        command -v zypper &> /dev/null && {
+            $sudo apk update && \
+            $sudo apk add curl
+            return $?
+        }
+
+        echo "who are you?"
+        exit 1
+    }
+}
+
 function downloadExtractStart() {
     # 32位还是64位
     local x=32
@@ -42,23 +85,19 @@ function extractAndStartService() {
 }
 
 function main() {
+    [ "$(uname -s)" == "Darwin" ] && {
+        echo "ZenTaoPMS not support macOS!"
+        exit 1
+    }
+    
+    [ -f "/opt/zbox/zbox" ] && {
+        echo "ZenTaoPMS already installed!"
+        exit 0
+    }
+    
     [ `whoami` == "root" ] || sudo=sudo
 
-    command -v apt-get &> /dev/null && {
-        $sudo apt-get -y update
-        $sudo apt-get -y install curl
-        downloadExtractStart
-        exit $?
-    }
-    
-    command -v yum &> /dev/null && {
-        $sudo yum -y update
-        $sudo yum -y install curl
-        downloadExtractStart
-        exit $?
-    }
-    
-    echo "don't support your os!!"
+    installCurlIfPossible && downloadExtractStart
 }
 
 main

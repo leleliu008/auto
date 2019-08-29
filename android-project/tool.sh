@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #--------------------- these config can change------------
-_360UserName="hyzb_it"
-_360Password="hyzb@2017"
-appName=dsa_for_android
+_360UserName=""
+_360Password=""
+appName=newton_for_android
 
 #---------------------------------------------------------
 

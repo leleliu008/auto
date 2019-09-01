@@ -5,7 +5,7 @@ MAINTAINER 792793182@qq.com
 RUN rm /etc/apt/sources.list && \
     echo "\
 deb http://mirrors.huaweicloud.com/ubuntu/ bionic main restricted universe multiverse\n\
-deb http://mirrors.huaweicloud/ubuntu/ bionic-security main restricted universe multiverse\n\
+deb http://mirrors.huaweicloud.com/ubuntu/ bionic-security main restricted universe multiverse\n\
 deb http://mirrors.huaweicloud.com/ubuntu/ bionic-updates main restricted universe multiverse\n\
 deb http://mirrors.huaweicloud.com/ubuntu/ bionic-proposed main restricted universe multiverse\n\
 deb http://mirrors.huaweicloud.com/ubuntu/ bionic-backports main restricted universe multiverse" \

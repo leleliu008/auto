@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #-------------- these config can be changed --------------
-_360UserName=""
-_360Password=""
-appName=nreton_for_android
+#appName如果不设置的话，使用当前文件夹的名字
+appName=
 
 #---------------------------------------------------------
 
@@ -49,13 +48,13 @@ sedCompatible() {
 
 initValues() {
     [ -z "$osType" ] && osType="$(uname -s)"
-    info "osType   : $osType"
+    info "osType        = $osType"
     
     [ "$(whoami)" == "root" ] || sudo=sudo
-    info "whoami   : $(whoami)"
+    info "whoami        = $(whoami)"
     
     [ -z "$workDir" ] && workDir="$(cd "$(dirname "$0")" || exit 1; pwd)"
-    info "workDir  : $workDir"
+    info "workDir       = $workDir"
 }
 
 readKeyStoreInfo() {
@@ -77,13 +76,13 @@ readKeyStoreInfo() {
 readPackageName() {
     [ -z "$packageName" ] &&
     packageName=$(grep 'applicationId = "[^"]*"' "$workDir"/app/build.gradle.kts | sed 's/.*applicationId = "\([^"]*\)".*/\1/')
-    info "package  : $packageName"
+    info "packageName   = $packageName"
 }
 
 readVersionName() {
     [ -z "$versionName" ] &&
     versionName=$(grep 'versionName = "[^"]*"' "$workDir"/app/build.gradle.kts | sed 's/.*versionName = "\([^"]*\)".*/\1/')
-    info "versionName : $versionName"
+    info "versionName   = $versionName"
 }
 
 readCompileSdkVersion() {
@@ -525,10 +524,10 @@ showApkVersion() {
 # 监测是否是一个Apk文件
 # $1 是apk文件的路径
 checkValidApk() {
-    [ -z "$1" ] && error "please apply a apk file path ~"
-    [ -f "$1" ] || error "$1 is not exist ~"
+    [ -z "$1" ] && error "checkValidApk: please apply a apk file path ~"
+    [ -f "$1" ] || error "checkValidApk: $1 is not exist ~"
     unzip -t "$1" &> /dev/null ||
-    error "$1 is not a valid apk file ~"
+    error "checkValidApk: $1 is not a valid apk file ~"
 }
 
 #打开Genymotion模拟器
@@ -600,11 +599,16 @@ downloadWalleIfNeeded() {
     fi
 }
 
+checkChannelsConfig() {
+    [ -f "channels-config.txt" ] || error "channels-config.txt not exsit."
+}
+
 # $1是apk的文件路径
 genChannels() {
     downloadWalleIfNeeded &&
-    getjava &&
-    "$java" -jar "$walleCliJar" batch -c 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,99 "$1"
+    getjava && 
+    mkdir -p "channels-$2" && 
+    "$java" -jar "$walleCliJar" batch -f "channels-config.txt" "$1" "channels-$2"
 }
 
 
@@ -630,7 +634,27 @@ downloadJiaguIfNeeded() {
     fi
 }
 
-jiagu() {
+read360mobileAccount() {
+    _360ConfigFile="$HOME/.360mobile.properties"
+    
+    [ -f "$_360ConfigFile" ] || {
+        cat > "$_360ConfigFile" << EOF
+username=
+password=
+EOF
+        error "please config $_360ConfigFile first."
+    }
+    
+    _360UserName=$(grep "username=" "$_360ConfigFile" | sed 's/^username=\(.*\)/\1/')
+    _360Password=$(grep "password=" "$_360ConfigFile" | sed 's/^password=\(.*\)/\1/')
+
+    [ -z "$_360UserName" ] && error "please config $_360ConfigFile first."
+    [ -z "$_360Password" ] && error "please config $_360ConfigFile first."
+    info "360mobile =>"
+    info "    username  = $_360UserName"
+}
+
+prepareJiaguCommand() {
     local toolsDir="$workDir/tools"
     [ -d "$toolsDir" ] || mkdir -p "$toolsDir"
     
@@ -640,7 +664,7 @@ jiagu() {
         jiaguJar="$unzipDir/jiagu/jiagu.jar"
         downloadJiaguIfNeeded &&
         install7zipIfNeeded &&
-        "$p7z" x "$toolsDir/360jiagubao_mac.zip" -y -o"$toolsDir"
+        "$p7z" x "$toolsDir/360jiagubao_mac.zip" -y -o"$unzipDir"
         chmod -R a+x "$unzipDir/jiagu/java"
     else
         "$java" -version &> tmp
@@ -651,21 +675,42 @@ jiagu() {
     fi
     
     getjava
-    local jiagu="$java -jar $jiaguJar"
+    jiagu="$java -jar $jiaguJar"
     
     #更新程序到最新
     $jiagu -update
-     
+}
+
+jiaguInternal() {
     #使用360账户登录，首次用脚本登录会失败，它要求在GUI下用图片验证码进行验证，但是code却是0
-    $jiagu -login $_360UserName $_360Password || error "login 360 failed. 360's username or password is not correct! or there is no network!"
+    $jiagu -login "$_360UserName" "$_360Password"
     
-    readKeyStoreInfo
     #导入签名信息
     $jiagu -importsign "$storeFile" "$storePassword" "$keyAlias" "$keyPassword" || error "your keyStore is not right!"
+    
+    local apkDir; apkDir=$(dirname "$1")
+    info "jiaguInternal() apkDir = $apkDir"
 
     #加固，并进行v1签名
     $jiagu -jiagu "$1" "$apkDir" -autosign || error "jiagu failed!"
+    
     jiaguResult=$(find "$apkDir" -name "*_jiagu_sign.apk" | head -n 1)
+}
+
+jiagu() {
+    prepareJiaguCommand
+    readKeyStoreInfo
+    jiaguInternal "$@"
+    [ -f "$jiaguResult" ] || {
+        errorOnly "login 360 failed. there are posible reasons:"
+        errorOnly "1、360's username or password is not correct!"
+        errorOnly "2、there is no network!"
+        errorOnly "3、you are first login, must login from GUI"
+        errorOnly "we start GUI, you can login from GUI, login successed , then close the GUI, we will retry."
+        errorOnly "errorCode: https://bbs.360.cn/thread-15488914-1-1.html"
+        $jiagu
+        jiaguInternal "$@"
+    }
 }
 
 downloadAndResGuard() {
@@ -688,12 +733,16 @@ checkAndResGuardConfig() {
     [ -f "$workDir/AndResGuard-config.xml" ] && return 0
     
     [ -f "$workDir/tools/AndResGuard-config.xml" ] &&
-    cp "$workDir/tools/AndResGuard-config.xml" "$workDir" && return 0
+    error "$workDir/AndResGuard-config.xml not exsit. you can copy $workDir/tools/AndResGuard-config.xml, then modify from it. see details: https://github.com/shwenzhang/AndResGuard/blob/master/doc/how_to_work.md#how-to-write-configxml-file"
     
-    downloadWithCurl && 
-    cp "$workDir/tools/AndResGuard-config.xml" "$workDir" && return 0
+    readPackageName
 
-    error "$workDir/AndResGuard-config.xml not exsit. you can download a copy from https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-config.xml, then change the content to suit yours."
+    local url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-config.xml" 
+    downloadWithCurl "$url" "AndResGuard-config.xml" && 
+    sedCompatible "s@com.fpliu.newton@${packageName}@g" "$workDir/tools/AndResGuard-config.xml" && 
+    error "$workDir/AndResGuard-config.xml not exsit. you can copy $workDir/tools/AndResGuard-config.xml, then modify from it. see details: https://github.com/shwenzhang/AndResGuard/blob/master/doc/how_to_work.md#how-to-write-configxml-file"
+
+    error "$workDir/AndResGuard-config.xml not exsit. you can download a copy from $url, then modify from it to suit yours. see details: https://github.com/shwenzhang/AndResGuard/blob/master/doc/how_to_work.md#how-to-write-configxml-file"
 }
 
 # 使用https://github.com/shwenzhang/AndResGuard进行资源混淆
@@ -777,8 +826,6 @@ redexApk() {
 # $3取值为--jiagu，表示要进行加固
 # $4取值为--channel，表示要构建渠道包
 runBuild() {
-    readVersionName
-
     #左移一项，跳过./tool.sh
     shift 1
     
@@ -812,8 +859,10 @@ runBuild() {
             isReDex=true
         elif [ "$1" = "--jiagu" ] ; then
             isJiaGu=true
+            read360mobileAccount
         elif [ "$1" = "--channel" ] ; then
             isGenChannels=true
+            checkChannelsConfig
         fi
     done
     
@@ -822,13 +871,21 @@ runBuild() {
     [ -z "$isReDex" ]       && isReDex=false
     [ -z "$isJiaGu" ]       && isJiaGu=false
     [ -z "$isGenChannels" ] && isGenChannels=false
-
+    [ -z "$appName" ]       && appName="$(basename "$workDir")"
+    
     info "environment   = $environment"
     info "isWebp        = $isWebp"
     info "isResGuard    = $isResGuard"
     info "isReDex       = $isReDex"
     info "isJiaGu       = $isJiaGu"
     info "isGenChannels = $isGenChannels"
+    info "appName       = $appName"
+    
+    readVersionName
+     
+    local ts; ts=$(date +%Y%m%d_%H%M%S)    
+    local outputFile; outputFile="${appName}_${versionName}_${ts}_$environment.apk"
+    info "outputFile    = $outputFile"
     
     setAndroidSDKHomeInLocalProperties
 
@@ -867,27 +924,27 @@ runBuild() {
     resguard "$currentApkFile" &&
     currentApkFile="$resguardResult"
     
-    [ "$isJiaGu" = "true" ] &&
-    jiagu "$currentApkFile" &&
-    currentApkFile="$jiaguResult"
-    
-    #字节对齐优化
-    alignApk "$currentApkFile" &&
-    currentApkFile="$alignApkResult"
-    
-    #进行v2签名
-    v2Sign "$currentApkFile" &&
-    currentApkFile="$v2SignResult"
-    
-    #对v2签名进行校验
-    v2SignVerify "$currentApkFile"
-    
-    local outputFile; outputFile="${appName}_${versionName}_$(date +%Y%m%d_%H%M%S)_$environment.apk"
+    [ "$isJiaGu" = "true" ] && {
+        jiagu "$currentApkFile" &&
+        currentApkFile="$jiaguResult"
+        
+        #字节对齐优化
+        alignApk "$currentApkFile" &&
+        currentApkFile="$alignApkResult"
+        
+        #进行v2签名
+        v2Sign "$currentApkFile" &&
+        currentApkFile="$v2SignResult"
+        
+        #对v2签名进行校验
+        v2SignVerify "$currentApkFile"
+    }
     
     #复制最终的apk文件，并进行渠道包的构建
     cp "$currentApkFile" "$outputFile" && 
     [ "$isGenChannels" = "true" ] && 
-    genChannels "$outputFile"
+    genChannels "$outputFile" "$ts" &&
+    success "All done."
 }
 
 doctor() {
@@ -977,7 +1034,7 @@ main() {
 	        convertToWebP
             ;;
         "show")
-            if [ "$2" = 'md5' ] ; then
+            if [ "$2" = 'cert' ] ; then
                 showCertificateFingerprints
 	        elif [ "$2" = 'version' ] ; then
 	            showApkVersion "$3"

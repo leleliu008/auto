@@ -4,8 +4,7 @@
 
 # 在Mac OSX上安装HomeBrew
 function installHomeBrewIfNeeded() {
-    command -v brew &> /dev/null
-    if [ $? -eq 0 ] ; then
+    if command -v brew &> /dev/null ; then
         brew update
     else
         echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"

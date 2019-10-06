@@ -16,8 +16,7 @@ installByHomeBrewCask=(iterm2 firefox google-chrome sublime webstorm eclipse-jee
 
 # 安装HomeBrew
 function installOrUpdateHomeBrew() {
-    command -v brew &> /dev/null
-    if [ $? -eq 0 ] ; then
+    if command -v brew &> /dev/null ; then
         brew update
     else
         echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"

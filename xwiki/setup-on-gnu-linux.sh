@@ -79,8 +79,7 @@ function installMySQL() {
 function downloadTGZFileAndExtractTo() {
     local fileName=`basename "$1"`
     if [ -f "${fileName}" ] ; then
-        tar -tf ${fileName} > /dev/null
-        if [ $? -eq 0 ] ; then
+        if tar -tf ${fileName} > /dev/null ; then
             [ -z "$2" ] || tar zxf ${fileName} -C "$2"
         else
             curl -C - -LO "$1" && [ -n "$2" ] && tar zxf ${fileName} -C "$2"
@@ -96,8 +95,7 @@ function downloadTGZFileAndExtractTo() {
 function downloadZipFileAndExtractTo() {
     local fileName=`basename "$1"`
     if [ -f "${fileName}" ] ; then
-        unzip -t ${fileName} &> /dev/null
-        if [ $? -eq 0 ] ; then
+        if unzip -t ${fileName} &> /dev/null ; then
             [ -z "$2" ] || unzip ${fileName} -d "$2" > /dev/null
         else
             curl -C - -LO "$1" && unzip ${fileName} -d "$2" > /dev/null

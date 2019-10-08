@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 installOhMyZsh() {
     scriptFileName="$(date +%Y%m%d%H%M%S).sh"
@@ -13,7 +13,7 @@ installOhMyZsh() {
         sed -i "${lineNumber}d" "$scriptFileName"
     fi
 
-    (source "$scriptFileName" && rm "$scriptFileName") || exit 1
+    (sh "$scriptFileName" && rm "$scriptFileName") || exit 1
     
     pluginsDir=~/.oh-my-zsh/plugins
     
@@ -47,7 +47,7 @@ installOhMyZsh() {
     fi
 }
 
-main() {
+installDependency() {
     sudo=$(command -v sudo 2> /dev/null);
     osType=$(uname -s);
 
@@ -60,52 +60,43 @@ main() {
             command -v zsh  > /dev/null || $sudo pacman -S zsh  --noconfirm &&
             command -v sed  > /dev/null || $sudo pacman -S sed  --noconfirm &&
             command -v awk  > /dev/null || $sudo pacman -S gawk --noconfirm &&
-            installOhMyZsh
-            exit
+            return 0
         }
         
         # 如果是Ubuntu或Debian GNU/Linux系统
         command -v apt-get > /dev/null && {
             $sudo apt-get -y update &&
             $sudo apt-get -y install curl git zsh sed gawk &&
-            installOhMyZsh
-            exit
+            return 0
         }
         
         # 如果是Fedora或CentOS8系统
         command -v dnf > /dev/null && {
             $sudo dnf -y update &&
             $sudo dnf -y install curl git zsh sed gawk &&
-            installOhMyZsh
-            exit
+            return 0
         }
         
         # 如果是CentOS8以下的系统
         command -v yum > /dev/null && { 
             $sudo yum -y update &&
             $sudo yum -y install curl git zsh sed gawk &&
-            installOhMyZsh
-            exit
+            return 0
         }
 
         # 如果是OpenSUSE系统
         command -v zypper > /dev/null && { 
             $sudo zypper update -y &&
             $sudo zypper install -y curl git zsh sed gawk &&
-            installOhMyZsh
-            exit
+            return 0
         }
         
         # 如果是AlpineLinux系统
         command -v apk > /dev/null && {
             $sudo apk update &&
             $sudo apk add curl git zsh sed gawk &&
-            installOhMyZsh
-            exit
+            return 0
         }
-            
-        printf "your os is unrecognized!!\n"
-        exit 1
     elif [ "$osType" = "Darwin" ] ; then
         if command -v brew > /dev/null ; then
             brew update
@@ -116,11 +107,12 @@ main() {
         command -v git  > /dev/null || brew install git
         command -v gsed > /dev/null || brew install gnu-sed
         command -v awk  > /dev/null || brew install gawk
-        installOhMyZsh
-    else
-        printf "your os is unrecognized!!\n"
-        exit 1
     fi
+}
+
+main() {
+    installDependency
+    installOhMyZsh
 }
 
 main

@@ -87,7 +87,7 @@ link() {
             sudo chown "$(whoami)" "$linkedDir/vcpkg"
         fi
     else
-        install -d -o "$(whoami)" "$linkedDir" &&
+        $sudo install -d -o "$(whoami)" "$linkedDir" &&
         ln -sf "$destDir/vcpkg" "$linkedDir/vcpkg"
     fi
 }

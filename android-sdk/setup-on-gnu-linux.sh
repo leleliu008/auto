@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #------------------------------------------------------------------------------#
 # Android开发环境搭建脚本
@@ -23,35 +23,55 @@ ANDROID_SDK_BUILD_TOOLS_VERSION=28.0.3
 # 安装目录
 DEST_DIR=/usr/local/opt
 
+export ANDROID_HOME="${DEST_DIR}/android-sdk"
+
 #------------------------------------------------------------------------------#
 
-# 配置JDK环境变量
-function configJDKEnv() {
-    local fileName=`basename "$JDK_URL"`
-    local dirName=`tar -tf "$fileName" | awk -F/ '{print $2}' | sort | uniq`
-    local javaHome=${DEST_DIR}/${dirName}
-    
-    [ -f "jdk-env" ] && rm jdk-env
-    cat > jdk-env << EOF
-export JAVA_HOME=${javaHome}
+JDK_FILE_NAME=$(basename "$JDK_URL")
+ANDROID_SDK_FILE_NAME=$(basename "$ANDROID_SDK_URL")
+ANDROID_STUDIO_FILE_NAME=$(basename "$ANDROID_STUDIO_URL")
+
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
+
+writeJDKEnv() {
+    cat > "$1" << EOF
+export JAVA_HOME=$JAVA_HOME
 export PATH=\$JAVA_HOME/bin:\$PATH
 export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar
 EOF
-    echo "source \"$DEST_DIR/jdk-env\"" >> ~/.bashrc
-    echo "source \"$DEST_DIR/jdk-env\"" >> ~/.zshrc
+}
 
-    source "$DEST_DIR/jdk-env"
+# 配置JDK环境变量
+configJDKEnv() {
+    dirName=$(tar -tf "$JDK_FILE_NAME" | awk -F/ '{print $2}' | sort | uniq)
+    
+    export JAVA_HOME=${DEST_DIR}/${dirName}
+    export PATH=$JAVA_HOME/bin:$PATH
+    export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+    
+    writeJDKEnv "$HOME/.bashrc"
+    writeJDKEnv "$HOME/.zshrc"
 }
 
 # 下载文件
-function downloadFile() {
-    local fileName=`basename "$1"`
-    local extension=`echo "$fileName" | awk -F. '{print $NF}'`
+downloadFile() {
+    info "Downloading $1"
+    fileName=$(basename "$1")
+    extension=$(echo "$fileName" | awk -F. '{print $NF}')
     if [ -f "$fileName" ] ; then
-        if [ "$extension" == "zip" ] ; then
-            unzip -t "$fileName" &> /dev/null || curl -C - -LO "$1"
-        elif [ "$extension" == "gz" ] ; then 
-            tar -tf "$fileName" &> /dev/null || curl -C - -LO "$1"
+        if [ "$extension" = "zip" ] ; then
+            unzip -t "$fileName" > /dev/null || curl -C - -LO "$1"
+        elif [ "$extension" = "gz" ] ; then 
+            tar -tf "$fileName" > /dev/null || curl -C - -LO "$1"
         fi
     else
         curl -C - -LO "$1"
@@ -59,76 +79,111 @@ function downloadFile() {
 }
 
 # 更新Android SDK
-function updateAndroidSDK() {
-    local sdkmanager="android-sdk/tools/bin/sdkmanager"
+updateAndroidSDK() {
+    info "Updating AndroidSDK..."
+    sdkmanager="$ANDROID_HOME/tools/bin/sdkmanager"
     echo y | $sdkmanager "platforms;android-${ANDROID_SDK_FRAMEWORK_VERSION}" && \
     echo y | $sdkmanager "platform-tools" && \
     echo y | $sdkmanager "build-tools;${ANDROID_SDK_BUILD_TOOLS_VERSION}"
     echo y | $sdkmanager "ndk-bundle"
 }
 
-# 配置Android SDK的环境变量
-function configAndroidSDKEnv() {
-    local androidHome="${DEST_DIR}/android-sdk"
-    
-    [ -f "android-env" ] && rm android-env
-    cat > android-env << EOF
-export ANDROID_HOME=${androidHome}
+writeAndroidSDKEnv() {
+    cat > "$1" << EOF
+export ANDROID_HOME=$ANDROID_HOME
 export PATH=\$ANDROID_HOME/tools:\$ANDROID_HOME/tools/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:\$PATH
 export ANDROID_NDK_HOME=\$ANDROID_HOME/ndk-bundle
 export PATH=\$PATH:\$ANDROID_NDK_HOME
 EOF
-    
-    echo "source \"$DEST_DIR/android-env\"" >> ~/.bashrc
-    echo "source \"$DEST_DIR/android-env\"" >> ~/.zshrc
-
-    source "$DEST_DIR/android-env"
 }
 
-function main() {
-    [ `uname -s` == "Linux" ] || {
-        echo "your os is not GNU/Linux!!"
+# 配置Android SDK的环境变量
+configAndroidSDKEnv() {
+    export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${ANDROID_SDK_BUILD_TOOLS_VERSION}:$PATH
+    export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
+    export PATH=$PATH:$ANDROID_NDK_HOME
+    
+    writeAndroidSDKEnv "$HOME/.bashrc"
+    writeAndroidSDKEnv "$HOME/.zshrc"
+}
+
+checkDependencies() {
+    info "Checking Dependencies"
+    command -v git    > /dev/null || pkgNames="git"
+    command -v curl   > /dev/null || pkgNames="$pkgNames curl"
+    command -v zip    > /dev/null || pkgNames="$pkgNames zip"
+    command -v unzip  > /dev/null || pkgNames="$pkgNames unzip"
+    command -v grep   > /dev/null || pkgNames="$pkgNames grep"
+}
+
+installDependencies() {
+    info "Installing Dependencies $pkgNames"
+
+    command -v apt-get > /dev/null && {
+        $sudo apt-get -y update &&
+        $sudo apt-get -y install $@
+        return 0
+    }
+     
+    command -v dnf > /dev/null && {
+        $sudo dnf -y update &&
+        $sudo dnf -y install $@
+        return 0
+    }
+    
+    command -v yum > /dev/null && {
+        $sudo yum -y update &&
+        $sudo yum -y install $@
+        return 0
+    }
+    
+    command -v zypper > /dev/null && {
+        $sudo zypper update -y &&
+        $sudo zypper install -y $@
+        return 0
+    }
+    
+    command -v apk > /dev/null && {
+        $sudo apk update &&
+        $sudo apk add $@
+        return 0
+    }
+    
+    command -v pacman > /dev/null && {
+        $sudo pacman -Syyuu --noconfirm &&
+        $sudo pacman -S     --noconfirm $@
+        return 0
+    }
+}
+
+main() {
+    [ "$(uname -s)" = "Linux" ] || {
+        printf "%s\n" "your os is not GNU/Linux!!"
         exit 1
     }
 
-    [ `whoami` == "root" ] || sudo=sudo
+    [ "$(whoami)" = "root" ] || sudo=sudo
     
-    command -v apt-get &> /dev/null && {
-        $sudo apt-get -y update
-        $sudo apt-get -y install git vim curl httpie zip unzip
-    }
-     
-    command -v dnf &> /dev/null && {
-        $sudo dnf -y update
-        $sudo dnf -y install git vim curl httpie zip unzip
-        installed=true
-    }
-    
-    [ "$installed" == "true" ] || command -v yum &> /dev/null && {
-        $sudo yum -y update
-        $sudo yum -y install git vim curl httpie zip unzip
-    }
-    
-    command -v zypper &> /dev/null && {
-        $sudo zypper update -y
-        $sudo zypper install -y git vim curl httpie zip unzip
-    }
-    
-    [ -d "$DEST_DIR" ] || $sudo mkdir -p "$DEST_DIR"
-    $sudo chown -R `whoami` "$DEST_DIR"
-    cd "$DEST_DIR"
+    checkDependencies
 
-    downloadFile "$JDK_URL" && \
-    tar zvxf `basename "$JDK_URL"` && \
+    [ -z "$pkgNames" ] || installDependencies "$pkgNames"
+
+    [ -d "$DEST_DIR" ]     || $sudo install -d -o "$(whoami)" "$DEST_DIR"
+    [ -d "$ANDROID_HOME" ] || $sudo install -d -o "$(whoami)" "$ANDROID_HOME"
+    
+    cd "$DEST_DIR" || exit 1
+
+    downloadFile "$JDK_URL" &&
+    tar zvxf "$JDK_FILE_NAME" &&
     configJDKEnv
 
-    downloadFile "$ANDROID_SDK_URL" && \
-    unzip -o `basename "$ANDROID_SDK_URL"` -d android-sdk && \
-    updateAndroidSDK && \
-    configAndroidSDKEnv
+    downloadFile "$ANDROID_SDK_URL" &&
+    unzip -o "$ANDROID_SDK_FILE_NAME" -d "$ANDROID_HOME" &&
+    configAndroidSDKEnv &&
+    updateAndroidSDK
 
-    downloadFile "$ANDROID_STUDIO_URL" && \
-    unzip -o `basename "$ANDROID_STUDIO_URL"`
+    downloadFile "$ANDROID_STUDIO_URL" &&
+    unzip -o "$ANDROID_STUDIO_FILE_NAME"
 }
 
 main

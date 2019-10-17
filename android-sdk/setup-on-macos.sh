@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #------------------------------------------------------------------------------#
 # Android开发环境搭建脚本
@@ -6,21 +6,25 @@
 # 所有软件均通过HomeBrew进行安装
 #------------------------------------------------------------------------------#
 
-function installBrewIfNeeded() {
-    command -v brew &> /dev/null || echo -e '\n' | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+installBrewIfNeeded() {
+    if command -v brew > /dev/null ; then
+       brew update
+    else
+        printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi
 }
 
-function installByBrew() {
-    command -v "$1" &> /dev/null || brew install "$1"
+installByBrew() {
+    command -v "$1" > /dev/null || brew install "$1"
 }
 
-function main() {
-    [ "`uname -s`" == "Darwin" ] || {
-        echo "your os is not macOS!!"
-        exit 1;
+main() {
+    [ "$(uname -s)" = "Darwin" ] || {
+        printf "your os is not macOS!!\n"
+        exit 1
     }
 
-    installBrewIfNeeded && brew update
+    installBrewIfNeeded
 
     installByBrew curl
     installByBrew httpie

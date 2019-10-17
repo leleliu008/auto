@@ -2,10 +2,10 @@
 
 #================================================================#
 #将此脚本放置于您的iOS WorkSpace或Project的根目录下
-#================================================================#
 
 
 #===============下面的变量的取值根据自己的情况修改===============#
+
 # 当前登陆用户的登录密码（导入P12文件的时候需要授权使用）
 LOGIN_PASSWORD=
 
@@ -19,14 +19,28 @@ P12_PASSWORD=
 PROVISIONING_PROFILE_PATH=ios_provisioning_profile.mobileprovision
 
 #使用的SDK和版本，用xcodebuild -showsdks可以查看到
-SDK='iphoneos11.0'
+SDK='iphoneos13.1'
+
 #================================================================#
+
+currentScriptDir=$(cd "$(dirname "$0")" || exit; pwd)
+
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
 
 # 钥匙串路径
 LOGIN_KEYCHAIN=~/Library/Keychains/login.keychain
 
 # 导入P12文件
-function importP12() {
+importP12() {
     # 解锁，否则系统会弹框等待用户输入密码
     security unlock-keychain -p ${LOGIN_PASSWORD} ${LOGIN_KEYCHAIN}
 
@@ -34,98 +48,113 @@ function importP12() {
     security import ${P12_PATH} -k ${LOGIN_KEYCHAIN} -P ${P12_PASSWORD} -T /usr/bin/codesign
 }
 
+#把设备描述文件复制到指定目录下
+cpProvisioningProfile() {
+    tmpFile=$(mktemp)
+    security cms -D -i $PROVISIONING_PROFILE_PATH > "$tmpFile" 2> /dev/null
+    provisioningProfileUUID=$(getValueFromPListFile "$tmpFile" UUID)
+    rm -f "$tmpFile"
+    cp "$PROVISIONING_PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${provisioningProfileUUID}.mobileprovision"
+}
+
+#从plist文件中获取指定Key的值
+#$1是plist文件路径
+#$2是key
+getValueFromPListFile() {
+    /usr/libexec/PlistBuddy -c "print $2" "$1"
+}
+
+initVslues() {
+    currentDate=$(date +%Y%m%d)
+    info "currentDate : $currentDate"
+
+    workspace=$(find . -name "*.xcworkspace" -d 1)
+    
+    if [ -z "$workspace" ] ; then
+        project=$(find . -name "*.xcodeproj" -d 1)
+        appName=$(basename "$project" .xcodeproj)
+        info "project     : $project"
+        info "appName     : $appName"
+    else
+        appName=$(basename "$workspace" .xcworkspace)
+        info "workspace   : $workspace"
+        info "appName     : $appName"
+    fi
+}
+
+check() {
+    [ -z "$LOGIN_PASSWORD" ] && error "LOGIN_PASSWORD isn't config"
+    [ -z "$P12_PATH" ] && error "P12_PATH isn't config"
+    [ -z "$P12_PASSWORD" ] && error "P12_PASSWORD isn't config"
+    [ -z "$PROVISIONING_PROFILE_PATH" ] && error "PROVISIONING_PROFILE_PATH isn't config"
+    [ -z "$SDK" ] && error "SDK isn't config"
+}
+
 # 运行静态代码检测
-function runSonar() {
+runSonar() {
+    check
+
     # 导入证书
     importP12
 
     # 把设备描述文件放到指定目录下
     cpProvisioningProfile
     
-    workspaceName=`find . -name "*.xcworkspace" -d 1`
-    projectName=`basename $workspaceName .xcworkspace`
-    
     # 编译
-    xcodebuild -workspace ${workspaceName} -scheme ${projectName} clean build | tee xcodebuild.log | xcpretty -t -r json-compilation-database -o compile_commands.json
-    oclint-json-compilation-database -e Pods -e ${projectName}/Vendors -v -- -report-type pmd -o sonar-reports/oclint.xml
+    xcodebuild -workspace "$workspace" -scheme "$appName" clean build | tee xcodebuild.log | xcpretty -t -r json-compilation-database -o compile_commands.json
+    oclint-json-compilation-database -e Pods -e "${appName}/Vendors" -v -- -report-type pmd -o sonar-reports/oclint.xml
     
-    current_date=`date +%Y%m%d`;
-    
-    sed -i "s#[0-9]\{8\}#${current_date}#g" sonar-project.properties
+    sed -i  "" "s/[0-9]\{8\}/${currentDate}/g" sonar-project.properties
     
     sonar-runner
 }
 
 # 构建
 # $1构建类型：Debug、Release
-function runBuild() {
+runBuild() {
+    check
+
     # 导入证书
     importP12
     
     # 把设备描述文件放到指定目录下
-    security cms -D -i $PROVISIONING_PROFILE_PATH > tmp.xml 2> /dev/null
-    uuid=`getValueFromPListFile tmp.xml UUID`
-    rm tmp.xml
-    cp $PROVISIONING_PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision 
+    cpProvisioningProfile
     
-    workspaceName=`find . -name "*.xcworkspace" -d 1`
-    projectName=`basename $workspaceName .xcworkspace`
-    appInfoPList=${projectName}/Info.plist
+    appInfoPList=${appName}/Info.plist
+    
     # 取版本号
-    bundleShortVersion=`getValueFromPListFile ${appInfoPList} CFBundleShortVersionString`
-    # 取build值
-    bundleVersion=`getValueFromPListFile ${appInfoPList} CFBundleVersion`
+    versionName=$(getValueFromPListFile "$appInfoPList" CFBundleShortVersionString)
+    
     # IPA名称
-    ipaName=${projectName}_${bundleVersion}_`date +%Y%m%d`.ipa
+    ipaName=${appName}_${versionName}_$(date +%Y%m%d).ipa
     
     # 获得证书签名
-    codeSignIdentity=`openssl pkcs12 -in $P12_PATH -passin pass:"$P12_PASSWORD" -nodes | grep "friendlyName: iPhone"`
-    codeSignIdentity=`echo ${codeSignIdentity:18}`
-
-    configFile="${projectName}.xcodeproj/project.pbxproj"
+    codeSignIdentity=$(openssl pkcs12 -in $P12_PATH -passin pass:"$P12_PASSWORD" -nodes | grep "friendlyName: iPhone")
+    codeSignIdentity=$(printf "%s\n" "$codeSignIdentity" | awk '{ string=substr($0, 19, length); print string }')
     
-    # 将设备描述文件自动管理改为手动管理
-    #if [ `uname -s` == 'Darwin' ] ; then
-    #    sed -i ""  "s#ProvisioningStyle = Automatic#ProvisioningStyle = Manual#g" $configFile
-    #else
-    #    sed -i "s#ProvisioningStyle = Automatic#ProvisioningStyle = Manual#g" $configFile
-    #fi
-
-    buildPath=`pwd`/build
-    archivePath=${buildPath}/${projectName}.xcarchive
-    # 编译
+    buildPath="$currentScriptDir/build"
+    archivePath="${buildPath}/${appName}.xcarchive"
+   
+    info "ipaName     : $ipaName"
+    
+    # 编译并归档
     xcodebuild \
-            -workspace $workspaceName \
-            -scheme ${projectName} \
-            -configuration $1 \
-            -sdk $SDK \
-            -archivePath ${archivePath} \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="${codeSignIdentity}" \
-            PROVISIONING_PROFILE="${uuid}" \
-            CONFIGURATION_BUILD_DIR="${buildPath}" \
-            VALID_ARCHS="arm64 armv7 armv7s"
+            -workspace "$workspace" \
+            -scheme "$appName" \
+            -configuration "$1" \
+            -sdk "$SDK" \
+            -archivePath "$archivePath" \
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="$codeSignIdentity" \
+            PROVISIONING_PROFILE="$provisioningProfileUUID" \
+            CONFIGURATION_BUILD_DIR="$buildPath" \
+            VALID_ARCHS="arm64 armv7 armv7s" \
             clean archive
-    # 封包
-    xcodebuild -exportArchive -archivePath $archivePath -exportOptionsPlist xx.plist -exportPath ${buildPath}
+    # 打包ipa
+    xcodebuild -exportArchive -archivePath "$archivePath" -exportOptionsPlist archive.plist -exportPath "$ipaName"
 }
 
-#把设备描述文件复制到指定目录下
-function cpProvisioningProfile() {
-    security cms -D -i $PROVISIONING_PROFILE_PATH > tmp.xml 2> /dev/null
-    uuid=`getValueFromPListFile tmp.xml UUID`
-    rm tmp.xml
-    cp $PROVISIONING_PROFILE_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision  
-}
-
-#从plist文件中获取指定Key的值
-#$1是plist文件路径
-#$2是key
-function getValueFromPListFile() {
-    /usr/libexec/PlistBuddy -c "print $2" $1
-}
-
-function showHelp() {
+showHelp() {
     cat <<EOF
 Usage:
 ./tool.sh -h              display help
@@ -136,15 +165,14 @@ Usage:
 EOF
 }
 
-function main() {
-    [ `uname -s` == 'Darwin' ] || {
-        echo "your os is not MacOSX!"
-        exit
-    }
+main() {
+    [ "$(uname -s)" = 'Darwin' ] || error "your os is not MacOSX!"
+    
+    initVslues
 
-    if [ "$1" == 'sonar' ] ; then
+    if [ "$1" = 'sonar' ] ; then
         runSonar
-    elif [ "$1" == 'build' ] ; then
+    elif [ "$1" = 'build' ] ; then
         if [ -z "$2" ] ; then
             showHelp
         else
@@ -155,4 +183,4 @@ function main() {
     fi
 }
 
-main $*
+main "$@"

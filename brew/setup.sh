@@ -1,69 +1,80 @@
-#!/bin/bash
+#!/bin/sh
+
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
 
 # 配置LinuxBrew的环境变量
-function configLinuxBrewEnv() {
-    cat >> ${HOME}/.linuxbrew/env <<EOF
-export PATH=\${HOME}/.linuxbrew/bin:\$PATH
-export MANPATH=\${HOME}/.linuxbrew/share/man:\$MANPATH
-export INFOPATH=\${HOME}/.linuxbrew/share/info:\$INFOPATH
-EOF
-    source ${HOME}/.linuxbrew/env
-    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.bash_profile
-    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.bashrc
-    echo "source \${HOME}/.linuxbrew/env" >> ${HOME}/.zshrc
+writeLinuxBrewEnv() {
+    printf "%s\n" "eval \$($(brew --prefix)/bin/brew shellenv)" >> "$1"
 }
 
-function installLinuxBrew() {
-    echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)" && configLinuxBrewEnv
+configLinuxBrewEnv() {
+    info "ConfigLinuxBrewEnv..."
+
+    [ -d ~/.linuxbrew ] && eval "$(~/.linuxbrew/bin/brew shellenv)"
+    [ -d /home/linuxbrew/.linuxbrew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+    writeLinuxBrewEnv "$HOME/.bashrc"
+    writeLinuxBrewEnv "$HOME/.zshrc"
 }
 
-function installHomeBrew() {
-    echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+installLinuxBrew() {
+    info "Installing LinuxBrew..."
+    printf "\n\n" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)" && configLinuxBrewEnv
+}
+
+installHomeBrew() {
+    info "Installing HomeBrew..."
+    printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
 
 # 安装HomeBrew或者LinuxBrew
-function installBrew() {
-    if [ "`uname -s`" == "Darwin" ] ; then
+installBrew() {
+    if [ "$(uname -s)" = "Darwin" ] ; then
         installHomeBrew
     else
-        command -v apt-get &> /dev/null && {
-             sudo apt-get -y install build-essential \
-                                     curl \
-                                     git \
-                                     m4 \
-                                     python-setuptools \
-                                     ruby \
-                                     texinfo \
-                                     libbz2-dev \
-                                     libcurl4-openssl-dev \
-                                     libexpat-dev \
-                                     libncurses-dev \
-                                     zlib1g-dev && \
+        command -v apt-get > /dev/null && {
+            sudo apt-get -y update &&
+            sudo apt-get -y install build-essential curl file git &&
             installLinuxBrew
             exit
         }
         
-        command -v yum &> /dev/null && { 
-            sudo yum -y groupinstall 'Development Tools' && \
-            sudo yum -y install irb python-setuptools && \
+        command -v yum > /dev/null && {
+            [ -f /etc/os-release ] &&
+            grep "fedora" /etc/os-release > /dev/null && 
+            [ "$(rpm -E %fedora)" -gt 29 ] && 
+            libxcryptCompat='libxcrypt-compat'
+            
+            sudo yum -y update &&
+            sudo yum -y groupinstall 'Development Tools' &&
+            sudo yum -y install curl file git "$libxcryptCompat" &&
             installLinuxBrew
             exit
         }
         
-        echo "who are you ?"
+        printf "%s\n" "who are you ?"
         exit 1
     fi
 }
 
-function main() {
-    command -v brew &> /dev/null && {
+main() {
+    command -v brew > /dev/null && {
         brew update
-        echo "brew is already installed!"
+        info "brew is already installed!"
         exit 0
     }
     
-    [ "`whoami`" == "root" ] && {
-        echo "don't run as root!"
+    [ "$(whoami)" = "root" ] && {
+        info "don't run as root!"
         exit 1
     }
     

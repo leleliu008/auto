@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 yum -y update
 yum install -y epel-release

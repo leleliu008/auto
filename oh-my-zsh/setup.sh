@@ -1,6 +1,22 @@
 #!/bin/sh
 
+sudo=$(command -v sudo 2> /dev/null);
+osType=$(uname -s);
+
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
+
 installOhMyZsh() {
+    info "installOhMyZsh..."
+
     scriptFileName="$(date +%Y%m%d%H%M%S).sh"
     [ -f "$scriptFileName" ] && rm "$scriptFileName"
 
@@ -47,54 +63,64 @@ installOhMyZsh() {
     fi
 }
 
-installDependency() {
-    sudo=$(command -v sudo 2> /dev/null);
-    osType=$(uname -s);
+checkDependencies() {
+    info "checkDependencies..."
+
+    command -v curl > /dev/null || pkgNames="$pkgNames curl"
+    command -v git  > /dev/null || pkgNames="$pkgNames git"
+    command -v zsh  > /dev/null || pkgNames="$pkgNames zsh"
+    command -v awk  > /dev/null || pkgNames="$pkgNames gawk"
+    
+    if [ "$osType" = "Drawin" ] ; then
+        command -v gsed > /dev/null || pkgNames="$pkgNames gnu-sed"
+    else
+        command -v sed  > /dev/null || pkgNames="$pkgNames sed"
+    fi
+}
+
+installDependencies() {
+    info "installDependencies $pkgNames"
 
     if [ "$osType" = "Linux" ] ; then
         # 如果是ArchLinux或ManjaroLinux系统
         command -v pacman > /dev/null && {
             $sudo pacman -Syyuu --noconfirm &&
-            command -v curl > /dev/null || $sudo pacman -S curl --noconfirm &&
-            command -v git  > /dev/null || $sudo pacman -S git  --noconfirm &&
-            command -v zsh  > /dev/null || $sudo pacman -S zsh  --noconfirm &&
-            command -v sed  > /dev/null || $sudo pacman -S sed  --noconfirm &&
-            command -v awk  > /dev/null || $sudo pacman -S gawk --noconfirm &&
+            $sudo pacman -S     --noconfirm $@
             return 0
         }
         
         # 如果是Ubuntu或Debian GNU/Linux系统
         command -v apt-get > /dev/null && {
             $sudo apt-get -y update &&
-            $sudo apt-get -y install curl git zsh sed gawk &&
+            $sudo apt-get -y install $@
             return 0
         }
         
         # 如果是Fedora或CentOS8系统
         command -v dnf > /dev/null && {
             $sudo dnf -y update &&
-            $sudo dnf -y install curl git zsh sed gawk &&
+            $sudo dnf -y install $@
             return 0
         }
         
         # 如果是CentOS8以下的系统
         command -v yum > /dev/null && { 
             $sudo yum -y update &&
-            $sudo yum -y install curl git zsh sed gawk &&
+            $sudo yum -y install $@
             return 0
         }
 
         # 如果是OpenSUSE系统
         command -v zypper > /dev/null && { 
             $sudo zypper update -y &&
-            $sudo zypper install -y curl git zsh sed gawk &&
+            $sudo zypper install -y $@
             return 0
         }
         
         # 如果是AlpineLinux系统
         command -v apk > /dev/null && {
             $sudo apk update &&
-            $sudo apk add curl git zsh sed gawk &&
+            $sudo apk add $@
             return 0
         }
     elif [ "$osType" = "Darwin" ] ; then
@@ -103,15 +129,15 @@ installDependency() {
         else
             printf "\n\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         fi
-        command -v curl > /dev/null || brew install curl
-        command -v git  > /dev/null || brew install git
-        command -v gsed > /dev/null || brew install gnu-sed
-        command -v awk  > /dev/null || brew install gawk
+        brew install $@
     fi
 }
 
 main() {
-    installDependency
+    checkDependencies
+    
+    [ -z "$pkgNames" ] || installDependencies "$pkgNames"
+    
     installOhMyZsh
 }
 

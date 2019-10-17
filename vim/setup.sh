@@ -1,108 +1,223 @@
-#!/bin/bash
+#!/bin/sh
 
-currentScriptDir="$(cd $(dirname $0); pwd)"
+export GO111MODULE=on
+export GOPROXY=https://goproxy.io
+
+currentScriptDir="$(cd "$(dirname "$0")" || exit; pwd)"
+osType="$(uname -s)"
+[ "$(whoami)" = "root" ] || sudo=sudo
 
 Red='\033[0;31m'          # Red
 Green='\033[0;32m'        # Green
 Yellow='\033[0;33m'       # Yellow
-Blue='\033[0;34m'         # Blue
 Purple='\033[0;35m'       # Purple
-Cyan='\033[0;36m'         # Cyan
 
 Color_off='\033[0m'       # Text Reset
 
-function msg() {
+msg() {
     printf '%b\n' "$1" >&2
 }
 
-function success() {
+success() {
     msg "${Green}[✔]${Color_off} ${1}${2}"
 }
 
-function info() {
+info() {
     msg "${Purple}[❉]${Color_off} ${1}${2}"
 }
 
-function warn() {
+warn() {
     msg "${Yellow}[⌘]${Color_off} ${1}${2}"
 }
 
-function error() {
+error() {
     msg "${Red}[✘]${Color_off} ${1}${2}"
 }
 
-[ `whoami` == "root" ] || role=sudo
-
-function installHomeBrewIfNeeded() {
-    if command -v brew &> /dev/null ; then
+installHomeBrewIfNeeded() {
+    if command -v brew > /dev/null ; then
         brew update
     else
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 }
 
-function installViaHomeBrew() {
-    command -v "$1" &> /dev/null || brew install "$2"
+checkDependency() {
+    command -v "$1" > /dev/null || pkgNames="$pkgNames $2"
 }
 
-function installViaApt() {
-    command -v "$1" &> /dev/null || $role apt-get -y install "$2"
+checkDependencies() {
+    checkDependency bash bash
+    checkDependency curl curl
+    checkDependency git git
+    checkDependency vim vim
+    checkDependency sed sed
+    checkDependency gawk gawk
+    checkDependency gzip gzip
+    checkDependency make make
+    checkDependency cmake cmake
+
+    if [ "$osType" = "Darwin" ] ; then
+        checkDependency go go
+        checkDependency ninja ninja
+        checkDependency ctags ctags
+        checkDependency python3 python3
+        checkDependency tar gnu-tar
+    else
+        checkDependency tar tar
+
+        command -v pacman > /dev/null && {
+            checkDependency go go
+            checkDependency g++ gcc
+            checkDependency ninja ninja
+            checkDependency ctags ctags
+            checkDependency python3 python
+            return 0
+        }
+        
+        command -v apk > /dev/null && {
+            checkDependency go go
+            checkDependency g++ gcc
+            checkDependency ninja ninja
+            checkDependency ctags ctags
+            checkDependency python3 python3
+            pkgNames="$pkgNames python3-dev"
+            return 0
+        }
+        
+        command -v apt-get > /dev/null && {
+            checkDependency go golang
+            checkDependency g++ g++
+            checkDependency ninja ninja-build
+            checkDependency ctags exuberant-ctags
+            checkDependency python3 python3 
+            pkgNames="$pkgNames python3-dev"
+            return 0
+        }
+        
+        command -v dnf > /dev/null && {
+            checkDependency go golang
+            checkDependency g++ gcc-c++
+            checkDependency ninja ninja-build
+            checkDependency ctags ctags-etags
+            checkDependency python3 python3 
+            pkgNames="$pkgNames python3-devel"
+            return 0
+        }
+        
+        command -v yum > /dev/null && {
+            checkDependency go golang
+            checkDependency g++ gcc-c++
+            checkDependency ninja ninja-build
+            checkDependency ctags ctags-etags
+            checkDependency python3 python36 
+            pkgNames="$pkgNames python36-devel"
+            return 0
+        }
+        
+        command -v zypper > /dev/null && {
+            checkDependency go go
+            checkDependency g++ gcc-c++
+            checkDependency ninja ninja
+            checkDependency ctags ctags
+            checkDependency python3 python3
+            pkgNames="$pkgNames python3-devel"
+        }
+    fi
 }
 
-function installViaYum() {
-    command -v "$1" &> /dev/null || $role yum -y install "$2"
+installDependencies() {
+    if [ "$osType" = "Darwin" ] ; then
+        installHomeBrewIfNeeded &&
+        brew install $@
+        return $?
+    elif [ "$osType" = "Linux" ] ; then
+        # ArchLinux、ManjaroLinux
+        command -v pacman > /dev/null && {
+            $sudo pacman -Syyuu --noconfirm &&
+            $sudo pacman -S     --noconfirm $@
+            return $?
+        }
+        
+        # AlpineLinux
+        command -v apk > /dev/null && {
+            $sudo apk update &&
+            $sudo apk add $@
+            return $?
+        }
+        
+        # Debian GNU/Linux系
+        command -v apt-get > /dev/null && {
+            $sudo apt-get -y update &&
+            $sudo apt-get -y install $@
+            return $?
+        }
+        
+        # Fedora、CentOS8
+        command -v dnf > /dev/null && {
+            $sudo dnf -y update &&
+            $sudo dnf -y install $@
+            return $?
+        }
+        
+        # RHEL CentOS 7、6
+        command -v yum > /dev/null && {
+            $sudo yum -y update &&
+            $sudo yum -y install epel-release
+            $sudo yum -y install $@
+            return $?
+        }
+        
+        # OpenSUSE
+        command -v zypper > /dev/null && {
+            $sudo zypper update  -y &&
+            $sudo zypper install -y $@
+            return $?
+        }
+    fi
 }
 
-function installViaDnf() {
-    command -v "$1" &> /dev/null || $role dnf -y install "$2"
-}
-
-function installViaZypper() {
-    command -v "$1" &> /dev/null || $role zypper install -y "$2"
-}
-
-function installViaApk() {
-    command -v "$1" &> /dev/null || $role apk add "$2"
-}
-
-function installViaPacman() {
-    command -v "$1" &> /dev/null || $role pacman -S --noconfirm "$2"
-}
-
-function installVundle() {
-    local pluginDir="${HOME}/.vim/bundle"
-    local vundleDir="${pluginDir}/Vundle.vim"
+installVundle() {
+    pluginDir="${HOME}/.vim/bundle"
+    vundleDir="${pluginDir}/Vundle.vim"
     
     [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
     [ -d "$vundleDir" ] && rm -rf "$vundleDir"
     
-    info "installing Vundle..." && \
-    git clone http://github.com/VundleVim/Vundle.vim.git "$vundleDir" && \
-    success "installed Vundle"
+    info "Installing Vundle..." &&
+    git clone http://github.com/VundleVim/Vundle.vim.git "$vundleDir" &&
+    success "Installed Vundle"
 }
 
-function installYouCompleteMe() {
-    local pluginDir="${HOME}/.vim/bundle"
-    local youCompleteMeDir="${pluginDir}/YouCompleteMe"
+compileYouCompleteMe() {
+    info "Compiling YouCompleteMe..."
+    $python install.py $@ --ninja || {
+        info "ReCompiling YouCompleteMe..."
+        $python install.py $@
+    }
+}
+
+installYouCompleteMe() {
+    pluginDir="${HOME}/.vim/bundle"
+    youCompleteMeDir="${pluginDir}/YouCompleteMe"
     
     [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
     [ -d "$youCompleteMeDir" ] && rm -rf "$youCompleteMeDir"
     
-    info "installing YouCompleteMe..."
-    git clone --recursive https://gitee.com/YouCompleteMe/YouCompleteMe.git "$youCompleteMeDir" && \
+    export GOPATH=$youCompleteMeDir/go
+        
+    info "Installing YouCompleteMe..."
+    git clone --recursive https://gitee.com/YouCompleteMe/YouCompleteMe.git "$youCompleteMeDir" &&
     cd "$youCompleteMeDir" && {
         python="$(command -v python3)"
         [ -z "$python" ] && python="$(command -v python)"
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
-            command -v java &> /dev/null && local options="--java-completer"
-            info "compiling YouCompleteMe..."
-            $python install.py --clang-completer --ts-completer --go-completer $options --ninja || {
-                info "recompiling YouCompleteMe..."
-                $python install.py --clang-completer --ts-completer --go-completer $options
-            }
-            if [ $? -eq 0 ] ; then
+            options="--clang-completer --ts-completer --go-completer"
+            command -v java > /dev/null && options="$options --java-completer"
+
+            if compileYouCompleteMe "$options" ; then
                 success "installed YouCompleteMe"
             else
                 warn "compiled failed!you can comiple it by hand"
@@ -111,28 +226,28 @@ function installYouCompleteMe() {
     }
 }
 
-function installNodeJSIfNeeded() {
-    (command -v node &> /dev/null && command -v npm &> /dev/null) || {
-        command -v nvm &> /dev/null || {
-            info "installing nvm..." && \
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash && \
-            export NVM_DIR="${HOME}/.nvm" && \
-            source "$NVM_DIR/nvm.sh" && \
-            success "installed nvm"
+installNodeJSIfNeeded() {
+    (command -v node > /dev/null && command -v npm > /dev/null) || {
+        command -v nvm > /dev/null || {
+            info "Installing nvm..." &&
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash &&
+            export NVM_DIR="${HOME}/.nvm" &&
+            . ~/.nvm/nvm.sh &&
+            success "Installed nvm"
         }
         
-        info "installing node.js v10.15.1" && \
-        nvm install v10.15.1 && \
-        success "installed node.js v10.15.1"
+        info "Installing node.js v10.15.1" &&
+        nvm install v10.15.1 &&
+        success "Installed node.js v10.15.1"
     }
     
-    if [ "$(npm config get registry)" == "https://registry.npmjs.org/" ] ; then
+    if [ "$(npm config get registry)" = "https://registry.npmjs.org/" ] ; then
         npm config set registry "https://registry.npm.taobao.org/"
     fi
 }
 
-function updateVimrcOfCurrentUser() {
-    local myVIMRC="${HOME}/.vimrc"
+updateVimrcOfCurrentUser() {
+    myVIMRC="${HOME}/.vimrc"
     [ -f "$myVIMRC" ] && {
         if [ -f "${myVIMRC}.bak" ] ; then
             for i in $(seq 1 1000)
@@ -153,7 +268,7 @@ function updateVimrcOfCurrentUser() {
     cp "$currentScriptDir/.tern-project" "${HOME}"
     
     [ -z "$python" ] || {
-        if [ "$(uname -s)" == "Darwin" ] ; then
+        if [ "$(uname -s)" = "Darwin" ] ; then
             sed -i ""  "s@/usr/local/bin/python3@${python}@g" "myVIMRC"
         else
             sed -i "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
@@ -162,151 +277,22 @@ function updateVimrcOfCurrentUser() {
     
     success "---------------------------------------------------"
     [ -z "$backup" ] || {
-        success "~/.vimrc config file is updated! "
-        success "your ~/.vimrc config file is bak to $backup"
+        success "$HOME/.vimrc config file is updated!"
+        success "your $HOME/.vimrc config file is bak to $backup"
     }
     success "open vim and use :BundleInstall to install plugins!"
     success "---------------------------------------------------"
 }
 
-function main() {
-    local osType="$(uname -s)"
-    echo "osType=$osType"
-
-    if [ "$osType" = "Darwin" ] ; then
-        installHomeBrewIfNeeded && \
-        installViaHomeBrew vim vim && \
-        installViaHomeBrew curl curl && \
-        installViaHomeBrew go go && \
-        installViaHomeBrew make make && \
-        installViaHomeBrew cmake cmake && \
-        installViaHomeBrew ninja ninja && \
-        installViaHomeBrew ctags ctags && \
-        installViaHomeBrew python3 python3 && \
-        installVundle && \
-        installNodeJSIfNeeded && \
-        installYouCompleteMe && \
-        updateVimrcOfCurrentUser
-    elif [ "$osType" = "Linux" ] ; then
-        #ArchLinux ManjaroLinux
-        command -v pacman &> /dev/null && {
-            $role pacman -Syyuu --noconfirm && \
-            installViaPacman git git && \
-            installViaPacman curl curl && \
-            installViaPacman vim vim && \
-            installViaPacman go go && \
-            installViaPacman sed sed && \
-            installViaPacman make make && \
-            installViaPacman cmake cmake && \
-            installViaPacman ninja ninja && \
-            installViaPacman ctags ctags && \
-            installViaPacman python3 python && \
-            installVundle && \
-            installNodeJSIfNeeded && \
-            installYouCompleteMe && \
-            updateVimrcOfCurrentUser
-            exit
-        }
-        
-        #AlpineLinux
-        command -v apk &> /dev/null && {
-            $role apk update && \
-            installViaApk git git && \
-            installViaApk curl curl && \
-            installViaApk vim vim && \
-            installViaApk go go && \
-            installViaApk sed sed && \
-            installViaApk make make && \
-            installViaApk cmake cmake && \
-            installViaApk ninja ninja && \
-            installViaApk ctags ctags && \
-            installViaApk python3 python3 && \
-            installVundle && \
-            installNodeJSIfNeeded && \
-            installYouCompleteMe && \
-            updateVimrcOfCurrentUser
-            exit
-        }
-        
-        #Debian GNU/Linux系
-        command -v apt-get &> /dev/null && {
-            $role apt-get -y update && \
-            installViaApt git git && \
-            installViaApt curl curl && \
-            installViaApt vim vim && \
-            installViaApt go golang && \
-            installViaApt sed sed && \
-            installViaApt make make && \
-            installViaApt cmake cmake && \
-            installViaApt ninja ninja-build && \
-            installViaApt ctags exuberant-ctags && \
-            installViaApt python3 python3 && \
-            installVundle && \
-            installNodeJSIfNeeded && \
-            installYouCompleteMe && \
-            updateVimrcOfCurrentUser
-            exit
-        }
-        
-        #Fedora CnetOS8
-        command -v dnf &> /dev/null && {
-            $role dnf -y update && \
-            installViaDnf git git && \
-            installViaDnf curl curl && \
-            installViaDnf vim vim && \
-            installViaDnf go golang && \
-            installViaDnf sed sed && \
-            installViaDnf make make && \
-            installViaDnf cmake cmake && \
-            installViaDnf ninja ninja-build && \
-            installViaDnf ctags ctags-etags && \
-            installViaDnf python3 python3 && \
-            installVundle && \
-            installNodeJSIfNeeded && \
-            installYouCompleteMe && \
-            updateVimrcOfCurrentUser
-            exit
-        }
-        
-        #RHEL CentOS8以下
-        command -v yum &> /dev/null && {
-            $role yum -y update && \
-            installViaYum git git && \
-            installViaYum curl curl && \
-            installViaYum vim vim && \
-            installViaYum go golang && \
-            installViaYum sed sed && \
-            installViaYum make make && \
-            installViaYum cmake cmake && \
-            installViaYum ninja ninja-build && \
-            installViaYum ctags ctags-etags && \
-            installViaYum python3 python36 && \
-            installVundle && \
-            installNodeJSIfNeeded && \
-            installYouCompleteMe && \
-            updateVimrcOfCurrentUser
-            exit
-        }
-        
-        #OpenSUSE
-        command -v zypper &> /dev/null && \
-        $role zypper update -y && \
-        installViaZypper git git && \
-        installViaZypper curl curl && \
-        installViaZypper vim vim && \
-        installViaZypper go golang && \
-        installViaZypper sed sed && \
-        installViaZypper make make && \
-        installViaZypper cmake cmake && \
-        installViaZypper ninja ninja && \
-        installViaZypper ctags ctags && \
-        installViaZypper python3 python3 && \
-        installVundle && \
-        installNodeJSIfNeeded && \
-        installYouCompleteMe && \
-        updateVimrcOfCurrentUser && \
-        exit
-    fi
+main() {
+    checkDependencies
+    
+    [ -z "$pkgNames" ] || installDependencies "$pkgNames"
+    
+    installVundle &&
+    installNodeJSIfNeeded &&
+    installYouCompleteMe &&
+    updateVimrcOfCurrentUser
 }
 
 main

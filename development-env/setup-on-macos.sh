@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #------------------------------------------------------------------------------#
 # 开发环境搭建脚本，只支持Mac OSX系统
@@ -9,38 +9,40 @@
 # 2、对于vim，安装了Vundle插件管理工具和一些常用插件，并修改了当前用户的配置
 #------------------------------------------------------------------------------#
 
-#-------------------------------- 要安装的软件 --------------------------------#
-
-installByHomeBrew=(curl wget zip unzip tree vim node npm httpie tomcat jenkins maven gradle apktool);
-installByHomeBrewCask=(iterm2 firefox google-chrome sublime webstorm eclipse-jee docker android-sdk android-ndk android-studioi genymotion skitch);
-
 # 安装HomeBrew
-function installOrUpdateHomeBrew() {
-    if command -v brew &> /dev/null ; then
+installOrUpdateHomeBrew() {
+    if command -v brew > /dev/null ; then
         brew update
     else
-        echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
+        printf "\n\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/linuxbrew/go/install)"
     fi
 }
 
-function main() {
-    installOrUpdateHomeBrew || {
-        echo "installBrew occur error!"
-        exit 1
-    }
-
-    for name in ${installByHomeBrew[*]}
+installViaHomeBrew() {
+    for name in $@
     do
         brew install $name
     done
+}
 
-    npm config set registry https://registry.npm.taobao.org
-
-    for name in ${installByHomeBrewCask[*]}
+installViaHomeBrewCask() {
+    for name in $@
     do
         brew cask install $name
     done
+}
 
+main() {
+    installOrUpdateHomeBrew || {
+        printf "%s\n" "installBrew occur error!"
+        exit 1
+    }
+    
+    installViaHomeBrew "curl wget zip unzip tree vim node npm httpie tomcat jenkins maven gradle apktool"
+
+    npm config set registry https://registry.npm.taobao.org
+    
+    installViaHomeBrewCask "iterm2 firefox google-chrome sublime webstorm eclipse-jee docker android-sdk android-ndk android-studioi genymotion skitch"
 }
 
 main

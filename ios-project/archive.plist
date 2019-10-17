@@ -3,8 +3,12 @@
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>app-store</string>
+    <string>ad-hoc</string>
     <key>teamID</key>
     <string>NWLTN55N9S</string>
+    <key>compileBitcode</key>
+    <false/>
+    <key>uploadSymbols</key>
+    <false/>
 </dict>
 </plist>

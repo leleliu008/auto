@@ -5,73 +5,115 @@ destDir=/usr/local/opt/vcpkg
 sudo=$(command -v sudo 2> /dev/null)
 osType=$(uname -s)
 
+Color_Red='\033[0;31m'          # Red
+Color_Green='\033[0;32m'        # Green
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
+
+success() {
+    msg "${Color_Green}[✔]${Color_Off} $1$2"
+}
+
+error() {
+    msg "${Color_Red}[✘]${Color_Off} $1$2"
+    exit 1
+}
+
 install_macOS_SDK_headers_IfNeeded() {
     [ -d /usr/include ] || $sudo installer -pkg /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg -target /
 }
 
-installDependency() {
+checkDependencies() {
+    info "checkDependencies..."
+
+    command -v curl  > /dev/null || pkgNames="$pkgNames curl"
+    command -v git   > /dev/null || pkgNames="$pkgNames git"
+    command -v unzip > /dev/null || pkgNames="$pkgNames unzip"
+    command -v gzip  > /dev/null || pkgNames="$pkgNames gzip"
+
+    if [ "$osType" = "Drawin" ] ; then
+        install_macOS_SDK_headers_IfNeeded
+        command -v sed   > /dev/null || pkgNames="$pkgNames gnu-sed"
+        command -v tar   > /dev/null || pkgNames="$pkgNames gnu-tar"
+        command -v g++-9 > /dev/null || pkgNames="$pkgNames gcc"
+    else
+        command -v sed   > /dev/null || pkgNames="$pkgNames sed"
+        command -v tar   > /dev/null || pkgNames="$pkgNames tar"
+
+        if ( command -v dnf     > /dev/null ||
+             command -v yum     > /dev/null ||
+             command -v zypper  > /dev/null ) ; then
+             command -v g++     > /dev/null || pkgNames="$pkgNames gcc gcc-c++"
+        elif command -v apt-get > /dev/null ; then
+             command -v g++     > /dev/null || pkgNames="$pkgNames gcc g++"
+        else
+             command -v g++     > /dev/null || pkgNames="$pkgNames gcc"
+        fi
+    fi
+}
+
+installDependencies() {
+    info "installDependencies $pkgNames"
+
     if [ "$osType" = "Linux" ] ; then
-        # 如果是ArchLinux或ManjaroLinux系统
+        # ArchLinux、ManjaroLinux
         command -v pacman > /dev/null && {
             $sudo pacman -Syyuu --noconfirm &&
-            command -v curl  > /dev/null || $sudo pacman -S curl  --noconfirm &&
-            command -v git   > /dev/null || $sudo pacman -S git   --noconfirm &&
-            command -v unzip > /dev/null || $sudo pacman -S unzip --noconfirm &&
-            command -v gzip  > /dev/null || $sudo pacman -S gzip  --noconfirm &&
-            command -v tar   > /dev/null || $sudo pacman -S tar   --noconfirm &&
-            command -v gcc   > /dev/null || $sudo pacman -S gcc   --noconfirm &&
+            $sudo pacman -S     --noconfirm $@
             return 0
         }
         
-        # 如果是Debian GNU/Linux系
+        # Debian GNU/Linux系
         command -v apt-get > /dev/null && {
             $sudo apt-get -y update &&
-            $sudo apt-get -y install curl git unzip gzip tar gcc g++ &&
+            $sudo apt-get -y install $@
             return 0
         }
         
-        # 如果是Fedora或CentOS8系统
+        # Fedora、CentOS8
         command -v dnf > /dev/null && {
             $sudo dnf -y update &&
-            $sudo dnf -y install curl git unzip gzip tar gcc gcc-c++ &&
+            $sudo dnf -y install $@
             return 0
         }
         
-        # 如果是CentOS8以下的系统
+        # CentOS7、6
         command -v yum > /dev/null && { 
             $sudo yum -y update &&
-            $sudo yum -y install curl git unzip gzip tar gcc gcc-c++ &&
+            $sudo yum -y install $@
             return 0
         }
 
-        # 如果是OpenSUSE系统
+        # OpenSUSE
         command -v zypper > /dev/null && { 
             $sudo zypper update -y &&
-            $sudo zypper install -y curl git unzip gzip tar gcc gcc-c++ &&
+            $sudo zypper install -y $@
             return 0
         }
         
-        # 如果是AlpineLinux系统
+        # AlpineLinux
         command -v apk > /dev/null && {
             $sudo apk update &&
-            $sudo apk add curl git unzip gzip tar gcc &&
+            $sudo apk add $@
             return 0
         }
     elif [ "$osType" = "Darwin" ] ; then
         if command -v brew > /dev/null; then
             brew update
         else
-            printf "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+            printf "\n\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         fi
 
-        command -v curl  > /dev/null || brew install curl
-        command -v git   > /dev/null || brew install git
-        command -v unzip > /dev/null || brew install unzip
-        command -v gzip  > /dev/null || brew install gzip
-        command -v tar   > /dev/null || brew install gnu-tar
-        command -v gcc-9 > /dev/null || brew install gcc
+        brew install $@
         
-        install_macOS_SDK_headers_IfNeeded
         return 0
     fi
 }
@@ -95,21 +137,29 @@ link() {
 main() {
     if [ -d "$destDir" ] ; then
         if [ -d "$destDir/.git" ] ; then
-            installDependency &&
+            checkDependencies &&
+            ([ -z "$pkgNames" ] || installDependencies "$pkgNames") &&
             cd "$destDir" &&
-            git pull && 
+            info "Updateing vcpk..." &&
+            git pull &&
+            info "Reinstalling vcpkg..." &&
             ./bootstrap-vcpkg.sh &&
-            link
+            link &&
+            success "Done!"
         else
-            echo "$destDir already exsit, but not a git repo."
+            error "$destDir already exsit, but not a git repo."
         fi
     else
-        installDependency &&
-        install -d -o "$(whoami)" "$destDir" &&
+        checkDependencies &&
+        ([ -z "$pkgNames" ] || installDependencies "$pkgNames") &&
+        $sudo install -d -o "$(whoami)" "$destDir" &&
+        info "Downloading vcpk..." &&
         git clone "$url" "$destDir" &&
         cd "$destDir" &&
+        info "Installing vcpkg..." &&
         ./bootstrap-vcpkg.sh &&
-        link
+        link &&
+        success "Done!"
     fi
 }
 

@@ -1,64 +1,88 @@
-#!/bin/bash
+#!/bin/sh
 
-[ `whoami` == "root" ] || role=sudo
+osType=$(uname -s)
+[ "$(whoami)" = "root" ] || sudo=sudo
 
 # 在Mac OSX上安装HomeBrew
-function installHomeBrewIfNeeded() {
-    if command -v brew &> /dev/null ; then
+installHomeBrewIfNeeded() {
+    if command -v brew > /dev/null ; then
         brew update
     else
-        echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
 }
 
 # 安装额外的一些扩展支持
-function installBashCompletionExt() {
-    $role curl -LO https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
+installBashCompletionExt() {
+    if [ "$osType" = "Darwin" ] ; then
+        str=/usr/local/etc/bash_completion.d
+    else
+        str=/etc/bash_completion.d
+    fi
+    cd "$str" || exit 1
+    $sudo curl -LO https://raw.github.com/git/git/master/contrib/completion/git-completion.bash
 }
 
-function main() {
-    local osType=`uname -s`
-    
-    if [ "$osType" == "Darwin" ] ; then
-        installHomeBrewIfNeeded && \
-        command -v curl &> /dev/null || brew install curl
-        brew install bash-completion 
-        $role echo "[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion" >> /etc/profile
-        cd /usr/local/etc/bash_completion.d
+writeEnv() {
+    if [ "$osType" = "Darwin" ] ; then
+        str=/usr/local/etc/bash_completion
+    else
+        str=/usr/share/bash-completion/bash_completion
+    fi
+    $sudo printf "%s\n" "[ -f $str ] && . $str" >> /etc/profile
+}
+
+main() {
+    if [ "$osType" = "Darwin" ] ; then
+        installHomeBrewIfNeeded &&
+        brew install curl bash-completion &&
+        writeEnv &&
         installBashCompletionExt
-    elif [ "$osType" == "Linux" ] ; then
-        command -v apt-get &> /dev/null && {
-            $role apt-get -y update
-            $role apt-get -y install curl bash-completion
-            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile
-            cd /etc/bash_completion.d
+    elif [ "$osType" = "Linux" ] ; then
+        command -v apt-get > /dev/null && {
+            $sudo apt-get -y update &&
+            $sudo apt-get -y install curl bash-completion &&
+            writeEnv &&
             installBashCompletionExt
             exit $?
         }
         
-        command -v dnf &> /dev/null && {
-            $role dnf -y update
-            $role dnf -y install curl bash-completion
-            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile
-            cd /etc/bash_completion.d
+        command -v dnf > /dev/null && {
+            $sudo dnf -y update &&
+            $sudo dnf -y install curl bash-completion &&
+            writeEnv &&
             installBashCompletionExt
             exit $?
         }
         
-        command -v yum &> /dev/null && {
-            $role yum -y update
-            $role yum -y install curl bash-completion
-            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile
-            cd /etc/bash_completion.d
+        command -v yum > /dev/null && {
+            $sudo yum -y update &&
+            $sudo yum -y install curl bash-completion &&
+            writeEnv &&
             installBashCompletionExt
             exit $?
         }
         
-        command -v zypper &> /dev/null && {
-            $role zypper update -y
-            $role zypperinstall -y curl bash-completion
-            $role echo "[ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion" >> /etc/profile
-            cd /etc/bash_completion.d
+        command -v zypper > /dev/null && {
+            $sudo zypper update  -y &&
+            $sudo zypper install -y curl bash-completion &&
+            writeEnv &&
+            installBashCompletionExt
+            exit $?
+        }
+        
+        command -v pacman > /dev/null && {
+            $sudo pacman -Syyuu --noconfirm &&
+            $sudo zypper -S     --noconfirm  curl bash-completion &&
+            writeEnv &&
+            installBashCompletionExt
+            exit $?
+        }
+        
+        command -v apk > /dev/null && {
+            $sudo apk update &&
+            $sudo apk add curl bash-completion &&
+            writeEnv &&
             installBashCompletionExt
             exit $?
         }

@@ -1,76 +1,90 @@
-#!/bin/bash
+#!/bin/sh
 
-function installOhMyTmux() {
+sudo=$(command -v sudo 2> /dev/null);
+osType=$(uname -s);
+
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b\n" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+}
+
+installOhMyTmux() {
     [ -f ~/.tmux.conf ] && mv ~/.tmux.conf ~/.tmux.conf.bak
     curl -L -o ~/.tmux.conf https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf
     curl -L -o ~/.tmux.conf.local https://raw.githubusercontent.com/gpakosz/.tmux/master/.tmux.conf.local
 }
 
-function main() {
-    local sudo=`command -v sudo 2> /dev/null`;
-    local osType=`uname -s`;
+checkDependencies() {
+    info "checkDependencies..."
+    command -v curl > /dev/null || pkgNames="curl"
+    command -v tmux > /dev/null || pkgNames="$pkgNames tmux"
+}
 
-    if [ "$osType" == "Linux" ] ; then
-        # 如果是ArchLinux或ManjaroLinux系统
-        command -v pacman &> /dev/null && {
-            $sudo pacman -Syyuu --noconfirm && \
-            command -v curl &> /dev/null || $sudo pacman -S curl --noconfirm && \
-            command -v tmux  &> /dev/null || $sudo pacman -S tmux  --noconfirm && \
-            installOhMyTmux
-            exit
+installDependencies() {
+    info "installDependencies $pkgNames"
+
+    if [ "$osType" = "Linux" ] ; then
+        # ArchLinux、ManjaroLinux
+        command -v pacman > /dev/null && {
+            $sudo pacman -Syyuu --noconfirm &&
+            $sudo pacman -S     --noconfirm $@
+            return 0
         }
         
-        # 如果是Ubuntu或Debian GNU/Linux系统
-        command -v apt-get &> /dev/null && {
-            $sudo apt-get -y update && \
-            $sudo apt-get -y install curl tmux && \
-            installOhMyTmux
-            exit
+        # Debian GNU/Linux系
+        command -v apt-get > /dev/null && {
+            $sudo apt-get -y update &&
+            $sudo apt-get -y install $@
+            return 0
         }
         
-        # 如果是Fedora或CentOS8系统
-        command -v dnf &> /dev/null && {
-            $sudo dnf -y update && \
-            $sudo dnf -y install curl tmux && \
-            installOhMyTmux
-            exit
+        # Fedora、CentOS8
+        command -v dnf > /dev/null && {
+            $sudo dnf -y update &&
+            $sudo dnf -y install $@
+            return 0
         }
         
-        # 如果是CentOS8以下的系统
-        command -v yum &> /dev/null && { 
-            $sudo yum -y update && \
-            $sudo yum -y install curl tmux && \
-            installOhMyTmux
-            exit
+        # CentOS7、6
+        command -v yum > /dev/null && { 
+            $sudo yum -y update &&
+            $sudo yum -y install $@
+            return 0
         }
 
-        # 如果是OpenSUSE系统
-        command -v zypper &> /dev/null && { 
-            $sudo zypper update -y && \
-            $sudo zypper install -y curl tmux && \
-            installOhMyTmux
-            exit
+        # OpenSUSE
+        command -v zypper > /dev/null && { 
+            $sudo zypper update -y &&
+            $sudo zypper install -y $@
+            return 0
         }
         
-        # 如果是AlpineLinux系统
-        command -v apk &> /dev/null && {
-            $sudo apk update && \
-            $sudo apk add curl tmux && \
-            installOhMyTmux
-            exit
+        # AlpineLinux
+        command -v apk > /dev/null && {
+            $sudo apk update &&
+            $sudo apk add $@
+            return 0
         }
-            
-        echo "your os is unrecognized!!"
-        exit 1
-    elif [ "$osType" == "Darwin" ] ; then
-        command -v brew &> /dev/null || (echo -e "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" && brew update)
-        command -v curl &> /dev/null || brew install curl
-        command -v tmux  &> /dev/null || brew install tmux
-        installOhMyTmux
-    else
-        echo "your os is unrecognized!!"
-        exit 1
+    elif [ "$osType" = "Darwin" ] ; then
+        if command -v brew > /dev/null ; then
+            brew update
+        else
+            printf "\n\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        fi
+        brew install $@
     fi
+}
+
+main() {
+    checkDependencies
+    [ -z "$pkgNames" ] || installDependencies "$pkgNames"
+    installOhMyTmux
 }
 
 main

@@ -16,10 +16,6 @@ msg() {
     printf "%b\n" "$1"
 }
 
-success() {
-    msg "${Color_Green}[✔]${Color_Off} $1$2"
-}
-
 info() {
     msg "${Color_Purple}[❉]${Color_Off} $1$2"
 }
@@ -35,6 +31,10 @@ error() {
 
 errorOnly() {
     msg "${Color_Red}[✘]${Color_Off} $1$2"
+}
+
+success() {
+    msg "${Color_Green}[✔]${Color_Off} $1$2"
 }
 
 #BSD sed与GNU sed在-i参数上的使用方法不一样

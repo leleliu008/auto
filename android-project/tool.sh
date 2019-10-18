@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #-------------- these config can be changed --------------
 #appName如果不设置的话，使用当前文件夹的名字
@@ -39,7 +39,7 @@ success() {
 
 #BSD sed与GNU sed在-i参数上的使用方法不一样
 sedCompatible() {
-    if [ "$osType" == "Darwin" ] ; then
+    if [ "$osType" = "Darwin" ] ; then
     	sed -i ""  "$1" "$2"
     else
     	sed -i "$1" "$2"
@@ -50,7 +50,7 @@ initValues() {
     [ -z "$osType" ] && osType="$(uname -s)"
     info "osType        = $osType"
     
-    [ "$(whoami)" == "root" ] || sudo=sudo
+    [ "$(whoami)" = "root" ] || sudo=sudo
     info "whoami        = $(whoami)"
     
     [ -z "$workDir" ] && workDir="$(cd "$(dirname "$0")" || exit 1; pwd)"
@@ -59,7 +59,7 @@ initValues() {
 
 readKeyStoreInfo() {
     [ -z "$storeFile" ] && {
-        local buildScript="$workDir/app/build.gradle.kts"
+        buildScript="$workDir/app/build.gradle.kts"
         
         storeFile=$(grep 'storeFile = file("[^"]*"' "$buildScript" | sed 's/.*storeFile = file("\([^"]*\)".*/\1/')
         storeFile="$workDir/app/$storeFile"
@@ -151,7 +151,7 @@ getjava() {
     checkExecutable "$java"
      
     success "java : $java"
-    "$java" -version &> tmp
+    "$java" -version > tmp 2>&1
     while read -r line
     do
         success "$line"
@@ -273,41 +273,41 @@ install7zipIfNeeded() {
 installPackage() {
     info "installPackage()"
 
-    if [ "$osType" == "Darwin" ] ; then
+    if [ "$osType" = "Darwin" ] ; then
         installOrUpdateHomeBrew &&
         info "installing $1 ..." &&
         brew install "$1" &&
         success "installed $1!"
-    elif [ "$osType" == "Linux" ] ; then
-        command -v apt-get &> /dev/null && {
+    elif [ "$osType" = "Linux" ] ; then
+        command -v apt-get > /dev/null && {
             info "installing $2 ..." &&
             $sudo apt-get -y update &&
             $sudo apt-get -y install "$2" &&
             success "installed $2!"
             return $?
         }
-        command -v dnf &> /dev/null && {
+        command -v dnf > /dev/null && {
             info "installing $3 ..." &&
             $sudo dnf -y update &&
             $sudo dnf -y install "$3" &&
             success "installed $3!"
             return $?
         }
-        command -v yum &> /dev/null && {
+        command -v yum > /dev/null && {
             info "installing $4 ..." &&
             $sudo yum -y update &&
             $sudo yum -y install "$4" &&
             success "installed $4!"
             return $?
         }
-        command -v zypper &> /dev/null && {
+        command -v zypper > /dev/null && {
             info "installing $5 ..." &&
             $sudo zypper update -y &&
             $sudo zypper install -y "$5" &&
             success "installed $5!"
             return $?
         }
-        command -v pacman &> /dev/null && {
+        command -v pacman > /dev/null && {
             info "installing $6 ..." &&
             $sudo pacman -Syyuu --noconfirm &&
             $sudo pacman -S     --noconfirm "$6" &&
@@ -321,19 +321,22 @@ installPackage() {
 
 #安装或者更新HomeBrew
 installOrUpdateHomeBrew() {
-    command -v brew &> /dev/null && (brew update; return $?)
-    echo -e "\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    if command -v brew > /dev/null ; then
+        brew update
+    else
+        printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    fi
 }
 
 installCurlIfNeeded() {
     info "installCurlIfNeeded()"
-    command -v curl &> /dev/null ||
+    command -v curl > /dev/null ||
     installPackage curl curl curl curl curl curl
 }
 
 #只安装WebP的工具，使用里面的cwebp
 installLibWebpIfNeeded() {
-    command -v cwebp &> /dev/null ||
+    command -v cwebp > /dev/null ||
     installPackage webp webp libwebp-tools libwebp-tools libwebp-tools libwebp
 }
 
@@ -343,10 +346,10 @@ updateAndroidSDK() {
     readCompileSdkVersion &&
     readBuildToolsInfo &&
     info "updating android sdk..." &&
-    echo y | "$sdkmanager" "platforms;android-${compileSdkVersion}" && local platforms=true &&
-    echo y | "$sdkmanager" "platform-tools" && local platformTools=true &&
-    echo y | "$sdkmanager" "build-tools;${buildToolsVersion}" && local buildTools=true
-    echo y | "$sdkmanager" "ndk-bundle" && local ndkBundle=true
+    echo y | "$sdkmanager" "platforms;android-${compileSdkVersion}" && platforms=true &&
+    echo y | "$sdkmanager" "platform-tools" && platformTools=true &&
+    echo y | "$sdkmanager" "build-tools;${buildToolsVersion}" && buildTools=true
+    echo y | "$sdkmanager" "ndk-bundle" && ndkBundle=true
     
     if [ -z "$platforms" ] ; then
         errorOnly "platforms;android-${compileSdkVersion}"
@@ -391,11 +394,12 @@ monkeyTest() {
 
 #执行SonarQube代码扫描
 runSonarScanner() {
-    local sonarScannerConfigFile="$workDir/sonar-project.properties"
+    sonarScannerConfigFile="$workDir/sonar-project.properties"
     [ -f "$sonarScannerConfigFile" ] || error "$sonarScannerConfigFile not exsit."
     
     info "run sonar scanner..."
-    local currentDateTime; currentDateTime=$(date +%Y%m%d_%H%M%S)
+    
+    currentDateTime=$(date +%Y%m%d_%H%M%S)
     info "currentDateTime : $currentDateTime"
     
     sedCompatible "s/[0-9]\{8\}/${currentDateTime}/g" "$sonarScannerConfigFile"
@@ -405,13 +409,13 @@ runSonarScanner() {
 
 #$1是png或者jpg
 convertToWebPInternal() {
-    local imageFiles; imageFiles=$(find . -name "*.$1")
+    imageFiles=$(find . -name "*.$1")
     for imageFile in $imageFiles
     do
-        if echo "$imageFile" | grep "\.9.png" &> /dev/null; then
-            info "$imageFiles is 9 png, so not convert"
+        if echo "$imageFile" | grep "\.9.png" > /dev/null ; then
+            info "$imageFile is 9 png, so not convert"
         else
-            local name; name=$(basename "$imageFile")
+            name=$(basename "$imageFile")
             if [ "$name" = "ic_launcher.png" ] ; then
                 continue
             else
@@ -510,7 +514,7 @@ alignApk() {
 #$1为原来的路径
 #$2为要追加的字符串
 appendFileName() {
-    echo "$(dirname "$1")/$(basename "$1" .apk)_$2.apk"
+    printf "%s\n" "$(dirname "$1")/$(basename "$1" .apk)_$2.apk"
 }
 
 #显示Apk的版本名称
@@ -526,13 +530,13 @@ showApkVersion() {
 checkValidApk() {
     [ -z "$1" ] && error "checkValidApk: please apply a apk file path ~"
     [ -f "$1" ] || error "checkValidApk: $1 is not exist ~"
-    unzip -t "$1" &> /dev/null ||
+    unzip -t "$1" > /dev/null ||
     error "checkValidApk: $1 is not a valid apk file ~"
 }
 
 #打开Genymotion模拟器
 openGenymotion() {
-    command -v player &> /dev/null ||
+    command -v player > /dev/null ||
     error "can't find Genymotion player."
     player --vm-name "Google Nexus 5 - 4.4.4 - API 19 - 1080x1920" &
 }
@@ -556,9 +560,9 @@ setPackageNameInBuildGradle() {
 # 修改AndroidManifest.xml里面的android:debuggable开关
 # $1 为true | false字符串
 setDebuggable() {
-    local origin=true
-    local toggle=false
-    if [ "$1" == "true" ] ; then
+    origin=true
+    toggle=false
+    if [ "$1" = "true" ] ; then
         origin=false
         toggle=true
     else
@@ -583,16 +587,16 @@ downloadWithCurl() {
 }
 
 downloadWalle() {
-    local url="https://github.com/Meituan-Dianping/walle/releases/download/v1.1.6/walle-cli-all.jar"
-    local output="walle-cli.jar"
-    downloadWithCurl $url $output
+    url="https://github.com/Meituan-Dianping/walle/releases/download/v1.1.6/walle-cli-all.jar"
+    output="walle-cli.jar"
+    downloadWithCurl "$url" "$output"
 }
 
 downloadWalleIfNeeded() {
     info "downloadWalleIfNeeded()"
     walleCliJar="$workDir/tools/walle-cli.jar"
     if [ -f "$walleCliJar" ] ; then
-        unzip -t "$walleCliJar" &> /dev/null && return 0
+        unzip -t "$walleCliJar" > /dev/null && return 0
         rm -f "$walleCliJar" && downloadWalle
     else
         downloadWalle
@@ -616,18 +620,18 @@ genChannels() {
 #$1是系统标志：mac|win
 #$2是系统的位数
 downloadJiagu() {
-    local baseUrl="http://down.360safe.com/360Jiagu/360jiagubao_"
-    if [ "$1" == "mac" ] ; then
-        downloadWithCurl "${baseUrl}mac.zip" "360jiagubao_mac.zip"
+    downloadJiaguBaseUrl="http://down.360safe.com/360Jiagu/360jiagubao_"
+    if [ "$1" = "mac" ] ; then
+        downloadWithCurl "${downloadJiaguBaseUrl}mac.zip" "360jiagubao_mac.zip"
     else
-        downloadWithCurl "${baseUrl}windows_$2.zip" "360jiagub_windows_$2.zip"
+        downloadWithCurl "${downloadJiaguBaseUrl}windows_$2.zip" "360jiagub_windows_$2.zip"
     fi
 }
 
 downloadJiaguIfNeeded() {
-    local jiaguZip="$workDir/tools/360jiagubao_mac.zip"
+    jiaguZip="$workDir/tools/360jiagubao_mac.zip"
     if [ -f "$jiaguZip" ] ; then
-        unzip -t "$jiaguZip" &> /dev/null && return 0 
+        unzip -t "$jiaguZip" > /dev/null && return 0 
         rm -f "$jiaguZip" && downloadJiagu mac
     else
         downloadJiagu mac
@@ -655,22 +659,22 @@ EOF
 }
 
 prepareJiaguCommand() {
-    local toolsDir="$workDir/tools"
+    toolsDir="$workDir/tools"
     [ -d "$toolsDir" ] || mkdir -p "$toolsDir"
     
     if [ "$osType" = "Darwin" ] || [ "$osType" = "Linux" ] ; then
         #因为360加固保里包含中文，使用7z才能解压不出错
-        local unzipDir="$toolsDir/360jiagubao_mac"
+        unzipDir="$toolsDir/360jiagubao_mac"
         jiaguJar="$unzipDir/jiagu/jiagu.jar"
         downloadJiaguIfNeeded &&
         install7zipIfNeeded &&
         "$p7z" x "$toolsDir/360jiagubao_mac.zip" -y -o"$unzipDir"
         chmod -R a+x "$unzipDir/jiagu/java"
     else
-        "$java" -version &> tmp
-        local bit; bit=$(grep "Java HotSpot" tmp | sed 's/^.*Java HotSpot(TM) \([0-9][0-9]\)-Bit.*/\1/')
+        "$java" -version > tmp 2>&1
+        bit=$(grep "Java HotSpot" tmp | sed 's/^.*Java HotSpot(TM) \([0-9][0-9]\)-Bit.*/\1/')
         rm tmp
-        local unzipDir=$toolsDir/360jiagubao_windows_${bit}
+        unzipDir=$toolsDir/360jiagubao_windows_${bit}
         apksigner=${apksigner}.bat
     fi
     
@@ -688,13 +692,13 @@ jiaguInternal() {
     #导入签名信息
     $jiagu -importsign "$storeFile" "$storePassword" "$keyAlias" "$keyPassword" || error "your keyStore is not right!"
     
-    local apkDir; apkDir=$(dirname "$1")
-    info "jiaguInternal() apkDir = $apkDir"
+    jiaguInternalApkDir=$(dirname "$1")
+    info "jiaguInternal() apkDir = $jiaguInternalApkDir"
 
     #加固，并进行v1签名
-    $jiagu -jiagu "$1" "$apkDir" -autosign || error "jiagu failed!"
+    $jiagu -jiagu "$1" "$jiaguInternalApkDir" -autosign || error "jiagu failed!"
     
-    jiaguResult=$(find "$apkDir" -name "*_jiagu_sign.apk" | head -n 1)
+    jiaguResult=$(find "$jiaguInternalApkDir" -name "*_jiagu_sign.apk" | head -n 1)
 }
 
 jiagu() {
@@ -714,15 +718,15 @@ jiagu() {
 }
 
 downloadAndResGuard() {
-    local url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-cli-1.2.16.jar"
+    url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-cli-1.2.16.jar"
     downloadWithCurl "$url" "AndResGuard-cli.jar"
 }
 
 downloadAndResGuardIfNeeded() {
     info "downloadAndResGuardIfNeeded()"
-    local andResGuardCliJar="$workDir/tools/AndResGuard-cli.jar"
+    andResGuardCliJar="$workDir/tools/AndResGuard-cli.jar"
     if [ -f "$andResGuardCliJar" ] ; then
-        unzip -t "$andResGuardCliJar" &> /dev/null && return 0
+        unzip -t "$andResGuardCliJar" > /dev/null && return 0
         rm "$andResGuardCliJar" && downloadAndResGuard
     else
         downloadAndResGuard
@@ -737,7 +741,7 @@ checkAndResGuardConfig() {
     
     readPackageName
 
-    local url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-config.xml" 
+    url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-config.xml" 
     downloadWithCurl "$url" "AndResGuard-config.xml" && 
     sedCompatible "s@com.fpliu.newton@${packageName}@g" "$workDir/tools/AndResGuard-config.xml" && 
     error "$workDir/AndResGuard-config.xml not exsit. you can copy $workDir/tools/AndResGuard-config.xml, then modify from it. see details: https://github.com/shwenzhang/AndResGuard/blob/master/doc/how_to_work.md#how-to-write-configxml-file"
@@ -748,11 +752,11 @@ checkAndResGuardConfig() {
 # 使用https://github.com/shwenzhang/AndResGuard进行资源混淆
 # $1是apk的文件路径
 resguard() {
-    local inputApk="$1"
-    local prefix; prefix=$(basename "$inputApk" .apk)
-    local inputDir; inputDir=$(dirname "$inputApk")
-    local outputDir="$inputDir/resguard"
-    resguardResult="$inputDir/${prefix}_resguard.apk"
+    resguardInputApk="$1"
+    resguardPrefix=$(basename "$resguardInputApk" .apk)
+    resguardInputDir=$(dirname "$resguardInputApk")
+    resguardOutputDir="$resguardInputDir/resguard"
+    resguardResult="$resguardInputDir/${resguardPrefix}_resguard.apk"
 
     getjava &&
     getzipalign &&
@@ -760,14 +764,14 @@ resguard() {
     install7zipIfNeeded &&
     downloadAndResGuardIfNeeded &&
     checkAndResGuardConfig && 
-    "$java" -jar "$workDir/tools/AndResGuard-cli.jar" "$inputApk" \
+    "$java" -jar "$workDir/tools/AndResGuard-cli.jar" "$resguardInputApk" \
          -config "$workDir/AndResGuard-config.xml" \
-         -out "$outputDir" \
+         -out "$resguardOutputDir" \
          -7zip "$p7z" \
          -zipalign "$zipalign" \
          -signatureType v2 \
          -signature "$storeFile" "$storePassword" "$keyPassword" "$keyAlias" &&
-    cp "$outputDir/${prefix}_7zip_aligned_signed.apk" "$resguardResult"
+    cp "$resguardOutputDir/${resguardPrefix}_7zip_aligned_signed.apk" "$resguardResult"
     [ -f "$resguardResult" ] || error "resguard failed."
 }
 
@@ -775,20 +779,20 @@ resguard() {
 #$1为要处理的apk的路径
 #结果为转换后的apk路径
 convertToWebPInApk() {
-    local apkDir; apkDir="$(dirname "$1")"
-    local unzipDir; unzipDir="$apkDir/$(date +%Y%m%d%H%M%S)"
-    local prefix; prefix="$(basename "$1" .apk)"
-    local webpdApk="${prefix}_webp.apk"
+    convertToWebPApkDir="$(dirname "$1")"
+    convertToWebPUnzipDir="$convertToWebPApkDir/$(date +%Y%m%d%H%M%S)"
+    convertToWebPPrefix="$(basename "$1" .apk)"
+    convertToWebPWebpdApk="${convertToWebPPrefix}_webp.apk"
     
     info "convertToWebPInApk()"
     info "pwd         : $(pwd)"
     info "inputApk    : $1"
-    info "apkDir      : $apkDir"
-    info "prefix      : $prefix"
-    info "webpdApk    : $webpdApk"
+    info "apkDir      : $convertToWebPApkDir"
+    info "prefix      : $convertToWebPPrefix"
+    info "webpdApk    : $convertToWebPWebpdApk"
     
-    unzip "$1" -d "$unzipDir" && 
-    cd "$unzipDir" && 
+    unzip "$1" -d "$convertToWebPUnzipDir" && 
+    cd "$convertToWebPUnzipDir" && 
     rm -rf META-INF && 
     rm -rf res/layout-watch-v20 && 
     rm -rf res/drawable-watch-v20 && 
@@ -799,10 +803,10 @@ convertToWebPInApk() {
     rm -rf res/drawable-ldrtl-xxxhdpi-v17 &&
     convertToWebP &&
     install7zipIfNeeded &&
-    "$p7z" a -tzip -mx9 "$webpdApk" . &&
-    mv "$webpdApk" "$apkDir" &&
+    "$p7z" a -tzip -mx9 "$convertToWebPWebpdApk" . &&
+    mv "$convertToWebPWebpdApk" "$convertToWebPApkDir" &&
     cd "$workDir" &&
-    v1Sign "$apkDir/$webpdApk" &&
+    v1Sign "$convertToWebPApkDir/$convertToWebPWebpdApk" &&
     convertToWebPInApkResult="$v1SignResult"
 }
 
@@ -883,8 +887,8 @@ runBuild() {
     
     readVersionName
      
-    local ts; ts=$(date +%Y%m%d_%H%M%S)    
-    local outputFile; outputFile="${appName}_${versionName}_${ts}_$environment.apk"
+    ts=$(date +%Y%m%d_%H%M%S)    
+    outputFile="${appName}_${versionName}_${ts}_$environment.apk"
     info "outputFile    = $outputFile"
     
     setAndroidSDKHomeInLocalProperties
@@ -909,8 +913,8 @@ runBuild() {
    
     "$workDir/gradlew" assemble$internalMode2 || error "build failed."
 
-    local apkDir=$workDir/app/build/outputs/apk/$internalMode1
-    local currentApkFile=$apkDir/app-${internalMode1}.apk
+    apkDir=$workDir/app/build/outputs/apk/$internalMode1
+    currentApkFile=$apkDir/app-${internalMode1}.apk
     
     [ "$isWebp" = "true" ] &&
     convertToWebPInApk "$currentApkFile" &&
@@ -1020,54 +1024,54 @@ main() {
             ;;
         "test")
             if [ "$2" = 'unit' ] ; then
-		        unitTest
-	        elif [ "$2" = 'monkey' ] ; then
-		        monkeyTest
+                unitTest
+            elif [ "$2" = 'monkey' ] ; then
+                monkeyTest
             else
                 showHelp
-	        fi
+            fi
             ;;
         "sonar")
-	        runSonarScanner
+            runSonarScanner
             ;;
         "convertToWebP")
-	        convertToWebP
+            convertToWebP
             ;;
         "show")
             if [ "$2" = 'cert' ] ; then
                 showCertificateFingerprints
-	        elif [ "$2" = 'version' ] ; then
-	            showApkVersion "$3"
-	        else
-	            showHelp
-	        fi
+            elif [ "$2" = 'version' ] ; then
+                showApkVersion "$3"
+            else
+                showHelp
+            fi
             ;;
         "install")
-	        installApk "$2"
+            installApk "$2"
             ;;
         "uninstall")
-	        uninstallApk "$2"
+            uninstallApk "$2"
             ;;
         "resguard")
             resguard "$2"
             ;;
         "sign")
-	        signApk "$2"
+            signApk "$2"
             ;;
         "align")
-	        alignApk "$2"
+            alignApk "$2"
             ;;
         "signAlign")
-	        signApk "$2" && alignApk "$2"
+            signApk "$2" && alignApk "$2"
             ;;
         "genymotion")
-	        openGenymotion
+            openGenymotion
             ;;
         "build")
             if [ -z "$2" ] ; then
                 showHelp
             else
-		        runBuild "$@"
+                runBuild "$@"
             fi
             ;;
         "update")

@@ -14,6 +14,14 @@ info() {
     msg "${Color_Purple}[❉]${Color_Off} $1$2"
 }
 
+compatibleSed() {
+    if [ "$osType" = "Darwin" ] || [ "$osType" = "FreeBSD" ] ; then
+        gsed -i $@
+    else 
+        sed  -i $@
+    fi
+}
+
 installOhMyZsh() {
     info "installOhMyZsh..."
 
@@ -23,11 +31,8 @@ installOhMyZsh() {
     curl -fsSL -o "$scriptFileName" https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
     
     lineNumber=$(grep "exec zsh -l" -n "$scriptFileName" | awk -F: '{print $1}')
-    if [ "$osType" = "Darwin" ] ; then
-        gsed -i "${lineNumber}d" "$scriptFileName"
-    else 
-        sed -i "${lineNumber}d" "$scriptFileName"
-    fi
+    
+    compatibleSed "${lineNumber}d" "$scriptFileName"
 
     (sh "$scriptFileName" && rm "$scriptFileName") || exit 1
     
@@ -42,20 +47,13 @@ installOhMyZsh() {
             lineNumber=$(grep "^plugins=(" -n ~/.zshrc | awk -F: '{print $1}')
             plugins=$(grep "^plugins=(" -n ~/.zshrc | sed 's/.*plugins=(\(.*\)).*/\1/')
             plugins="plugins=(${plugins} zsh-syntax-highlighting zsh-autosuggestions zsh-completions)"
-            if [ "$osType" = "Darwin" ] ; then
-                gsed -i "${lineNumber}c ${plugins}" ~/.zshrc
-            else
-                sed -i "${lineNumber}c ${plugins}" ~/.zshrc
-            fi
+            
+            compatibleSed "${lineNumber}c ${plugins}" ~/.zshrc
 
             lineNumbers=$(grep "compinit" -n ~/.zshrc | awk -F: '{print $1}')
             for lineNumber in $lineNumbers
             do
-                if [ "$osType" = "Darwin" ] ; then
-                    gsed -i "${lineNumber}d" ~/.zshrc
-                else
-                    sed -i "${lineNumber}d" ~/.zshrc
-                fi
+                compatibleSed "${lineNumber}d" ~/.zshrc
             done
             printf "autoload -U compinit && compinit\n" >> ~/.zshrc
             env zsh -l
@@ -73,10 +71,10 @@ checkDependencies() {
     
     if [ "$osType" = "Drawin" ] ; then
         command -v gsed > /dev/null || pkgNames="$pkgNames gnu-sed"
-    elif [ "$osType" = "Linux" ] ; then
-        command -v sed  > /dev/null || pkgNames="$pkgNames sed"
+    elif [ "$osType" = "FreeBSD" ] ; then
+        command -v gsed > /dev/null || pkgNames="$pkgNames gsed"
     else
-        command -v sed  > /dev/null || pkgNames="$pkgNames gsed"
+        command -v sed  > /dev/null || pkgNames="$pkgNames sed"
     fi
 }
 

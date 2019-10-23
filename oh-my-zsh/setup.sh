@@ -73,8 +73,10 @@ checkDependencies() {
     
     if [ "$osType" = "Drawin" ] ; then
         command -v gsed > /dev/null || pkgNames="$pkgNames gnu-sed"
-    else
+    elif [ "$osType" = "Linux" ] ; then
         command -v sed  > /dev/null || pkgNames="$pkgNames sed"
+    else
+        command -v sed  > /dev/null || pkgNames="$pkgNames gsed"
     fi
 }
 
@@ -131,6 +133,11 @@ installDependencies() {
         fi
         brew install $@
     fi
+
+    command -v pkg > /dev/null && {
+        pkg update &&
+        pkg install -y $@
+    }
 }
 
 main() {

@@ -15,11 +15,10 @@ info() {
 }
 
 compatibleSed() {
-    if [ "$osType" = "Darwin" ] || [ "$osType" = "FreeBSD" ] ; then
-        gsed -i $@
-    else 
-        sed  -i $@
-    fi
+    case "$osType" in
+        Darwin | *BSD) gsed -i "$1" "$2" ;;
+        *)              sed -i "$1" "$2" ;;
+    esac
 }
 
 installOhMyZsh() {
@@ -69,13 +68,11 @@ checkDependencies() {
     command -v zsh  > /dev/null || pkgNames="$pkgNames zsh"
     command -v awk  > /dev/null || pkgNames="$pkgNames gawk"
     
-    if [ "$osType" = "Drawin" ] ; then
-        command -v gsed > /dev/null || pkgNames="$pkgNames gnu-sed"
-    elif [ "$osType" = "FreeBSD" ] ; then
-        command -v gsed > /dev/null || pkgNames="$pkgNames gsed"
-    else
-        command -v sed  > /dev/null || pkgNames="$pkgNames sed"
-    fi
+    case "$osType" in
+        Darwin) command -v gsed > /dev/null || pkgNames="$pkgNames gnu-sed" ;;
+        *BSD)   command -v gsed > /dev/null || pkgNames="$pkgNames gsed" ;;
+        *)      command -v sed  > /dev/null || pkgNames="$pkgNames sed"
+    esac
 }
 
 installDependencies() {
@@ -131,10 +128,18 @@ installDependencies() {
         fi
         brew install $@
     fi
-
+    
+    # FreeBSD
     command -v pkg > /dev/null && {
-        pkg update &&
-        pkg install -y $@
+        $sudo pkg update &&
+        $sudo pkg install -y $@
+        return $?
+    }
+    
+    # NetBSD、OpenBSD
+    command -v pkg_add > /dev/null && {
+        $sudo pkg_add $@
+        return $?
     }
 }
 

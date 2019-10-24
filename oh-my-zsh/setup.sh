@@ -1,7 +1,8 @@
 #!/bin/sh
 
-sudo=$(command -v sudo 2> /dev/null);
-osType=$(uname -s);
+[ "$(whoami)" = "root" ] || sudo=$(command -v sudo)
+
+osType=$(uname -s)
 
 Color_Purple='\033[0;35m'       # Purple
 Color_Off='\033[0m'             # Reset
@@ -15,10 +16,9 @@ info() {
 }
 
 compatibleSed() {
-    case "$osType" in
-        Darwin | *BSD) gsed -i "$1" "$2" ;;
-        *)              sed -i "$1" "$2" ;;
-    esac
+    [ -z "$sed" ] && sed=$(command -v gsed)
+    [ -z "$sed" ] && sed=$(command -v sed)
+    "$sed" -i "$1" "$2"
 }
 
 installOhMyZsh() {

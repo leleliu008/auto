@@ -136,7 +136,14 @@ installDependencies() {
         return $?
     }
     
-    # NetBSD、OpenBSD
+    # NetBSD、MirBSD
+    command -v pkgin > /dev/null && {
+        $sudo pkgin -y update &&
+        $sudo pkgin -y install $@
+        return $?
+    }
+    
+    # OpenBSD
     command -v pkg_add > /dev/null && {
         $sudo pkg_add $@
         return $?

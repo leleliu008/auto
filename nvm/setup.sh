@@ -27,7 +27,7 @@ installOrUpdateHomeBrew() {
 checkDependencies() {
     info "Checking Dependencies..."
     command -v curl > /dev/null || pkgNames="curl"
-    command -v bash > /dev/null || pkgNames="$pkgNames bash"
+    (command -v bash > /dev/null || command -v zsh > /dev/null) || pkgNames="$pkgNames zsh"
 }
 
 installDependencies() {
@@ -36,53 +36,64 @@ installDependencies() {
     if [ "$osType" = "Darwin" ] ; then
         installOrUpdateHomeBrew && 
         brew install $@
+        return $?
     elif [ "$osType" = "Linux" ] ; then
+        # Termux
         if [ "$(uname -o 2> /dev/null)" = "Android" ] ; then
+            pkg update -y &&
             pkg install -y $@
-        else
-            # ArchLinux、ManjaroLinux
-            command -v pacman > /dev/null && {
-                $sudo pacman -Syyuu --noconfirm &&
-                $sudo pacman -S     --noconfirm $@
-                return $?
-            }
-            
-            # AlpineLinux
-            command -v apk > /dev/null && {
-                $sudo apk update && 
-                $sudo apk add $@
-                return $?
-            }
-            
-            # Debian GNU/LInux系
-            command -v apt-get > /dev/null && {
-                $sudo apt-get -y update &&
-                $sudo apt-get -y install $@
-                return $?
-            }
-            
-            # Fedora、CentOS8
-            command -v dnf > /dev/null && {
-                $sudo dnf -y update &&
-                $sudo dnf -y install $@
-                return $?
-            }
-            
-            # RHEL CentOS 7、6
-            command -v yum > /dev/null && {
-                $sudo yum -y update &&
-                $sudo yum -y install $@
-                return $?
-            }
-            
-            # OpenSUSE
-            command -v zypper > /dev/null && {
-                $sudo zypper update  -y &&
-                $sudo zypper install -y $@
-                return $?
-            }
+            return $?
         fi
+
+        # ArchLinux、ManjaroLinux
+        command -v pacman > /dev/null && {
+            $sudo pacman -Syyuu --noconfirm &&
+            $sudo pacman -S     --noconfirm $@
+            return $?
+        }
+        
+        # AlpineLinux
+        command -v apk > /dev/null && {
+            $sudo apk update && 
+            $sudo apk add $@
+            return $?
+        }
+        
+        # Debian GNU/LInux系
+        command -v apt-get > /dev/null && {
+            $sudo apt-get -y update &&
+            $sudo apt-get -y install $@
+            return $?
+        }
+        
+        # Fedora、CentOS8
+        command -v dnf > /dev/null && {
+            $sudo dnf -y update &&
+            $sudo dnf -y install $@
+            return $?
+        }
+        
+        # RHEL CentOS 7、6
+        command -v yum > /dev/null && {
+            $sudo yum -y update &&
+            $sudo yum -y install $@
+            return $?
+        }
+        
+        # OpenSUSE
+        command -v zypper > /dev/null && {
+            $sudo zypper update  -y &&
+            $sudo zypper install -y $@
+            return $?
+        }
     fi
+    
+    # FreeBSD
+    command -v pkg > /dev/null && {
+        $sudo pkg update -y &&
+        $sudo pkg install -y $@
+        return $?
+    }
 }
 
 installNVM() {

@@ -98,7 +98,9 @@ installDependencies() {
 
 installNVM() {
     info "Installing nvm..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+    bash=$(command -v bash)
+    [ -z "$bash" ] && bash=$(command -v zsh)
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | "$bash"
 }
 
 changeNPMRegistryToChineseMirrorIfPossible() {

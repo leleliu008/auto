@@ -263,7 +263,7 @@ updateVimrcOfCurrentUser() {
     
     [ -z "$python" ] || {
         if [ "$(uname -s)" = "Darwin" ] ; then
-            sed -i ""  "s@/usr/local/bin/python3@${python}@g" "myVIMRC"
+            sed -i ""  "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
         else
             sed -i "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
         fi

@@ -9,14 +9,9 @@ au BufNewFile,BufRead *.kts set filetype=kotlin
 au BufReadPost *.kt  setlocal filetype=kotlin
 au BufReadPost *.kts setlocal filetype=kotlin
 
-"set rtp+=~/.vim/bundle/Vundle.vim
-
 call plug#begin('~/.vim/bundle')
 
-"http://github.com/VundleVim/Vundle.vim
-Plug 'VundleVim/Vundle.vim'
-
-Plug 'git:https://gitee.com/YouCompleteMe/YouCompleteMe.git'
+Plug 'git://gitee.com/YouCompleteMe/YouCompleteMe.git'
 
 "https://github.com/ervandew/supertab
 "Plug 'ervandew/supertab'
@@ -26,9 +21,6 @@ Plug 'scrooloose/nerdtree'
 
 "https://github.com/Xuyuanp/nerdtree-git-plugin
 "Plug 'Xuyuanp/nerdtree-git-plugin'
-
-"https://github.com/vim-scripts/taglist.vim
-"Plug 'taglist.vim'
 
 "https://github.com/godlygeek/tabular
 Plug 'godlygeek/tabular'

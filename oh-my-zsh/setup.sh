@@ -79,42 +79,42 @@ installDependencies() {
     info "installDependencies $pkgNames"
 
     if [ "$osType" = "Linux" ] ; then
-        # 如果是ArchLinux或ManjaroLinux系统
+        # ArchLinux、Manjaro
         command -v pacman > /dev/null && {
             $sudo pacman -Syyuu --noconfirm &&
             $sudo pacman -S     --noconfirm $@
             return 0
         }
         
-        # 如果是Ubuntu或Debian GNU/Linux系统
+        # Debian GNU/Linux系
         command -v apt-get > /dev/null && {
             $sudo apt-get -y update &&
             $sudo apt-get -y install $@
             return 0
         }
         
-        # 如果是Fedora或CentOS8系统
+        # Fedora、RHEL8、CentOS8
         command -v dnf > /dev/null && {
             $sudo dnf -y update &&
             $sudo dnf -y install $@
             return 0
         }
         
-        # 如果是CentOS8以下的系统
+        # CentOS7、6
         command -v yum > /dev/null && { 
             $sudo yum -y update &&
             $sudo yum -y install $@
             return 0
         }
 
-        # 如果是OpenSUSE系统
+        # OpenSUSE
         command -v zypper > /dev/null && { 
             $sudo zypper update -y &&
             $sudo zypper install -y $@
             return 0
         }
         
-        # 如果是AlpineLinux系统
+        # AlpineLinux
         command -v apk > /dev/null && {
             $sudo apk update &&
             $sudo apk add $@
@@ -127,6 +127,7 @@ installDependencies() {
             printf "\n\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         fi
         brew install $@
+        return $?
     fi
     
     # FreeBSD

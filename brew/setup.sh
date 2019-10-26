@@ -28,7 +28,7 @@ configLinuxBrewEnv() {
 
 installLinuxBrew() {
     info "Installing LinuxBrew..."
-    printf "\n\n" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)" && configLinuxBrewEnv
+    printf "\n\n" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
 }
 
 installHomeBrew() {
@@ -36,38 +36,77 @@ installHomeBrew() {
     printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 }
 
+checkDependencies() {
+    info "checkDependencies..."
+
+    command -v curl  > /dev/null || pkgNames="curl"
+    command -v git   > /dev/null || pkgNames="$pkgNames git"
+    command -v file  > /dev/null || pkgNames="$pkgNames file"
+    command -v which > /dev/null || pkgNames="$pkgNames which"
+    command -v tar   > /dev/null || pkgNames="$pkgNames tar"
+    command -v gzip  > /dev/null || pkgNames="$pkgNames gzip"
+    command -v gcc   > /dev/null || pkgNames="$pkgNames gcc"
+}
+
+installDependencies() {
+    info "installDependencies $pkgNames"
+
+    command -v apt-get > /dev/null && {
+        sudo apt-get -y update &&
+        sudo apt-get -y install $@ &&
+        return $?
+    }
+    
+    command -v dnf > /dev/null && {
+        sudo dnf -y update &&
+        sudo dnf -y install $@ &&
+        return $?
+    }
+        
+    command -v yum > /dev/null && {
+        sudo yum -y update &&
+        sudo yum -y install $@ &&
+        return $?
+    }
+    
+    command -v zypper > /dev/null && {
+        sudo zypper update -y &&
+        sudo zypper install -y $@ &&
+        return $?
+    }
+    
+    command -v pacman > /dev/null && {
+        sudo pacman -Syyuu --noconfirm &&
+        sudo pacman -S     --noconfirm $@ &&
+        return $?
+    }
+
+    info "not find a package manager to install $pkgNames"
+    return 1
+}
+
 # 安装HomeBrew或者LinuxBrew
 installBrew() {
     if [ "$(uname -s)" = "Darwin" ] ; then
         installHomeBrew
     else
-        command -v apt-get > /dev/null && {
-            sudo apt-get -y update &&
-            sudo apt-get -y install build-essential curl file git &&
-            installLinuxBrew
-            exit
-        }
-        
-        command -v yum > /dev/null && {
-            [ -f /etc/os-release ] &&
-            grep "fedora" /etc/os-release > /dev/null && 
-            [ "$(rpm -E %fedora)" -gt 29 ] && 
-            libxcryptCompat='libxcrypt-compat'
-            
-            sudo yum -y update &&
-            sudo yum -y groupinstall 'Development Tools' &&
-            sudo yum -y install curl file git "$libxcryptCompat" &&
-            installLinuxBrew
-            exit
-        }
-        
-        printf "%s\n" "who are you ?"
-        exit 1
+        checkDependencies
+        [ -z "$pkgNames" ] || installDependencies "$pkgNames"
+        installLinuxBrew &&
+        configLinuxBrewEnv &&
+        replaceMainSourceIfNeeded &&
+        brew update
     fi
+}
+
+replaceMainSourceIfNeeded() {
+    [ "$(git -C "$(brew --repo)" remote get-url origin)" = "https://github.com/Homebrew/brew" ] &&
+    git -C "$(brew --repo)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
 }
 
 main() {
     command -v brew > /dev/null && {
+        replaceMainSourceIfNeeded
         brew update
         info "brew is already installed!"
         exit 0
@@ -75,6 +114,11 @@ main() {
     
     [ "$(whoami)" = "root" ] && {
         info "don't run as root!"
+        exit 1
+    }
+
+    [ -z "$(command -v sudo)" ] && {
+        info "sudo is not installed and config."
         exit 1
     }
     

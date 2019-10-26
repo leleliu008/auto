@@ -177,16 +177,10 @@ installDependencies() {
     fi
 }
 
-installVundle() {
-    pluginDir="${HOME}/.vim/bundle"
-    vundleDir="${pluginDir}/Vundle.vim"
-    
-    [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
-    [ -d "$vundleDir" ] && rm -rf "$vundleDir"
-    
-    info "Installing Vundle..." &&
-    git clone http://github.com/VundleVim/Vundle.vim.git "$vundleDir" &&
-    success "Installed Vundle"
+installVimPlug() {
+    info "Installing vim-plug..." &&
+    curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &&
+    success "Installed vim-plug"
 }
 
 compileYouCompleteMe() {
@@ -289,7 +283,7 @@ main() {
     
     [ -z "$pkgNames" ] || installDependencies "$pkgNames"
     
-    installVundle &&
+    installVimPlug &&
     installNodeJSIfNeeded &&
     installYouCompleteMe &&
     updateVimrcOfCurrentUser

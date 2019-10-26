@@ -16,7 +16,7 @@ call plug#begin('~/.vim/bundle')
 "http://github.com/VundleVim/Vundle.vim
 Plug 'VundleVim/Vundle.vim'
 
-Plug 'git:https://gitee.com/mirrors/youcompleteme.git'
+Plug 'git:https://gitee.com/YouCompleteMe/YouCompleteMe.git'
 
 "https://github.com/ervandew/supertab
 "Plug 'ervandew/supertab'

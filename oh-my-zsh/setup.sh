@@ -21,10 +21,18 @@ compatibleSed() {
     "$sed" -i "$1" "$2"
 }
 
+makeTempFile() {
+    if command -v mktemp > /dev/null ; then
+        printf "%s\n" "$(mktemp)"
+    else
+        printf "%s\n" "$(date +%Y%m%d%H%M%S)"
+    fi
+}
+
 installOhMyZsh() {
     info "installOhMyZsh..."
 
-    scriptFileName="$(date +%Y%m%d%H%M%S).sh"
+    scriptFileName="$(makeTempFile)"
     [ -f "$scriptFileName" ] && rm "$scriptFileName"
 
     curl -fsSL -o "$scriptFileName" https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh || exit 1
@@ -66,7 +74,7 @@ checkDependencies() {
     command -v emerge > /dev/null && {
         command -v curl > /dev/null || pkgNames="$pkgNames net-misc/curl"
         command -v git  > /dev/null || pkgNames="$pkgNames dev-vcs/git"
-        command -v zsh  > /dev/null || pkgNames="$pkgNames app-shells/zsh"
+        command -v zsh  > /dev/null || pkgNames="$pkgNames app-shells/zsh app-shells/gentoo-zsh-completions"
         command -v awk  > /dev/null || pkgNames="$pkgNames sys-apps/gawk"
         command -v sed  > /dev/null || pkgNames="$pkgNames sys-apps/sed"
         return 0

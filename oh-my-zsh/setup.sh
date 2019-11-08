@@ -62,7 +62,16 @@ installOhMyZsh() {
 
 checkDependencies() {
     info "checkDependencies..."
-
+    
+    command -v emerge > /dev/null && {
+        command -v curl > /dev/null || pkgNames="$pkgNames net-misc/curl"
+        command -v git  > /dev/null || pkgNames="$pkgNames dev-vcs/git"
+        command -v zsh  > /dev/null || pkgNames="$pkgNames app-shells/zsh"
+        command -v awk  > /dev/null || pkgNames="$pkgNames sys-apps/gawk"
+        command -v sed  > /dev/null || pkgNames="$pkgNames sys-apps/sed"
+        return 0
+    }
+    
     command -v curl > /dev/null || pkgNames="$pkgNames curl"
     command -v git  > /dev/null || pkgNames="$pkgNames git"
     command -v zsh  > /dev/null || pkgNames="$pkgNames zsh"
@@ -118,6 +127,13 @@ installDependencies() {
         command -v apk > /dev/null && {
             $sudo apk update &&
             $sudo apk add $@
+            return 0
+        }
+        
+        # Gentoo Linux
+        command -v emerge > /dev/null && {
+            $sudo emerge --sync &&
+            $sudo emerge $@
             return 0
         }
     elif [ "$osType" = "Darwin" ] ; then

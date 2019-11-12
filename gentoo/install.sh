@@ -2,7 +2,7 @@
 
 #------------------------------------------
 
-stage3Tarball=https://mirrors.tuna.tsinghua.edu.cn/gentoo/releases/amd64/autobuilds/current-stage3-amd64/stage3-amd64-20191106T214502Z.tar.xz
+stage3TarballDownloadUrl=https://mirrors.tuna.tsinghua.edu.cn/gentoo/releases/amd64/autobuilds/current-stage3-amd64
 
 #------------------------------------------
 
@@ -117,8 +117,9 @@ checkAndConfigNetwork() {
 
 #step13
 downloadStage3TarballAndUncompress() {
-    curl -LO "$stage3Tarball" &&
-    tar Jvxf "$(basename "$stage3Tarball")" -C /mnt/gentoo
+    stage3Tarball=$(curl $stage3TarballDownloadUrl/ | grep "href=\"stage3-amd64-[0-9]\{8\}T[0-9]\{6\}Z.tar.xz\"" | sed 's/.*href="\([^"]*\)".*/\1/')
+    curl -LO "$stage3TarballDownloadUrl/$stage3Tarball" &&
+    tar Jvxf "$stage3Tarball" -C /mnt/gentoo
 }
 
 #step14

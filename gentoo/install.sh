@@ -8,11 +8,45 @@ username=fpliu
 
 #------------------------------------------
 
-CPUCoreCount=$(grep processor /proc/cpuinfo | wc -l)
-let jobCount="$CPUCoreCount + 1"
+CPUCoreCount=$(grep -c processor /proc/cpuinfo)
+jobCount=$((CPUCoreCount + 1))
 
+#step8
+diskPartition() {
+    cat > sudo fdisk -t dos /dev/sda <<EOF
+d
+1
+d
+2
+d
+3
+d
+4
+n
+p
+1
+2048
++2M
+n
+p
+2
 
++4G
+n
+p
+3
 
++10G
+n
+e
+4
+
+a
+1
+p
+q
+EOF
+}
 #step9
 applyFileSystemToPartitions() {
     mkfs.ext4 -T small /dev/sda1
@@ -35,7 +69,14 @@ mountPartitions() {
 
 #step12
 checkAndConfigNetwork() {
+    print "%s\n" "input SSID"
+    read -r ssid
+    
+    print "%s\n" "input password of $ssid"
+    read -r ssid_passwd
 
+    wpa_passphrase "$ssid" "$ssid_passwd" >> /etc/wpa_supplicant.conf &&
+    wpa_supplicant -B -c/etc/wpa_supplicant.conf -lwan0
 }
 
 #step13
@@ -105,7 +146,7 @@ updateWorldSet() {
 #step22
 setTimeZone() {
     echo "Asia/Shanghai" > /etc/timezone
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 }
 
 #step23
@@ -113,7 +154,7 @@ genLocales() {
     sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen &&
     locale-gen &&
     eselect locale set en_US.UTF-8 &&
-    env-update && source /etc/profile
+    env-update && . /etc/profile
 }
 
 ##step24
@@ -128,7 +169,7 @@ downloadLinuxKernelSources() {
 
 #step25
 compileLinuxKernelSources() {
-    cd /usr/src/linux
+    cd /usr/src/linux || exit
     genkernel all
 }
 

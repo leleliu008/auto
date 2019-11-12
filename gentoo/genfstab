@@ -8,7 +8,6 @@ declare -A pseudofs_types=([anon_inodefs]=1
                            [bdev]=1
                            [binfmt_misc]=1
                            [cgroup]=1
-                           [cgroup2]=1
                            [configfs]=1
                            [cpuset]=1
                            [debugfs]=1
@@ -54,6 +53,52 @@ msg() { out "==>" "$@"; }
 msg2() { out "  ->" "$@";}
 die() { error "$@"; exit 1; }
 
+ignore_error() {
+  "$@" 2>/dev/null
+  return 0
+}
+
+in_array() {
+  local i
+  for i in "${@:2}"; do
+    [[ $1 = "$i" ]] && return 0
+  done
+  return 1
+}
+
+chroot_add_mount() {
+  mount "$@" && CHROOT_ACTIVE_MOUNTS=("$2" "${CHROOT_ACTIVE_MOUNTS[@]}")
+}
+
+chroot_maybe_add_mount() {
+  local cond=$1; shift
+  if eval "$cond"; then
+    chroot_add_mount "$@"
+  fi
+}
+
+chroot_setup() {
+  CHROOT_ACTIVE_MOUNTS=()
+  [[ $(trap -p EXIT) ]] && die '(BUG): attempting to overwrite existing EXIT trap'
+  trap 'chroot_teardown' EXIT
+
+  chroot_maybe_add_mount "! mountpoint -q '$1'" "$1" "$1" --bind &&
+  chroot_add_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
+  chroot_add_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
+  ignore_error chroot_maybe_add_mount "[[ -d '$1/sys/firmware/efi/efivars' ]]" \
+      efivarfs "$1/sys/firmware/efi/efivars" -t efivarfs -o nosuid,noexec,nodev &&
+  chroot_add_mount udev "$1/dev" -t devtmpfs -o mode=0755,nosuid &&
+  chroot_add_mount devpts "$1/dev/pts" -t devpts -o mode=0620,gid=5,nosuid,noexec &&
+  chroot_add_mount shm "$1/dev/shm" -t tmpfs -o mode=1777,nosuid,nodev &&
+  chroot_add_mount run "$1/run" -t tmpfs -o nosuid,nodev,mode=0755 &&
+  chroot_add_mount tmp "$1/tmp" -t tmpfs -o mode=1777,strictatime,nodev,nosuid
+}
+
+chroot_teardown() {
+  umount "${CHROOT_ACTIVE_MOUNTS[@]}"
+  unset CHROOT_ACTIVE_MOUNTS
+}
+
 try_cast() (
   _=$(( $1#$2 ))
 ) 2>/dev/null
@@ -70,7 +115,8 @@ valid_number_of_base() {
 
 mangle() {
   local i= chr= out=
-  local {a..f}= {A..F}=
+
+  unset {a..f} {A..F}
 
   for (( i = 0; i < ${#1}; i++ )); do
     chr=${1:i:1}
@@ -88,7 +134,8 @@ mangle() {
 
 unmangle() {
   local i= chr= out= len=$(( ${#1} - 4 ))
-  local {a..f}= {A..F}=
+
+  unset {a..f} {A..F}
 
   for (( i = 0; i < len; i++ )); do
     chr=${1:i:1}
@@ -257,13 +304,6 @@ optstring_apply_quirks() {
   # one might install Arch from a Fedora environment), so let's remove it.
   optstring_remove_option "$varname" seclabel
 
-  # Prune 'relatime' option for any pseudofs. This seems to be a rampant
-  # default which the kernel often exports even if the underlying filesystem
-  # doesn't support it. Example: https://bugs.archlinux.org/task/54554.
-  if awk -v fstype="$fstype" '$1 == fstype { exit 1 }' /proc/filesystems; then
-    optstring_remove_option "$varname" relatime
-  fi
-
   case $fstype in
     f2fs)
       # These are Kconfig options for f2fs. Kernels supporting the options will
@@ -286,10 +326,9 @@ usage() {
 usage: ${0##*/} [options] root
 
   Options:
-    -f FILTER      Restrict output to mountpoints matching the prefix FILTER
     -L             Use labels for source identifiers (shortcut for -t LABEL)
     -p             Exclude pseudofs mounts (default behavior)
-    -P             Include pseudofs mounts
+    -P             Include printing mounts
     -t TAG         Use TAG for source identifiers
     -U             Use UUIDs for source identifiers (shortcut for -t UUID)
 
@@ -306,16 +345,13 @@ if [[ -z $1 || $1 = @(-h|--help) ]]; then
   exit $(( $# ? 0 : 1 ))
 fi
 
-while getopts ':f:LPpt:U' flag; do
+while getopts ':LPpt:U' flag; do
   case $flag in
     L)
       bytag=LABEL
       ;;
     U)
       bytag=UUID
-      ;;
-    f)
-      prefixfilter=$OPTARG
       ;;
     P)
       pseudofs=1
@@ -349,8 +385,6 @@ findmnt -Recvruno SOURCE,TARGET,FSTYPE,OPTIONS,FSROOT "$root" |
   if (( !pseudofs )) && fstype_is_pseudofs "$fstype"; then
     continue
   fi
-
-  [[ $target = "$prefixfilter"* ]] || continue
 
   # default 5th and 6th columns
   dump=0 pass=2

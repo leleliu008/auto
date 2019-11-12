@@ -68,9 +68,9 @@ genLocales() {
     env-update && . /etc/profile
 }
 
-##step24
+#step24
 configfstab() {
-    ./genfstab -U >> /mnt/etc/fstab
+    ./genfstab -U >> /etc/fstab
 }
 
 #step24
@@ -80,7 +80,8 @@ downloadLinuxKernelSources() {
 
 #step25
 compileLinuxKernelSources() {
-    cd /usr/src/linux || exit
+    [ -d /usr/src/linux ] || error "sys-kernel/gentoo-sources not installed"
+    #cd /usr/src/linux
     genkernel all
 }
 
@@ -88,8 +89,8 @@ compileLinuxKernelSources() {
 configHostname() {
     prompt "please set hostname:"
     read -r hostname
-    sed -i "s/127.0.0.1\slocalhost/127.0.0.1\\tlocalhost ${hostname}/g" etc/hosts
-    sed -i "s@hostname=\"localhost\"@hostname=\"${hostname}\"@g" etc/conf.d/hostname 
+    sed -i "s/127.0.0.1\slocalhost/127.0.0.1\\tlocalhost ${hostname}/g" /etc/hosts
+    sed -i "s@hostname=\"localhost\"@hostname=\"${hostname}\"@g" /etc/conf.d/hostname 
 }
 
 #step27

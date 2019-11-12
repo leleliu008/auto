@@ -98,6 +98,9 @@ initAndActiveSwapPartition() {
 
 #step11
 mountPartitions() {
+    mkdir /mnt/gentoo/boot
+    mkdir /mnt/gentoo/home
+
     mount /dev/sda3 /mnt/gentoo
     mount /dev/sda1 /mnt/gentoo/boot
     mount /dev/sda4 /mnt/gentoo/home
@@ -112,7 +115,7 @@ checkAndConfigNetwork() {
     read -r ssid_passwd
 
     wpa_passphrase "$ssid" "$ssid_passwd" >> /etc/wpa_supplicant.conf &&
-    wpa_supplicant -B -c/etc/wpa_supplicant.conf -lwan0
+    wpa_supplicant -B -c /etc/wpa_supplicant.conf -i lwan0
 }
 
 #step13
@@ -124,7 +127,7 @@ downloadStage3TarballAndUncompress() {
 
 #step14
 configMakeConf() {
-cat > /mnt/gentoo/etc/portage/make.conf <<EOF
+cat >> /mnt/gentoo/etc/portage/make.conf <<EOF
 GENTOO_MIRRORS="https://mirrors.tuna.tsinghua.edu.cn/gentoo"
 MAKEOPTS="-j${jobCount}"
 EOF
@@ -147,6 +150,7 @@ EOF
 #step16
 copyDNSInfo() {
     cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
+    cp --dereference /etc/wpa_supplicant.conf /mnt/gentoo//etc/wpa_supplicant.conf
 }
 
 #step17
@@ -163,79 +167,6 @@ mountOnTheFly() {
 #step18
 changeRoot() {
     chroot /mnt/gentoo /bin/bash
-}
-
-#step19
-syncPortageTree() {
-    emerge --sync
-}
-
-#step20
-selectProfile() {
-    eselect profile set default/linux/amd64/17.1/systemd
-}
-
-#step21
-updateWorldSet() {
-    emerge --ask --verbose --update --deep --newuse @world
-}
-
-#step22
-setTimeZone() {
-    echo "Asia/Shanghai" > /etc/timezone
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-}
-
-#step23
-genLocales() {
-    sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen &&
-    locale-gen &&
-    eselect locale set en_US.UTF-8 &&
-    env-update && . /etc/profile
-}
-
-##step24
-configfstab() {
-    ./genfstab -U >> /mnt/etc/fstab
-}
-
-#step24
-downloadLinuxKernelSources() {
-    emerge sys-kernel/gentoo-sources sys-kernel/genkernel sys-kernel/linux-firmware sys-apps/pciutils
-}
-
-#step25
-compileLinuxKernelSources() {
-    cd /usr/src/linux || exit
-    genkernel all
-}
-
-#step26
-configHostname() {
-    prompt "please set hostname:"
-    read -r hostname
-    sed -i "s/127.0.0.1\slocalhost/127.0.0.1\\tlocalhost ${hostname}/g" etc/hosts
-    sed -i "s@hostname=\"localhost\"@hostname=\"${hostname}\"@g" etc/conf.d/hostname 
-}
-
-#step27
-setRootPassword() {
-    passwd
-}
-
-#step28
-newUserAndSetPassword() {
-    prompt "please set none-root username:"
-    read -r username
-    useradd -m -G wheel -s /bin/bash "$username"
-    passwd "$username"
-}
-
-#step29
-installAndConfigGrub2() {
-    emerge sys-boot/grub:2
-    grub-install /dev/sda
-    grub-mkconfig -o /boot/grub/grub.cfg
 }
 
 #step30
@@ -262,20 +193,8 @@ main() {
     configMakeConf
     configReposConf
     copyDNSInfo
-    mountSome
+    mountOnTheFly
     changeRoot
-    syncPortageTree
-    selectProfile
-    updateWorldSet
-    setTimeZone
-    genLocales
-    configfstab
-    downloadLinuxKernelSources
-    compileLinuxKernelSources
-    configHostname
-    setRootPassword
-    newUserAndSetPassword
-    installAndConfigGrub2
     exitChroot
     unmountAll
     restart

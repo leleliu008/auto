@@ -150,7 +150,8 @@ EOF
 #step16
 copyDNSInfo() {
     cp --dereference /etc/resolv.conf /mnt/gentoo/etc/
-    cp --dereference /etc/wpa_supplicant.conf /mnt/gentoo//etc/wpa_supplicant.conf
+    [ -f /etc/wpa_supplicant.conf ] && 
+    cp --dereference /etc/wpa_supplicant.conf /mnt/gentoo/etc/wpa_supplicant.conf
 }
 
 #step17

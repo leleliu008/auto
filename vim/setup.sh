@@ -47,6 +47,26 @@ checkDependency() {
 }
 
 checkDependencies() {
+    command -v emerge > /dev/null && {
+        command -v zsh > /dev/null || {
+            command -v bash > /dev/null || pkgNames="app-shells/zsh"
+        }
+        command -v curl  > /dev/null || pkgNames="$pkgNames net-misc/curl"
+        command -v git   > /dev/null || pkgNames="$pkgNames dev-vcs/git"
+        command -v vim   > /dev/null || pkgNames="$pkgNames app-editors/vim"
+        command -v sed   > /dev/null || pkgNames="$pkgNames sys-apps/sed"
+        command -v tar   > /dev/null || pkgNames="$pkgNames app-arch/tar"
+        command -v gawk  > /dev/null || pkgNames="$pkgNames sys-apps/gawk"
+        command -v gzip  > /dev/null || pkgNames="$pkgNames app-arch/gzip"
+        command -v make  > /dev/null || pkgNames="$pkgNames sys-devel/make"
+        command -v cmake > /dev/null || pkgNames="$pkgNames dev-util/cmake"
+        command -v go    > /dev/null || pkgNames="$pkgNames dev-lang/go"
+        command -v ninja > /dev/null || pkgNames="$pkgNames dev-util/ninja"
+        command -v ctags > /dev/null || pkgNames="$pkgNames dev-util/ctags"
+        command -v python > /dev/null || pkgNames="$pkgNames dev-lang/python"
+        return 0
+    }
+
     checkDependency bash bash
     checkDependency curl curl
     checkDependency git git
@@ -132,6 +152,12 @@ installDependencies() {
         brew install $@
         return $?
     elif [ "$osType" = "Linux" ] ; then
+        # Gentoo Linux
+        command -v emerge > /dev/null && {
+            $sudo emerge $@
+            return $?
+        }
+        
         # ArchLinux、ManjaroLinux
         command -v pacman > /dev/null && {
             $sudo pacman -Syyuu --noconfirm &&

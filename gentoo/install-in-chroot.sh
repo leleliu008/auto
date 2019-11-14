@@ -70,12 +70,17 @@ genLocales() {
 
 #step24
 configfstab() {
-    ./genfstab -U >> /etc/fstab
+    curl -o /sbin/genfstab https://raw.githubusercontent.com/YangMame/Gentoo-Installer/master/genfstab
+    chmod o+x /sbin/genfstab
+    genfstab -U / >> /etc/fstab
 }
 
 #step24
 downloadLinuxKernelSources() {
-    emerge sys-kernel/gentoo-sources sys-kernel/genkernel sys-kernel/linux-firmware sys-apps/pciutils
+    emerge sys-kernel/gentoo-sources 
+    emerge sys-kernel/genkernel 
+    emerge sys-kernel/linux-firmware 
+    emerge sys-apps/pciutils
 }
 
 #step25
@@ -95,6 +100,7 @@ configHostname() {
 
 #step27
 setRootPassword() {
+    print "%s" "set root "
     passwd
 }
 

@@ -140,7 +140,6 @@ installDependencies() {
         
         # Gentoo Linux
         command -v emerge > /dev/null && {
-            $sudo emerge --sync &&
             $sudo emerge $@
             return 0
         }

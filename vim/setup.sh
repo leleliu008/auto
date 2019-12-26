@@ -231,12 +231,17 @@ installYouCompleteMe() {
     cd "$youCompleteMeDir" && {
         python="$(command -v python3)"
         [ -z "$python" ] && python="$(command -v python)"
+
         if [ -z "$python" ] ; then
             warn "we can't find python, so don't compile installYouCompleteMe, you can comiple it by hand"
         else
             options="--clang-completer --ts-completer --go-completer"
-            command -v java > /dev/null && options="$options --java-completer"
-
+            
+            command -v java > /dev/null && {
+                options="$options --java-completer"
+                sedCompatible "s@download.eclipse.org@mirrors.ustc.edu.cn/eclipse@g" ./third_party/ycmd/build.py
+            }
+            
             if compileYouCompleteMe "$options" ; then
                 success "installed YouCompleteMe"
             else
@@ -287,13 +292,7 @@ updateVimrcOfCurrentUser() {
     cp "$currentScriptDir/vimrc-user" "$myVIMRC"
     cp "$currentScriptDir/.tern-project" "${HOME}"
     
-    [ -z "$python" ] || {
-        if [ "$(uname -s)" = "Darwin" ] ; then
-            sed -i ""  "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
-        else
-            sed -i "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
-        fi
-    }
+    [ -z "$python" ] || sedCompatible "s@/usr/local/bin/python3@${python}@g" "$myVIMRC"
     
     success "---------------------------------------------------"
     [ -z "$backup" ] || {
@@ -302,6 +301,14 @@ updateVimrcOfCurrentUser() {
     }
     success "open vim and use :PlugInstall command to install plugins!"
     success "---------------------------------------------------"
+}
+
+sedCompatible() {
+    if [ "$osType" = "Darwin" ] ; then
+        sed -i ""  "$1" "$2"
+    else
+        sed -i "$1" "$2"
+    fi
 }
 
 main() {

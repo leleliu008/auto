@@ -300,7 +300,7 @@ updateVimrcOfCurrentUser() {
         success "$HOME/.vimrc config file is updated!"
         success "your $HOME/.vimrc config file is bak to $backup"
     }
-    success "open vim and use :BundleInstall to install plugins!"
+    success "open vim and use :PlugInstall command to install plugins!"
     success "---------------------------------------------------"
 }
 

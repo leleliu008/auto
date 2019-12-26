@@ -179,10 +179,14 @@ filetype plugin indent on     " required!
 syntax enable
 syntax on
 
-"colorscheme desert
+"设置支持256色
+set t_Co=256
+
+"设置主题
 colorsche dracula
+
+"设置背景颜色
 set background=light
-set background=dark
 
 set ofu=syntaxcomplete#Complete
 
@@ -199,4 +203,3 @@ language message en_US.UTF-8
 set backspace=2
 
 "autocmd FileType java setlocal omnifunc=javacomplete#Complete
-

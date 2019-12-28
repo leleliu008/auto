@@ -18,6 +18,13 @@ installOhMyFish() {
 
 checkDependencies() {
     info "CheckDependencies"
+
+    if command -v emerge > /dev/null ; then
+        command -v git   > /dev/null || pkgNames="$pkgNames dev-vcs/git"
+    else
+        command -v git   > /dev/null || pkgNames="$pkgNames git"
+    fi
+
     command -v curl  > /dev/null || pkgNames="curl"
     command -v git   > /dev/null || pkgNames="$pkgNames git"
     command -v fish  > /dev/null || pkgNames="$pkgNames fish"
@@ -31,25 +38,31 @@ installDependencies() {
     osType=$(uname -s)
 
     if [ "$osType" = "Linux" ] ; then
+        # Gentoo、Funtoo
+        command -v emerge > /dev/null && {
+            $sudo emerge $@
+            return $?
+        }
+        
         # ArchLinux、ManjaroLinux
         command -v pacman > /dev/null && {
             $sudo pacman -Syyuu --noconfirm &&
             $sudo pacman -S     --noconfirm $@
-            return 0
+            return $?
         }
         
         # Debian GNU/Linux系
         command -v apt-get > /dev/null && {
             $sudo apt-get -y update &&
             $sudo apt-get -y install $@
-            return 0
+            return $?
         }
         
         # Fedora、CentOS8
         command -v dnf > /dev/null && {
             $sudo dnf -y update &&
             $sudo dnf -y install $@
-            return 0
+            return $?
         }
         
         # CentOS7、6
@@ -57,31 +70,31 @@ installDependencies() {
             $sudo yum -y update &&
             (command -v fish > /dev/null || $sudo yum -y install epel-release) &&
             $sudo yum -y install $@
-            return 0
+            return $?
         }
 
         # OpenSUSE
         command -v zypper > /dev/null && { 
             $sudo zypper update -y &&
             $sudo zypper install -y $@
-            return 0
+            return $?
         }
         
         # AlpineLinux
         command -v apk > /dev/null && {
             $sudo apk update &&
             $sudo apk add $@
-            return 0
+            return $?
         }
     elif [ "$osType" = "Darwin" ] ; then
-        if command -v brew > /dev/null; then
+        if command -v brew > /dev/null ; then
             brew update
         else
             printf "\n" | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
         fi
 
         brew install $@
-        return 0
+        return $?
     fi
 }
 

@@ -252,7 +252,8 @@ installYouCompleteMe() {
 }
 
 installNodeJSIfNeeded() {
-    (command -v node > /dev/null && command -v npm > /dev/null) || {
+    command -v node > /dev/null && 
+    command -v npm  > /dev/null || {
         command -v nvm > /dev/null || {
             info "Installing nvm..." &&
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash &&

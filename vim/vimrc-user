@@ -187,6 +187,7 @@ colorsche dracula
 
 "设置背景颜色
 set background=light
+set background=dark
 
 set ofu=syntaxcomplete#Complete
 

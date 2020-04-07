@@ -1,11 +1,14 @@
 #!/bin/sh
 
+#注意：请将此脚本放置于源码根目录下
+#参考：http://blog.fpliu.com/it/software/bzip2#build-with-ndk
+
 build() {
     source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
 
     SHARED=1
 
-    make clean
+    make clean > /dev/null 2>&1
 
     if [ $SHARED -eq 1 ] ; then
         MAKE='make -f Makefile-libbz2_so'
@@ -23,18 +26,7 @@ build() {
 }
 
 main() {
-    URL='https://raw.githubusercontent.com/leleliu008/auto/master/ndk/ndk-helper.sh'
-    if [ -f ndk-helper.sh ] ; then
-        if command -v curl > /dev/null ; then
-            curl -LO "$URL"
-        elif command -v wget > /dev/null ; then
-            wget "$URL"
-        else
-           printf "please install curl or wget.\n"
-        fi
-    else
-        build "$@"
-    fi
+    download_ndk_helper_if_needed && build "$@"
 }
 
 main "$@"

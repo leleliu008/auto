@@ -290,6 +290,19 @@ show_ndk_version() {
     command -v node > /dev/null && runNodeJSScript && return 0
 }
 
+download_ndk_helper_if_needed() {
+    URL='https://raw.githubusercontent.com/leleliu008/auto/master/ndk/ndk-helper.sh'
+    [ -f ndk-helper.sh ] || {
+        if command -v curl > /dev/null ; then
+            curl -LO "$URL"
+        elif command -v wget > /dev/null ; then
+            wget "$URL"
+        else
+            error_exit "please install curl or wget.\n"
+        fi
+    }
+}
+
 help() {
     cat << EOF
 Usage: ndk-helper [COMMAND [ARGUMENT...]]

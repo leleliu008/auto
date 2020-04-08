@@ -1,7 +1,9 @@
 #!/bin/sh
 
+##########################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/OpenSSL#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/libpng#build-with-ndk
+##########################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -52,21 +54,18 @@ build_success() {
 
 build() {
     source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-   
-    # 清除上次构建残留的信息
+
     make clean > /dev/null 2>&1
-     
-    ./Configure \
-        shared \
-        no-ssl2 \
-        no-ssl3 \
-        no-comp \
-        no-hw \
-        no-engine \
-        no-asm \
-        -D__ANDROID_API__="$API" \
+    
+    ./configure \
+        --host="$TARGET" \
         --prefix="$PWD/output/$TARGET/$API" \
-        android-arm &&
+        CC="$CC" \
+        CFLAGS='-O3 -v -fPIC' \
+        CPPFLAGS="" \
+        LDFLAGS="" \
+        AR="$AR" \
+        RANLIB="$RANLIB" &&
     make install
 }
 

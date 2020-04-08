@@ -6,6 +6,53 @@
 # 请先在\HOME下编译OpenSSL，然后指定--with-ssl=$HOME/openssl/output/$TARGET/$API
 ##########################################################
 
+Color_Red='\033[0;31m'          # Red
+Color_Green='\033[0;32m'        # Green
+Color_Purple='\033[0;35m'       # Purple
+Color_Off='\033[0m'             # Reset
+
+msg() {
+    printf "%b" "$1"
+}
+
+info() {
+    msg "${Color_Purple}[❉] $1$2${Color_Off}"
+}
+
+success() {
+    msg "${Color_Green}[✔] $1$2${Color_Off}"
+}
+
+error_exit() {
+    msg "${Color_Red}[✘] $1$2${Color_Off}"
+    exit 1
+}
+
+download_ndk_helper_if_needed() {
+    URL='https://raw.githubusercontent.com/leleliu008/auto/master/ndk/ndk-helper.sh'
+    [ -f ndk-helper.sh ] || {
+        if command -v curl > /dev/null ; then
+            info "Downloading $URL...\n" &&
+            curl -LO "$URL" &&
+            success "Downloaded->$PWD/ndk-helper.sh\n"
+        elif command -v wget > /dev/null ; then
+            info "Downloading $URL...\n" &&
+            wget "$URL" &&
+            success "Downloaded->$PWD/ndk-helper.sh\n"
+        else
+            error_exit "please install curl or wget.\n"
+        fi
+    }
+}
+
+build_success() {
+    success "build success. in $PWD/output/$TARGET/$API directory.\n"
+
+    if command -v tree > /dev/null ; then
+        tree "$PWD/output/$TARGET/$API"
+    fi
+}
+
 build() {
     source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
 
@@ -20,13 +67,14 @@ build() {
         CPPFLAGS="" \
         LDFLAGS="" \
         AR="$AR" \
-        RANLIB="$RANLIB"
-
+        RANLIB="$RANLIB" &&
     make install
 }
 
 main() {
-    download_ndk_helper_if_needed && build "$@"
+    download_ndk_helper_if_needed &&
+    build "$@" &&
+    build_success
 }
 
 main "$@"

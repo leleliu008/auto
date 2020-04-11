@@ -4,7 +4,7 @@
 
 #后缀名必须是.tar.gz的那个
 SOURCE_URL='http://downloads.webmproject.org/releases/webp/libwebp-1.0.2.tar.gz'
-SOURCE_PATH=$HOME/libwebp-1.0.2
+#SOURCE_PATH=$HOME/libwebp-1.0.2
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -29,7 +29,7 @@ error_exit() {
 }
 
 build() {
-    ndk-build V=1 APP_PLATFORM=android-21 ENABLE_SHARED=1
+    ndk-build NDK_PROJECT_PATH="$SOURCE_PATH" APP_BUILD_SCRIPT="$SOURCE_PATH/Android.mk" APP_PLATFORM=android-21 ENABLE_SHARED=1 V=1
 }
 
 download() {
@@ -39,25 +39,20 @@ download() {
 }
 
 uncompress() {
-    mkdir -p "$DIR_NAME/jni"
-    tar vxf "$FILE_NAME" --strip-components=1 -C "$DIR_NAME/jni"
+    tar vxf "$FILE_NAME" && SOURCE_PATH="$PWD/$DIR_NAME"
 }
 
 build_success() {
-    success "build success. in $PWD/libs directory.\n"
+    success "build success. in $SOURCE_PATH/libs directory.\n"
     
     if command -v tree > /dev/null ; then
-        tree "$PWD/libs"
+        tree "$SOURCE_PATH/libs"
     fi
 }
 
 main() {
     if [ -n "$SOURCE_PATH" ] ; then
         if [ -d "$SOURCE_PATH" ] ; then
-            cd "$SOURCE_PATH" &&
-            CONTENT=$(ls | awk '{gsub("libs", "");gsub("obj", "");gsub("jni", "");print}') &&
-            mkdir -p jni &&
-            cp -rf $CONTENT jni/ &&
             build &&
             build_success
         else
@@ -69,21 +64,18 @@ main() {
         if [ -f "$FILE_NAME" ] ; then
             if tar -tf "$FILE_NAME" ; then
                 uncompress &&
-                cd "$DIR_NAME" &&
                 build &&
                 build_success
             else
                 rm "$FILE_NAME" &&
                 download &&
                 uncompress &&
-                cd "$DIR_NAME" &&
                 build &&
                 build_success
             fi
         else
             download &&
             uncompress &&
-            cd "$DIR_NAME" &&
             build &&
             build_success
         fi

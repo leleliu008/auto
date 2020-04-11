@@ -1,4 +1,4 @@
-#!/bin/sh
+#/bin/sh
 
 #注意：请将此脚本放置于源码根目录下
 #参考：http://blog.fpliu.com/it/software/qrencode#build-with-ndk

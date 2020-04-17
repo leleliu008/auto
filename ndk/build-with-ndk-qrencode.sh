@@ -16,16 +16,11 @@ msg() {
 }
 
 success() {
-    msg "${Color_Green}[✔] $1$2${Color_Off}"
+    msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
 build() {
-    [ -d jni ] || mkdir jni
-    
-    cp *.h jni
-    cp *.c jni
-
-    cat > jni/Android.mk <<EOF
+    cat > Android.mk <<EOF
 LOCAL_PATH      := \$(call my-dir)
 
 include \$(CLEAR_VARS)
@@ -41,8 +36,8 @@ LOCAL_CFLAGS     += -Os -v -DHAVE_CONFIG_H
 
 include \$(BUILD_SHARED_LIBRARY)
 EOF
-
-    ndk-build V=1 APP_PLATFORM=android-21 APP_ABI=armeabi-v7a
+    [ -f config.h ] || ./configure
+    ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a
 }
 
 build_success() {

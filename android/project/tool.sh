@@ -718,7 +718,7 @@ jiagu() {
 }
 
 downloadAndResGuard() {
-    url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-cli-1.2.16.jar"
+    url="https://raw.githubusercontent.com/leleliu008/auto/master/android/project/AndResGuard-cli-1.2.16.jar"
     downloadWithCurl "$url" "AndResGuard-cli.jar"
 }
 
@@ -741,7 +741,7 @@ checkAndResGuardConfig() {
     
     readPackageName
 
-    url="https://raw.githubusercontent.com/leleliu008/auto/master/android-project/AndResGuard-config.xml" 
+    url="https://raw.githubusercontent.com/leleliu008/auto/master/android/project/AndResGuard-config.xml" 
     downloadWithCurl "$url" "AndResGuard-config.xml" && 
     sedCompatible "s@com.fpliu.newton@${packageName}@g" "$workDir/tools/AndResGuard-config.xml" && 
     error "$workDir/AndResGuard-config.xml not exsit. you can copy $workDir/tools/AndResGuard-config.xml, then modify from it. see details: https://github.com/shwenzhang/AndResGuard/blob/master/doc/how_to_work.md#how-to-write-configxml-file"

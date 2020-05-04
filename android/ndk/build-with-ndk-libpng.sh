@@ -15,20 +15,20 @@ msg() {
 }
 
 info() {
-    msg "${Color_Purple}[❉] $1$2${Color_Off}"
+    msg "${Color_Purple}[❉] $@${Color_Off}"
 }
 
 success() {
-    msg "${Color_Green}[✔] $1$2${Color_Off}"
+    msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
 error_exit() {
-    msg "${Color_Red}[✘] $1$2${Color_Off}"
+    msg "${Color_Red}[✘] $@${Color_Off}"
     exit 1
 }
 
 download_ndk_helper_if_needed() {
-    URL='https://raw.githubusercontent.com/leleliu008/auto/master/ndk/ndk-helper.sh'
+    URL='https://raw.githubusercontent.com/leleliu008/auto/master/android/ndk/ndk-helper.sh'
     [ -f ndk-helper.sh ] || {
         if command -v curl > /dev/null ; then
             info "Downloading $URL...\n" &&

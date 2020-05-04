@@ -17,23 +17,23 @@ msg() {
 }
 
 info() {
-    msg "${Color_Purple}[❉]${Color_Off} $1$2"
+    msg "${Color_Purple}[❉] $@${Color_Off}"
 }
 
 success() {
-    msg "${Color_Green}[✔]${Color_Off} $1$2"
+    msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
 warn() {
-    msg "${Color_Yellow}[⌘]${Color_Off} $1$2"
+    msg "${Color_Yellow}[⌘] $@${Color_Off}"
 }
 
 error() {
-    msg "${Color_Red}[✘]${Color_Off} $1$2"
+    msg "${Color_Red}[✘] $@${Color_Off}"
 }
 
 error_exit() {
-    msg "${Color_Red}[✘]${Color_Off} $1$2"
+    msg "${Color_Red}[✘] $@${Color_Off}"
     exit 1
 }
 

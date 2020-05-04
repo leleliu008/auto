@@ -16,15 +16,15 @@ msg() {
 }
 
 info() {
-    msg "${Color_Purple}[❉] $1$2${Color_Off}"
+    msg "${Color_Purple}[❉] $@${Color_Off}"
 }
 
 success() {
-    msg "${Color_Green}[✔] $1$2${Color_Off}"
+    msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
 error_exit() {
-    msg "${Color_Red}[✘] $1$2${Color_Off}"
+    msg "${Color_Red}[✘] $@${Color_Off}"
     exit 1
 }
 

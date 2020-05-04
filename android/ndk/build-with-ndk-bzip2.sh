@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/OpenSSL#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/bzip2#build-with-ndk
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -13,20 +13,20 @@ msg() {
 }
 
 info() {
-    msg "${Color_Purple}[❉] $1$2${Color_Off}"
+    msg "${Color_Purple}[❉] $@${Color_Off}"
 }
 
 success() {
-    msg "${Color_Green}[✔] $1$2${Color_Off}"
+    msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
 error_exit() {
-    msg "${Color_Red}[✘] $1$2${Color_Off}"
+    msg "${Color_Red}[✘] $@${Color_Off}"
     exit 1
 }
 
 download_ndk_helper_if_needed() {
-    URL='https://raw.githubusercontent.com/leleliu008/auto/master/ndk/ndk-helper.sh'
+    URL='https://raw.githubusercontent.com/leleliu008/auto/master/android/ndk/ndk-helper.sh'
     [ -f ndk-helper.sh ] || {
         if command -v curl > /dev/null ; then
             info "Downloading $URL...\n" &&
@@ -52,22 +52,24 @@ build_success() {
 
 build() {
     source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-   
-    # 清除上次构建残留的信息
+
+    SHARED=1
+
     make clean > /dev/null 2>&1
-     
-    ./Configure \
-        shared \
-        no-ssl2 \
-        no-ssl3 \
-        no-comp \
-        no-hw \
-        no-engine \
-        no-asm \
-        -D__ANDROID_API__="$API" \
-        --prefix="$PWD/output/$TARGET/$API" \
-        android-arm &&
-    make install
+
+    if [ $SHARED -eq 1 ] ; then
+        MAKE='make -f Makefile-libbz2_so'
+    else
+        MAKE='make'
+    fi
+
+    eval "$MAKE CC=$CC CFLAGS='-v' AR=$AR RANLIB=$RANLIB" &&
+    DESDIR=output/$TARGET/$API &&
+    BINDIR="$DESDIR/bin" &&
+    LIBDIR="$DESDIR/lib" &&
+    mkdir -p "$DESDIR"/{bin,lib} &&
+    cp libbz2.so.*.*.* "$LIBDIR" &&
+    cp bzip2-shared "$BINDIR/bzip2"
 }
 
 main() {

@@ -1,55 +1,62 @@
-#/bin/sh
+#!/bin/sh
 
+#################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/qrencode#build-with-ndk
-#依赖：libpng
-#参数: LIB_PNG_INCLUDES_DIR=some/path  LIB_PNG_LIBS_DIR=some/path
+#参考：http://blog.fpliu.com/it/software/qrencode/build-for-android-with-make
+#################################################################
 
-LIB_PNG_INCLUDES_DIR=$HOME/libpng-1.6.36/output/armv7a-linux-androideabi/21/include
-LIB_PNG_LIBS_DIR=$HOME/libpng-1.6.36/output/armv7a-linux-androideabi/21/lib
-
+Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
+Color_Purple='\033[0;35m'       # Purple
 Color_Off='\033[0m'             # Reset
 
 msg() {
     printf "%b" "$1"
 }
 
+info() {
+    msg "${Color_Purple}[❉] $@${Color_Off}"
+}
+
 success() {
     msg "${Color_Green}[✔] $@${Color_Off}"
 }
 
+error_exit() {
+    msg "${Color_Red}[✘] $@${Color_Off}"
+    exit 1
+}
+
+download_ndk_helper_if_needed() {
+    URL='https://raw.githubusercontent.com/leleliu008/auto/master/android/ndk/ndk-helper.sh'
+    [ -f ndk-helper.sh ] || {
+        if command -v curl > /dev/null ; then
+            info "Downloading $URL...\n" &&
+            curl -LO "$URL" &&
+            success "Downloaded->$PWD/ndk-helper.sh\n"
+        elif command -v wget > /dev/null ; then
+            info "Downloading $URL...\n" &&
+            wget "$URL" &&
+            success "Downloaded->$PWD/ndk-helper.sh\n"
+        else
+            error_exit "please install curl or wget.\n"
+        fi
+    }
+    source ndk-helper.sh source
+}
+
 build() {
-    cat > Android.mk <<EOF
-LOCAL_PATH      := \$(call my-dir)
-
-include \$(CLEAR_VARS)
-
-LOCAL_MODULE    := qrencode
-LOCAL_SRC_FILES := \$(shell ls *.c | awk '{gsub("qrenc.c", "");print}')
-
-LOCAL_LDFLAGS   += -L$LIB_PNG_LIBS_DIR
-LOCAL_LDLIBS    += -lpng
-
-LOCAL_C_INCLUDES += $LIB_PNG_INCLUDES_DIR
-LOCAL_CFLAGS     += -Os -v -DHAVE_CONFIG_H
-
-include \$(BUILD_SHARED_LIBRARY)
-EOF
-    [ -f config.h ] || ./configure
-    ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a
+    ./configure \
+        --host="$TARGET_HOST" \
+        --prefix="$INSTALL_DIR" \
+        CC="$CC" \
+        CFLAGS="$CFLAGS" \
+        CPPFLAGS="" \
+        LDFLAGS="" \
+        AR="$AR" \
+        RANLIB="$RANLIB" &&
+    make clean &&
+    make install
 }
 
-build_success() {
-    success "build success. in $PWD/libs directory.\n"
-
-    if command -v tree > /dev/null ; then
-        tree "$PWD/libs"
-    fi
-}
-
-main() {
-    build "$@" && build_success
-}
-
-main "$@"
+download_ndk_helper_if_needed && build_all TARGET_API=21

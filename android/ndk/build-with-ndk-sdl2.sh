@@ -1,10 +1,10 @@
 #!/bin/sh
 
-#参考：http://blog.fpliu.com/it/software/SDL2#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/SDL2/build-for-android-with-ndk-build
 
 #后缀名必须是.tar.gz的那个
 SOURCE_URL='https://www.libsdl.org/release/SDL2-2.0.12.tar.gz'
-#SOURCE_PATH=$HOME/SDL2-2.0.12
+SOURCE_PATH=$HOME/SDL2-2.0.12
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -43,10 +43,21 @@ uncompress() {
 }
 
 build_success() {
-    success "build success. in $SOURCE_PATH/libs directory.\n"
+    NDK_BUILD_DIR="$SOURCE_PATH/ndk-build"
+
+    rm -rf "$NDK_BUILD_DIR" && 
+    mkdir "$NDK_BUILD_DIR" && {
+        for abi in armeabi-v7a arm64-v8a x86 x86_64
+        do
+            mkdir "$NDK_BUILD_DIR/$abi" &&
+            ln -sf "$SOURCE_PATH/include/" "$NDK_BUILD_DIR/$abi/" &&
+            ln -sf "$SOURCE_PATH/libs/$abi/" "$NDK_BUILD_DIR/$abi/lib"
+        done
+    } &&
+    success "build success. in $NDK_BUILD_DIR directory.\n"
     
     if command -v tree > /dev/null ; then
-        tree "$SOURCE_PATH/libs"
+        tree -l "$NDK_BUILD_DIR"
     fi
 }
 

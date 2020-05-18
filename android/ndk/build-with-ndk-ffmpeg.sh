@@ -1,7 +1,9 @@
 #!/bin/sh
 
+#################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/FFmpeg#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/FFmpeg/build-for-android
+#################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -40,14 +42,7 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-}
-
-build_success() {
-    success "build success. in $PWD/output/$TARGET/$API directory.\n"
-
-    if command -v tree > /dev/null ; then
-        tree "$PWD/output/$TARGET/$API"
-    fi
+    source ndk-helper.sh source
 }
 
 sed_in_place() {
@@ -63,37 +58,7 @@ sed_in_place() {
     error_exit "please install sed utility.\n"
 }
 
-build() {
-    source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-
-    make clean > /dev/null 2>&1
-    
-    sed_in_place 's/Wl,-soname,/o /g' configure
-
-    ./configure \
-        --prefix="$PWD/output/$TARGET/$API" \
-        --ar="$AR" \
-        --as="$AS" \
-        --ld="$LD" \
-        --cc="$CC" \
-        --cxx="$CXX" \
-        --nm="$NM" \
-        --ranlib="$RANLIB" \
-        --strip="$STRIP" \
-        --arch="$ARCH" \
-        --target-os=android \
-        --enable-cross-compile \
-        --enable-shared \
-        --enable-pic \
-        --disable-static \
-        --disable-debug \
-        --disable-asm \
-        --disable-doc \
-        --sysroot="$ANDROID_NDK_HOME/sysroot" \
-        --extra-cflags='-DANDROID' 
-    
-    sed_in_place 's/LDEXEFLAGS= -fPIE -pie/LDEXEFLAGS= -shared/g' ffbuild/config.mak
-
+change_config_h() {
     #注释掉#define getenv(x) NULL，没有用，会报错
     sed_in_place "s/#define getenv(x) NULL/\\/\\/ #define getenv(x) NULL/" config.h
     sed_in_place "s/#define HAVE_TRUNC 0/#define HAVE_TRUNC 1/" config.h
@@ -111,14 +76,35 @@ build() {
     sed_in_place "s/#define HAVE_ISNAN 0/#define HAVE_ISNAN 1/" config.h
     sed_in_place "s/#define HAVE_ISFINITE 0/#define HAVE_ISFINITE 1/" config.h
     sed_in_place "s/#define HAVE_INET_ATON 0/#define HAVE_INET_ATON 1/" config.h
+}
 
+build() {
+    sed_in_place 's/Wl,-soname,/o /g' configure &&
+    ./configure \
+        --prefix="$INSTALL_DIR" \
+        --ar="$AR" \
+        --as="$AS" \
+        --ld="$LD" \
+        --cc="$CC" \
+        --cxx="$CXX" \
+        --nm="$NM" \
+        --ranlib="$RANLIB" \
+        --strip="$STRIP" \
+        --arch="$TARGET_ARCH" \
+        --target-os=android \
+        --enable-cross-compile \
+        --enable-shared \
+        --enable-pic \
+        --disable-static \
+        --disable-debug \
+        --disable-asm \
+        --disable-doc \
+        --sysroot="$ANDROID_NDK_HOME/sysroot" \
+        --extra-cflags='-DANDROID' &&
+    sed_in_place 's/LDEXEFLAGS= -fPIE -pie/LDEXEFLAGS= -shared/g' ffbuild/config.mak &&
+    change_config_h &&
+    make clean &&
     make install
 }
 
-main() {
-    download_ndk_helper_if_needed &&
-    build "$@" &&
-    build_success
-}
-
-main "$@"
+download_ndk_helper_if_needed && build_all TARGET_API=21

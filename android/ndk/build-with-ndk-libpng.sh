@@ -1,9 +1,9 @@
 #!/bin/sh
 
-##########################################################
+#################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/libpng#build-with-ndk
-##########################################################
+#参考：http://blog.fpliu.com/it/software/libpng/build-for-android-with-make
+#################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -42,37 +42,21 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-}
-
-build_success() {
-    success "build success. in $PWD/output/$TARGET/$API directory.\n"
-
-    if command -v tree > /dev/null ; then
-        tree "$PWD/output/$TARGET/$API"
-    fi
+    source ndk-helper.sh source
 }
 
 build() {
-    source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-
-    make clean > /dev/null 2>&1
-    
     ./configure \
-        --host="$TARGET" \
-        --prefix="$PWD/output/$TARGET/$API" \
+        --host="$TARGET_HOST" \
+        --prefix="$INSTALL_DIR" \
         CC="$CC" \
-        CFLAGS='-O3 -v -fPIC' \
+        CFLAGS="$CFLAGS" \
         CPPFLAGS="" \
         LDFLAGS="" \
         AR="$AR" \
         RANLIB="$RANLIB" &&
+    make clean &&
     make install
 }
 
-main() {
-    download_ndk_helper_if_needed &&
-    build "$@" &&
-    build_success
-}
-
-main "$@"
+download_ndk_helper_if_needed && build_all TARGET_API=21

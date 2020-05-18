@@ -1,7 +1,9 @@
 #/bin/sh
 
+#################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/libpng#build-with-ndk-2
+#参考：http://blog.fpliu.com/it/software/libpng/build-for-android-with-ndk-build
+#################################################################
 
 Color_Green='\033[0;32m'        # Green
 Color_Off='\033[0m'             # Reset

@@ -1,12 +1,9 @@
 #!/bin/sh
 
-###############################################################
+###################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/cURL/build-for-android
-###############################################################
-
-OPENSSL_NDK_BUILD_DIR="$HOME/git/openssl/ndk-build"
-
+#参考：http://blog.fpliu.com/it/software/giflib/build-for-android
+###################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -45,22 +42,18 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-    source ndk-helper.sh source
+    source ndk-helper.sh source 
+}
+
+change_Makefile() {
+    sed -i    's#$(MAKE) -C doc#@mkdir -p doc \&\& ([ -f doc/giflib.1 ] || touch doc/giflib.1)#' Makefile 2> /dev/null ||
+    sed -i "" 's#$(MAKE) -C doc#@mkdir -p doc \&\& ([ -f doc/giflib.1 ] || touch doc/giflib.1)#' Makefile
 }
 
 build() {
-    ./configure \
-        --host="$TARGET_HOST" \
-        --prefix="$INSTALL_DIR" \
-        --with-ssl="$OPENSSL_NDK_BUILD_DIR/$TARGET_ABI" \
-        CC="$CC" \
-        CFLAGS="$CFLAGS" \
-        CPPFLAGS="" \
-        LDFLAGS="" \
-        AR="$AR" \
-        RANLIB="$RANLIB" &&
+    unset TARGET_ARCH
     make clean &&
-    make install
+    make install PREFIX="$INSTALL_DIR" CC="$CC" AR="$AR" CFLAGS="-Os -v -fPIC -Wall"
 }
 
-download_ndk_helper_if_needed && build_all TARGET_API=21
+download_ndk_helper_if_needed && change_Makefile && build_all TARGET_API=21

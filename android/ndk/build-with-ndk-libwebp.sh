@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#参考：http://blog.fpliu.com/it/software/libwebp#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/libwebp/build-for-android-with-ndk-build
 
 #后缀名必须是.tar.gz的那个
 SOURCE_URL='http://downloads.webmproject.org/releases/webp/libwebp-1.0.2.tar.gz'

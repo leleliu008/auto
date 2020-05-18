@@ -1,11 +1,11 @@
 #!/bin/sh
 
-###############################################################
+###################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/cURL/build-for-android
-###############################################################
+#参考：http://blog.fpliu.com/it/software/flac/build-for-android
+###################################################################
 
-OPENSSL_NDK_BUILD_DIR="$HOME/git/openssl/ndk-build"
+LIB_OGG_NDK_BUILD_DIR="$HOME/libogg-1.3.4/ndk-build"
 
 
 Color_Red='\033[0;31m'          # Red
@@ -45,20 +45,29 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-    source ndk-helper.sh source
+    source ndk-helper.sh source 
 }
 
 build() {
     ./configure \
         --host="$TARGET_HOST" \
         --prefix="$INSTALL_DIR" \
-        --with-ssl="$OPENSSL_NDK_BUILD_DIR/$TARGET_ABI" \
+        --with-ogg="$LIB_OGG_NDK_BUILD_DIR/$TARGET_ABI" \
+        --disable-rpath \
+        --disable-oggtest \
+        --disable-valgrind-testing \
+        --disable-thorough-tests \
+        --disable-exhaustive-tests \
+        --disable-examples \
+        --disable-xmms-plugin \
+        --disable-doxygen-docs \
+        --disable-debug \
         CC="$CC" \
         CFLAGS="$CFLAGS" \
         CPPFLAGS="" \
         LDFLAGS="" \
         AR="$AR" \
-        RANLIB="$RANLIB" &&
+        RANLIB="$RANLIB" && \
     make clean &&
     make install
 }

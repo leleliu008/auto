@@ -1,12 +1,9 @@
 #!/bin/sh
 
-###############################################################
+###################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/cURL/build-for-android
-###############################################################
-
-OPENSSL_NDK_BUILD_DIR="$HOME/git/openssl/ndk-build"
-
+#参考：http://blog.fpliu.com/it/software/FAAC/build-for-android
+###################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -45,14 +42,13 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-    source ndk-helper.sh source
+    source ndk-helper.sh source 
 }
 
 build() {
     ./configure \
         --host="$TARGET_HOST" \
         --prefix="$INSTALL_DIR" \
-        --with-ssl="$OPENSSL_NDK_BUILD_DIR/$TARGET_ABI" \
         CC="$CC" \
         CFLAGS="$CFLAGS" \
         CPPFLAGS="" \

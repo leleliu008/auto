@@ -1,7 +1,9 @@
 #!/bin/sh
 
+##################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/OpenSSL#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/OpenSSL/build-for-android
+##################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -40,22 +42,10 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-}
-
-build_success() {
-    success "build success. in $PWD/output/$TARGET/$API directory.\n"
-
-    if command -v tree > /dev/null ; then
-        tree "$PWD/output/$TARGET/$API"
-    fi
+    source ndk-helper.sh source
 }
 
 build() {
-    source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-   
-    # 清除上次构建残留的信息
-    make clean > /dev/null 2>&1
-     
     ./Configure \
         shared \
         no-ssl2 \
@@ -64,16 +54,11 @@ build() {
         no-hw \
         no-engine \
         no-asm \
-        -D__ANDROID_API__="$API" \
-        --prefix="$PWD/output/$TARGET/$API" \
-        android-arm &&
+        -D__ANDROID_API__="$TARGET_API" \
+        --prefix="$INSTALL_DIR" \
+        "android-$TARGET_ARCH" &&
+    make clean &&
     make install
 }
 
-main() {
-    download_ndk_helper_if_needed &&
-    build "$@" &&
-    build_success
-}
-
-main "$@"
+download_ndk_helper_if_needed && build_all TARGET_API=21

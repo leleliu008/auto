@@ -2,8 +2,14 @@
 
 ###################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/GNU/gzip/build-for-android
+#参考：http://blog.fpliu.com/it/software/libsamplerate/build-for-android
 ###################################################################
+
+#将下面2个变量的值修改为符合你的实际
+#不需要的话，设置为空字符串
+LIB_SNDFILE_NDK_BUILD_DIR="$HOME/libsndfile-1.0.28/ndk-build"
+FFTW_NDK_BUILD_DIR="$HOME/fftw-3.3.8/ndk-build"
+
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -45,18 +51,27 @@ download_ndk_helper_if_needed() {
     source ndk-helper.sh source 
 }
 
+check_and_set() {
+    [ -z "$1" ] || {
+        [ -d "$1" ] || error_exit "$1 is not a directory\n"
+        PREFIX="$1/$TARGET_ABI"
+        [ -d "$PREFIX" ] || error_exit "$PREFIX is not a directory\n"
+        CFLAGS="$CFLAGS -I$PREFIX/include -L$PREFIX/lib $2"
+        CONFIGURE_CMD="$CONFIGURE_CMD $3"
+    }
+}
+
 build() {
-    ./configure \
-        --host="$TARGET_HOST" \
-        --prefix="$INSTALL_DIR" \
-        CC="$CC" \
-        CFLAGS="$CFLAGS -fno-builtin" \
-        CPPFLAGS="" \
-        LDFLAGS="" \
-        AR="$AR" \
-        RANLIB="$RANLIB" &&
+    CONFIGURE_CMD="./configure --host='$TARGET_HOST' --prefix='$INSTALL_DIR' --disable-test-coverage --disable-octave"
+
+    check_and_set "$LIB_SNDFILE_NDK_BUILD_DIR" "-lsndfile" "--enable-sndfile"
+    check_and_set "$FFTW_NDK_BUILD_DIR" "-lfftw3" "--enable-fftw"
+
+    CONFIGURE_CMD="$CONFIGURE_CMD CC='$CC' CFLAGS='$CFLAGS' CXX='$CXX' CXXFLAGS='$CFLAGS' CPPFLAGS='' LDFLAGS='' AR='$AR' RANLIB='$RANLIB' PKG_CONFIG=''"
+    #info "$CONFIGURE_CMD\n" && exit
+    eval "$CONFIGURE_CMD" &&
     make clean &&
-    make install install-data
+    make install
 }
 
 download_ndk_helper_if_needed && build_all TARGET_API=21

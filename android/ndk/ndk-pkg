@@ -5,6 +5,12 @@
 # requirement: Android NDK version must be r19 or newer.
 #------------------------------------------------------------------------------
 
+NDK_PKG_HOME="$HOME/.ndk-pkg"
+FORMULA_DIR="$NDK_PKG_HOME/formula"
+SOURCE_BALL_CACHE_DIR="$NDK_PKG_HOME/cache/sources"
+BINARY_BALL_CACHE_DIR="$NDK_PKG_HOME/cache/binaries"
+PKG_DIR="$NDK_PKG_HOME/pkg"
+
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
 Color_Yellow='\033[0;33m'       # Yellow
@@ -67,7 +73,7 @@ list_TARGET_ABIs() {
     print_list armeabi-v7a arm64-v8a x86 x86_64
 }
 
-#$1是某个目标，比如armeabi-v7a，可以通过ndk-helper list targets命令列出支持的目标的名称
+#$1是某个目标，比如armeabi-v7a，可以通过ndk-pkg list targets命令列出支持的目标的名称
 select_TARGET_ABI() {
     if [ -z "$1" ] ; then
         info "below is supported TARGET_ABIs:\n"
@@ -180,7 +186,7 @@ list_TARGET_APIs() {
     print_list 21 22 23 34 25 26 27 28 29
 }
 
-#$1是某个目标，比如21、22、23、34、25、26、27、28、29，，可以通过ndk-helper list APIs命令列出支持的API level
+#$1是某个目标，比如21、22、23、34、25、26、27、28、29，，可以通过ndk-pkg list APIs命令列出支持的API level
 select_TARGET_API() {
     if [ -z "$1" ] ; then
         info "below is supported TARGET_APIs:\n"
@@ -279,6 +285,11 @@ show_ndk_version() {
     command -v node > /dev/null && runNodeJSScript && return 0
 }
 
+install() {
+    [ -z "$1" ] || error_exit "please provide a pkg name.\n"
+    source "$FORMULA_DIR/$1" && build_all
+}
+
 #$1是TARGET_API
 build_all() {
     for abi in armeabi-v7a arm64-v8a x86 x86_64
@@ -297,15 +308,25 @@ build_success() {
     fi
 }
 
+setup() {
+
+}
+
+update() {
+
+}
+
+
+
 help() {
     cat << EOF
-Usage: ndk-helper [COMMAND [ARGUMENT...]]
+Usage: ndk-pkg [COMMAND [ARGUMENT...]]
 COMMAND:
-    help     打印出帮助信息
+    help        打印出帮助信息
+    version     打印出当前版本号和NDK的版本号
     list targets    列出支持的Android目标设备
     list APIs       列出支持的Android API level
-    ndk-version     打印出当前NDK的版本号
-    make-env-var TARGET_API=21 TARGET_ABI=armeabi-v7a 组装环境变量
+    env TARGET_API=21 TARGET_ABI=armeabi-v7a 组装环境变量
 EOF
     if [ -z "$1" ] ; then
         exit
@@ -318,7 +339,7 @@ main() {
     case $1 in
         'source') ;;
         'help') help;;
-        'ndk-version')
+        'version')
             check_ANDROID_NDK_HOME
             show_ndk_version
             ;;
@@ -330,12 +351,17 @@ main() {
                 *) help 1
             esac
             ;;
-        'make-env-var') 
+        'env') 
             shift
             check_ANDROID_NDK_HOME
             check_ANDROID_NDK_VERSION
             make_env_var "$@"
             ;;
+        'install')
+            shift
+            check_ANDROID_NDK_HOME
+            check_ANDROID_NDK_VERSION
+            install "$@"
         *) help 1
     esac
 }

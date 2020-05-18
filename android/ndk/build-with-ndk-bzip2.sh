@@ -1,7 +1,9 @@
 #!/bin/sh
 
+################################################################
 #注意：请将此脚本放置于源码根目录下
-#参考：http://blog.fpliu.com/it/software/bzip2#build-with-ndk
+#参考：http://blog.fpliu.com/it/software/bzip2/build-for-android
+################################################################
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -40,19 +42,10 @@ download_ndk_helper_if_needed() {
             error_exit "please install curl or wget.\n"
         fi
     }
-}
-
-build_success() {
-    success "build success. in $PWD/output/$TARGET/$API directory.\n"
-
-    if command -v tree > /dev/null ; then
-        tree "$PWD/output/$TARGET/$API"
-    fi
+    source ndk-helper.sh source
 }
 
 build() {
-    source ndk-helper.sh make-env-var TOOLCHAIN=llvm TARGET=armv7a-linux-androideabi API=21
-
     SHARED=1
 
     make clean > /dev/null 2>&1
@@ -64,18 +57,11 @@ build() {
     fi
 
     eval "$MAKE CC=$CC CFLAGS='-v' AR=$AR RANLIB=$RANLIB" &&
-    DESDIR=output/$TARGET/$API &&
-    BINDIR="$DESDIR/bin" &&
-    LIBDIR="$DESDIR/lib" &&
-    mkdir -p "$DESDIR"/{bin,lib} &&
+    BINDIR="$INSTALL_DIR/bin" &&
+    LIBDIR="$INSTALL_DIR/lib" &&
+    mkdir -p "$INSTALL_DIR"/{bin,lib} &&
     cp libbz2.so.*.*.* "$LIBDIR" &&
     cp bzip2-shared "$BINDIR/bzip2"
 }
 
-main() {
-    download_ndk_helper_if_needed &&
-    build "$@" &&
-    build_success
-}
-
-main "$@"
+download_ndk_helper_if_needed && build_all TARGET_API=21

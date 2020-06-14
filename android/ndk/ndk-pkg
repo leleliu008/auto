@@ -10,6 +10,7 @@ FORMULA_DIR="$NDK_PKG_HOME/formula"
 SOURCE_BALL_CACHE_DIR="$NDK_PKG_HOME/cache/sources"
 BINARY_BALL_CACHE_DIR="$NDK_PKG_HOME/cache/binaries"
 PKG_DIR="$NDK_PKG_HOME/pkg"
+PKG_INSTALLED_INFO="$PKG_DIR/.installed"
 
 Color_Red='\033[0;31m'          # Red
 Color_Green='\033[0;32m'        # Green
@@ -285,22 +286,21 @@ show_ndk_version() {
     command -v node > /dev/null && runNodeJSScript && return 0
 }
 
-install() {
+pkg_install() {
     [ -z "$1" ] || error_exit "please provide a pkg name.\n"
-    source "$FORMULA_DIR/$1" && build_all
+    source "$FORMULA_DIR/$1" && pkg_build_all_target
 }
 
 #$1是TARGET_API
-build_all() {
+pkg_build_all_target() {
     for abi in armeabi-v7a arm64-v8a x86 x86_64
     do
         make_env_var TARGET_ABI=$abi $1 && build || exit 1
     done
-
-    build_success
+    pkg_build_success
 }
 
-build_success() {
+pkg_build_success() {
     success "build success. in $PWD/ndk-build directory.\n"
 
     if command -v tree > /dev/null ; then
@@ -308,15 +308,54 @@ build_success() {
     fi
 }
 
-setup() {
-
+#$1是pkgName
+pkg_check_if_installed() {
+    test -f "$PKG_INSTALLED_INFO" || error_exit "$1 is not installed."
+    grep "$1" "$PKG_INSTALLED_INFO" || error_exit "$1 is not installed."
 }
 
-update() {
-
+#$1是pkgName
+pkg_check_if_exist() {
+    test -f "$FORMULA_DIR/$1.sh"
 }
 
+#$1是pkgName
+pkg_uninstall() {
+    pkg_check_if_installed 
+    
+    info "uninstalling $1..." &&
+    rm -rf "$PKG_DIR/$1" &&
+    success "$1 uninstalled."
+}
 
+#$1是pkgName
+pkg_info() {
+    pkg_check_if_exist
+   
+    source "$FORMULA_DIR/$1.sh"
+    msg "$1 $pkg_version\n$pkg_description\nhomepage : $pkg_homepage\ndependencies:$pkg_dependencies\n"
+}
+
+#$1是pkgName
+pkg_cat() {
+    pkg_check_if_exist
+    cat "$FORMULA_DIR/$1.sh"
+}
+
+#$1是pkgName
+pkg_edit() {
+    pkg_check_if_exist
+    [ -z "$EDITOR" ] || EDITOR='vi'
+    command -v "$EDITOR" > /dev/null || EDITOR='vim'
+    command -v "$EDITOR" > /dev/null || EDITOR='nano'
+    command -v "$EDITOR" > /dev/null || EDITOR='open'
+    command -v "$EDITOR" > /dev/null || error_exit "please config EDITOR environment\n"
+    "$EDITOR" "$FORMULA_DIR/$1.sh"
+}
+
+pkg_update() {
+    echo ""
+}
 
 help() {
     cat << EOF
@@ -327,6 +366,15 @@ COMMAND:
     list targets    列出支持的Android目标设备
     list APIs       列出支持的Android API level
     env TARGET_API=21 TARGET_ABI=armeabi-v7a 组装环境变量
+    search KEYWORD  查询指定关键字的包
+    info PKG_NAME   查看指定包的信息
+    cat PKG_NAME    查看指定包的formula
+    edit PKG_NAME   编辑指定包的formula
+    install PKG_NAME    安装指定包
+    uninstall PKG_NAME  卸载指定包
+    cleanup     清除无用的缓存
+    update      更新formula仓库
+    config      配置相关操作
 EOF
     if [ -z "$1" ] ; then
         exit
@@ -337,17 +385,18 @@ EOF
 
 main() {
     case $1 in
-        'source') ;;
-        'help') help;;
-        'version')
+        --help|help|-h) 
+            help
+            ;;
+        --version|version|-V)
             check_ANDROID_NDK_HOME
-            show_ndk_version
+            info "NDK version : $(show_ndk_version)\n"
             ;;
         'list')
             shift
             case $1 in
                 'targets') list_TARGET_ABIs;;
-                'APIs') list_APIs;;
+                'APIs') list_TARGET_APIs;;
                 *) help 1
             esac
             ;;
@@ -361,7 +410,24 @@ main() {
             shift
             check_ANDROID_NDK_HOME
             check_ANDROID_NDK_VERSION
-            install "$@"
+            pkg_install "$@"
+            ;;
+        'uninstall')
+            shift
+            pkg_uninstall "$@"
+            ;;
+        'info')
+            shift
+            pkg_info "$@"
+            ;;
+        'cat')
+            shift
+            pkg_cat "$@"
+            ;;
+        'edit')
+            shift
+            pkg_edit "$@"
+            ;;
         *) help 1
     esac
 }

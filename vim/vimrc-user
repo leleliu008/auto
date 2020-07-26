@@ -40,7 +40,8 @@ Plug 'tpope/vim-fugitive'
 "https://github.com/sheerun/vim-polyglot
 Plug 'sheerun/vim-polyglot'
 
-"Plug 'artur-shaik/vim-javacomplete2'
+"https://github.com/artur-shaik/vim-javacomplete2
+Plug 'artur-shaik/vim-javacomplete2'
 
 "https://github.com/ekalinin/Dockerfile.vim
 "Plug 'ekalinin/Dockerfile.vim'
@@ -52,13 +53,23 @@ Plug 'vim-airline/vim-airline'
 Plug 'iamcco/markdown-preview.vim'
 
 "https://github.com/vim-ruby/vim-ruby/wiki/VimRubySupport
-"Plug 'vim-ruby/vim-ruby'
+Plug 'vim-ruby/vim-ruby'
 
 "https://github.com/dag/vim-fish
 "Plug 'dag/vim-fish'
 
 "https://github.com/majutsushi/tagbar
 Plug 'majutsushi/tagbar'
+
+"https://github.com/Yggdroot/indentLine
+"Plug 'Yggdroot/indentLine'
+
+"https://github.com/tmhedberg/SimpylFold
+"Plug 'tmhedberg/SimpylFold'
+
+"https://github.com/jiangmiao/auto-pairs
+"Plug 'jiangmiao/auto-pairs'
+
 
 call plug#end()
 
@@ -117,7 +128,7 @@ let Tlist_Exit_OnlyWindow   = 1       "如果taglist窗口是最后一个窗口�
 let g:ycm_server_keep_logfiles                = 1
 let g:ycm_server_log_level                    = 'debug'
 let g:ycm_cache_omnifunc                      = 1
-let g:ycm_server_python_interpreter           = '/usr/local/bin/python3'
+let g:ycm_server_python_interpreter           = '/usr/local/bin/python'
 let g:ycm_global_ycm_extra_conf               = '~/.ycm_extra_conf.py'
 let g:ycm_collect_identifiers_from_tags_files = 1    " 开启 YCM 标签补全引擎
 let g:ycm_min_num_of_chars_for_completion     = 1    " 从第一个键入字符就开始罗列匹配项
@@ -173,6 +184,15 @@ let g:user_emmet_mode            = 'a'
 let g:user_emmet_install_global = 0
 autocmd FileType html,css EmmetInstall
 
+let g:indentLine_enabled = 1
+
+" 必须手动输入za来折叠（和取消折叠）
+set foldmethod=indent                " 根据每行的缩进开启折叠
+set foldlevel=99
+" 使用空格键会是更好的选择,所以在你的配置文件中加上这一行命令吧：
+nnoremap <space> za
+" 希望看到折叠代码的文档字符串？
+let g:SimpylFold_docstring_preview=1
 
 filetype plugin indent on     " required!
 
@@ -187,7 +207,6 @@ colorsche dracula
 
 "设置背景颜色
 set background=light
-set background=dark
 
 set ofu=syntaxcomplete#Complete
 
@@ -203,4 +222,8 @@ language message en_US.UTF-8
 "https://www.cnblogs.com/leisurelylicht/p/Mac-deVIM-zhongdelete-jian-shi-xiao-de-yuan-yin-he.html
 set backspace=2
 
-"autocmd FileType java setlocal omnifunc=javacomplete#Complete
+autocmd FileType java setlocal omnifunc=javacomplete#Complete
+
+autocmd FileType ruby,eruby let g:rubycomplete_buffer_loading = 1
+autocmd FileType ruby,eruby let g:rubycomplete_classes_in_global = 1
+autocmd FileType ruby,eruby let g:rubycomplete_rails = 1

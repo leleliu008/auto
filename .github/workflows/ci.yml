@@ -19,6 +19,12 @@ jobs:
     - name: export -p
       run:  export -p
 
+    - name: python --version
+      run: |
+        command -v python
+        python --version
+        python -V
+
     - name: list all bins
       run: |
         for path in $(echo "$PATH" | tr : ' ')

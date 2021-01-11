@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 Color_Purple='\033[0;35m'       # Purple
 Color_Off='\033[0m'             # Reset
@@ -11,46 +12,23 @@ info() {
     msg "${Color_Purple}[❉]${Color_Off} $1$2"
 }
 
-# 配置LinuxBrew的环境变量
-writeLinuxBrewEnv() {
-    printf "%s\n" "eval \$($(brew --prefix)/bin/brew shellenv)" >> "$1"
+sudo() {
+    if [ "$(whoami)" = 'root' ] ; then
+        $@
+    else
+        command sudo $@
+    fi
 }
 
-configLinuxBrewEnv() {
-    info "ConfigLinuxBrewEnv..."
-
-    [ -d ~/.linuxbrew ] && eval "$(~/.linuxbrew/bin/brew shellenv)"
-    [ -d /home/linuxbrew/.linuxbrew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-    writeLinuxBrewEnv "$HOME/.bashrc"
-    writeLinuxBrewEnv "$HOME/.zshrc"
+install_dependencies_if_needed() {
+    for item in $@
+    do
+        command -v "$item" > /dev/null && continue
+        install_dependencies "$item"
+    done
 }
 
-installLinuxBrew() {
-    info "Installing LinuxBrew..."
-    printf "\n\n" | sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
-}
-
-installHomeBrew() {
-    info "Installing HomeBrew..."
-    printf "\n\n" | /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-}
-
-checkDependencies() {
-    info "checkDependencies..."
-
-    command -v curl  > /dev/null || pkgNames="curl"
-    command -v git   > /dev/null || pkgNames="$pkgNames git"
-    command -v file  > /dev/null || pkgNames="$pkgNames file"
-    command -v which > /dev/null || pkgNames="$pkgNames which"
-    command -v tar   > /dev/null || pkgNames="$pkgNames tar"
-    command -v gzip  > /dev/null || pkgNames="$pkgNames gzip"
-    command -v gcc   > /dev/null || pkgNames="$pkgNames gcc"
-}
-
-installDependencies() {
-    info "installDependencies $pkgNames"
-
+install_dependencies() {
     command -v apt-get > /dev/null && {
         sudo apt-get -y update &&
         sudo apt-get -y install $@ &&
@@ -81,48 +59,46 @@ installDependencies() {
         return $?
     }
 
-    info "not find a package manager to install $pkgNames"
+    info "not find a package manager to install $@"
     return 1
 }
 
-# 安装HomeBrew或者LinuxBrew
-installBrew() {
-    if [ "$(uname -s)" = "Darwin" ] ; then
-        installHomeBrew
-    else
-        checkDependencies
-        [ -z "$pkgNames" ] || installDependencies "$pkgNames"
-        installLinuxBrew &&
-        configLinuxBrewEnv &&
-        replaceMainSourceIfNeeded &&
-        brew update
-    fi
+install_homebrew_on_macos() {
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 }
 
-replaceMainSourceIfNeeded() {
-    [ "$(git -C "$(brew --repo)" remote get-url origin)" = "https://github.com/Homebrew/brew" ] &&
-    git -C "$(brew --repo)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
+install_homebrew_on_linux() {
+    install_dependencies_if_needed git curl &&
+    install -d /home/linuxbrew/.linuxbrew/bin &&
+    git clone https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew &&
+    ln -sf /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin &&
+    eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv) && {        
+        for item in .bashrc .zshrc
+        do
+            printf "%s\n" "eval \$($(brew --prefix)/bin/brew shellenv)" >> "$HOME/$item" || return 1
+        done
+    }
+}
+
+install_homebrew() {
+    case "$(uname -s)" in
+        Darwin) install_homebrew_on_macos ;;
+        Linux)  install_homebrew_on_linux ;;
+        *)      info "HomeBrew only support macOS and Linux."
+    esac
 }
 
 main() {
-    command -v brew > /dev/null && {
-        replaceMainSourceIfNeeded
-        brew update
-        info "brew is already installed!"
-        exit 0
-    }
-    
-    [ "$(whoami)" = "root" ] && {
-        info "don't run as root!"
-        exit 1
-    }
+    if command -v brew > /dev/null ; then
+        echo "Homebrew already installed."
+    else
+        echo "installing Homebrew."
+        install_homebrew || return 1
+    fi
 
-    [ -z "$(command -v sudo)" ] && {
-        info "sudo is not installed and config."
-        exit 1
-    }
-    
-    installBrew
+    if [ "$(git -C "$(brew --repo)" remote get-url origin)" = "https://github.com/Homebrew/brew" ] ; then
+            git -C "$(brew --repo)" remote set-url origin https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git
+    fi
 }
 
 main

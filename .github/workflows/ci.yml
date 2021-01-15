@@ -24,7 +24,7 @@ jobs:
         for item in python python3.9
         do
           command -v python
-          realpath `command -v python`
+          ls -l `command -v python`
           python --version
           python -V
         done

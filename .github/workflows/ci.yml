@@ -37,3 +37,8 @@ jobs:
                 fi
             done
         done
+     
+    - name: python --version
+      run: |
+        brew upgrade python@3.9 || brew link --overwrite python@3.9
+        brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils

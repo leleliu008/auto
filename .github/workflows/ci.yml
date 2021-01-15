@@ -29,6 +29,7 @@ jobs:
           $item --version
           $item -V
         done
+      brew install libxml2
 
     - name: list all bins
       run: |

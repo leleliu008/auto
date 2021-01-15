@@ -11,7 +11,8 @@ jobs:
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners#supported-runners-and-hardware-resources
     strategy:
       matrix:
-        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0, macos-10.15]
+        #os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0, macos-10.15]
+        os: [macos-11.0, macos-10.15]
 
     runs-on: ${{ matrix.os }}
     
@@ -23,10 +24,10 @@ jobs:
       run: |
         for item in python python3.9
         do
-          command -v python
-          ls -l `command -v python`
-          python --version
-          python -V
+          command -v $item
+          ls -l `command -v $item`
+          $item --version
+          $item -V
         done
 
     - name: list all bins

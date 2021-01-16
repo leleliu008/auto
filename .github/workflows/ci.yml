@@ -23,9 +23,10 @@ jobs:
       run:  brew list --formula
 
     - name: brew info coreutils
+      if: matrix.os =~ 'macos'
       run: |
         brew info coreutils
-        sudo ln -s $(brew --prefix coreutils)/bin/realpath /usr/local/bin/realpath
+        ln -s $(brew --prefix coreutils)/bin/realpath /usr/local/bin/realpath
 
     - name: list all bins
       run: |

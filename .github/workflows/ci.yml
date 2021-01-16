@@ -11,8 +11,7 @@ jobs:
     # https://docs.github.com/en/free-pro-team@latest/actions/reference/specifications-for-github-hosted-runners#supported-runners-and-hardware-resources
     strategy:
       matrix:
-        #os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0, macos-10.15]
-        os: [macos-11.0, macos-10.15]
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-11.0, macos-10.15]
 
     runs-on: ${{ matrix.os }}
     
@@ -33,6 +32,9 @@ jobs:
     - name: brew list --formula
       run:  brew list --formula
 
+    - name: brew info coreutils
+      run:  brew info coreutils
+
     - name: list all bins
       run: |
         for path in $(echo "$PATH" | tr : ' ')
@@ -41,12 +43,17 @@ jobs:
             do
                 COMMAND="$path/$item"
                 if [ -f "$COMMAND" -a -x "$COMMAND" ] ; then
-                    printf "|%15s|%s|\n" "$item" "$COMMAND"
+                    REALPATH=$(realpath "$COMMAND")
+                    if [ "$COMMAND" = "$REALPATH" ] ; then
+                        printf "|%15s|%s|\n" "$item" "$COMMAND"
+                    else
+                        printf "|%15s|%s -> %s|\n" "$item" "$COMMAND" "$REALPATH"
+                    fi
                 fi
             done
         done
      
-    - name: python --version
+    - name: brew install ...
       run: |
         #brew upgrade python@3.9 || brew link --overwrite python@3.9
         brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils

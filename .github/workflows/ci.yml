@@ -19,16 +19,6 @@ jobs:
     - name: export -p
       run:  export -p
 
-    - name: python --version
-      run: |
-        for item in python python3.9
-        do
-          command -v $item
-          ls -l `command -v $item`
-          $item --version
-          $item -V
-        done
-
     - name: brew list --formula
       run:  brew list --formula
 

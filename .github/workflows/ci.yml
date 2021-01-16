@@ -30,8 +30,8 @@ jobs:
           $item -V
         done
 
-    - name: brew list
-      run:  brew list
+    - name: brew list --formula
+      run:  brew list --formula
 
     - name: list all bins
       run: |

@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      HOMEBREW_NO_INSTALL_CLEANUP=set
+      HOMEBREW_NO_INSTALL_CLEANUP: set
     
     steps:
     - name: export -p

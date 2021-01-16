@@ -30,6 +30,9 @@ jobs:
           $item -V
         done
 
+    - name: brew list
+      run:  brew list
+
     - name: list all bins
       run: |
         for path in $(echo "$PATH" | tr : ' ')

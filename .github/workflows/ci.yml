@@ -23,7 +23,9 @@ jobs:
       run:  brew list --formula
 
     - name: brew info coreutils
-      run:  brew info coreutils
+      run: |
+        brew info coreutils
+        ln -s /usr/local/opt/coreutils/bin/realpath /usr/local/bin/realpath
 
     - name: list all bins
       run: |

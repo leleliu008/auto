@@ -23,7 +23,7 @@ jobs:
       run:  brew list --formula
 
     - name: brew info coreutils
-      if: matrix.os == 'macos-11.0' && matrix.os == 'macos-10.15'
+      if: matrix.os == 'macos-11.0' || matrix.os == 'macos-10.15'
       run: |
         brew install coreutils
         #ln -s $(brew --prefix coreutils)/bin/realpath /usr/local/bin/realpath

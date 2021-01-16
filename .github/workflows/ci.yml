@@ -29,7 +29,6 @@ jobs:
           $item --version
           $item -V
         done
-        brew install libxml2
 
     - name: list all bins
       run: |
@@ -46,5 +45,5 @@ jobs:
      
     - name: python --version
       run: |
-        brew upgrade python@3.9 || brew link --overwrite python@3.9
+        #brew upgrade python@3.9 || brew link --overwrite python@3.9
         brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils

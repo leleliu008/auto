@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 Color_Purple='\033[0;35m'       # Purple
 Color_Off='\033[0m'             # Reset
@@ -73,10 +72,13 @@ install_homebrew_on_linux() {
     git clone https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew &&
     ln -sf /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin &&
     eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv) && {        
-        for item in .bashrc .zshrc
+        for item in .profile .bashrc .zshrc
         do
             printf "%s\n" "eval \$($(brew --prefix)/bin/brew shellenv)" >> "$HOME/$item" || return 1
         done
+    } && {
+        [ -z "$SHELL" ] && SHELL=sh
+        exec "$SHELL"
     }
 }
 

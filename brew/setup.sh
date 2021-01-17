@@ -77,7 +77,15 @@ install_homebrew_on_linux() {
             printf "%s\n" "eval \$($(brew --prefix)/bin/brew shellenv)" >> "$HOME/$item" || return 1
         done
     } && {
-        [ -z "$SHELL" ] && SHELL=sh
+        if [ -z "$SHELL" ] ; then
+            if command -v zsh > /dev/null ; then
+                SHELL=zsh
+            elif command -v bash > /dev/null ; then
+                SHELL=bash
+            else
+                SHELL=sh
+            fi
+        fi
         exec "$SHELL"
     }
 }

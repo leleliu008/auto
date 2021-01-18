@@ -228,7 +228,7 @@ jobs:
    centos6:
      working_directory: ~/universal-ctags
      docker:
-       - image: centos:6.10
+       - image: centos:6
      steps:
        - run:
            name: Rearrange CentOS-Base.repo file
@@ -240,7 +240,7 @@ jobs:
        - run:
            name: Install tools for building
            command: |
-             yum install -y git gcc make autoconf automake pkgconfig jansson libyaml libxml2
+             yum install -y git gcc make autoconf automake pkgconfig
              yum install -y https://repo.ius.io/ius-release-el6.rpm
              yum --enablerepo=ius-archive -y install python36
              ln -s /usr/bin/python36 /usr/bin/python3

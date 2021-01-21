@@ -11,9 +11,6 @@ jobs:
     runs-on: macos-10.15
     
     steps:
-      - uses: actions/checkout@v2
-    
-    # https://github.com/vmactions/freebsd-vm
     - name: run in FreeBSD vm
       uses: vmactions/freebsd-vm@v0.1.0
       with:
@@ -23,9 +20,11 @@ jobs:
             printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
             $@
           }
-          run pkg install -y automake pkgconf
+          run pkg install -y git automake pkgconf
           run freebsd-version
           run cc --version
+          run git clone https://github.com/universal-ctags/ctags
+          run cd ctags
           run ./autogen.sh
           run ./configure --prefix=/usr
           run make

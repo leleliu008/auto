@@ -53,7 +53,7 @@ jobs:
         brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils
 
   freebsd:
-    runs-on: macos-latest
+    runs-on: macos-10.15
     
     steps:
     - uses: actions/checkout@v2
@@ -62,10 +62,18 @@ jobs:
       uses: vmactions/freebsd-vm@v0.1.0
       with:
         usesh: true
-        prepare: pkg install -y curl
         run: |
+          pkg install -y git automake pkgconf
           pwd
           ls -lah
           whoami
           env
           freebsd-version
+          git clone https://github.com/universal-ctags/ctags
+          cd ctags
+          ./autogen.sh
+          ./configure
+          make
+          make install
+          command -v ctags
+          ctags --version

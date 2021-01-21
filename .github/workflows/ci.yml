@@ -51,3 +51,21 @@ jobs:
       run: |
         #brew upgrade python@3.9 || brew link --overwrite python@3.9
         brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils
+
+  freebsd:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: run FreeBSD vm
+      uses: vmactions/freebsd-vm@v0.1.0
+      with:
+        usesh: true
+        prepare: pkg install -y curl
+        run: |
+          pwd
+          ls -lah
+          whoami
+          env
+          freebsd-version

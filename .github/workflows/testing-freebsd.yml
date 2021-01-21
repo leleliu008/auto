@@ -20,7 +20,7 @@ jobs:
         usesh: true
         run: |
           run() {
-            printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$@"
+            printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
             $@
           }
           run freebsd-version

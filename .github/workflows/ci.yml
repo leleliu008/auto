@@ -19,14 +19,11 @@ jobs:
       HOMEBREW_NO_INSTALL_CLEANUP: set
     
     steps:
-    - name: export -p
-      run:  export -p
+    - run: export -p
 
-    - name: brew list --formula
-      run:  brew list --formula
+    - run: brew list --formula
 
-    - name: brew install coreutils
-      if:   matrix.os == 'macos-11.0' || matrix.os == 'macos-10.15'
+    - if:   matrix.os == 'macos-11.0' || matrix.os == 'macos-10.15'
       run:  brew install coreutils
 
     - name: list all bins
@@ -51,24 +48,3 @@ jobs:
       run: |
         #brew upgrade python@3.9 || brew link --overwrite python@3.9
         brew install libxml2 automake pkg-config jansson libyaml bash gdb docutils
-
-  freebsd:
-    runs-on: macos-10.15
-    
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: run FreeBSD vm
-      uses: vmactions/freebsd-vm@v0.1.0
-      with:
-        usesh: true
-        run: |
-          pkg install -y git automake pkgconf
-          git clone https://github.com/universal-ctags/ctags
-          cd ctags
-          ./autogen.sh
-          ./configure --prefix=/usr
-          make
-          make install
-          command -v ctags
-          ctags --version

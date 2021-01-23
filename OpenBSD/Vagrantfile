@@ -40,8 +40,15 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     set -e
 
+    # https://man.openbsd.org/bsd.port.mk.5#AUTOCONF_VERSION
     export AUTOCONF_VERSION=2.69
     export AUTOMAKE_VERSION=1.16
+
+    export CFLAGS='-I/usr/local/include -L/usr/local/lib'
+    
+    if [ ! -f /usr/local/lib/libiconv.so ] ; then
+      sudo ln -s /usr/local/lib/libiconv.so.* /usr/local/lib/libiconv.so
+    fi
 
     run() {
       printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"

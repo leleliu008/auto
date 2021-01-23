@@ -13,11 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: vagrant provision
-      run: |
+    - run: |
         vagrant init generic/openbsd6
         cp OpenBSD/Vagrantfile .
-        vagrant up
-        vagrant provision
-        vagrant halt
+    - run: vagrant up --provision
+    - run: vagrant halt
 

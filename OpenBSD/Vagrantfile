@@ -40,19 +40,22 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     set -e
 
-    ls
-
     export AUTOCONF_VERSION=2.69
     export AUTOMAKE_VERSION=1.16
 
-    sudo pkg_add git automake-1.16.2
+    run() {
+      printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
+      $@
+    }
 
-    git clone https://github.com/universal-ctags/ctags
-    cd ctags
-    ./autogen
-    ./configure
-    make
-    file ctags
-    make check
+    run sudo pkg_add git automake-1.16.2
+
+    run git clone https://github.com/universal-ctags/ctags
+    run cd ctags
+    run ./autogen.sh
+    run ./configure
+    run make
+    run file ctags
+    run make check
   SHELL
 end

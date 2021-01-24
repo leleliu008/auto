@@ -45,7 +45,7 @@ Vagrant.configure("2") do |config|
       $@
     }
 
-    run sudo pkgin mozilla-rootcerts git automake pkg-config
+    run sudo pkgin -y install mozilla-rootcerts git automake pkg-config
     
     run sudo mozilla-rootcerts install
     

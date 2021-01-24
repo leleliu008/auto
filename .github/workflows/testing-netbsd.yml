@@ -1,4 +1,4 @@
-name: run units target on OpenBSD
+name: run units target on NetBSD
 
 on:
   push:
@@ -13,6 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - run: vagrant init generic/openbsd6
-    - run: cp OpenBSD/Vagrantfile .
+    - run: vagrant init generic/netbsd9
+    - run: cp NetBSD/Vagrantfile .
     - run: vagrant up --provision

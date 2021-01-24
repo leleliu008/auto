@@ -11,8 +11,9 @@ jobs:
     runs-on: macos-10.15
     
     steps:
-    - name: run in FreeBSD vm
-      uses: vmactions/freebsd-vm@v0.1.0
+    - uses: actions/checkout@v2
+
+    - uses: vmactions/freebsd-vm@v0.1.0
       with:
         usesh: true
         run: |

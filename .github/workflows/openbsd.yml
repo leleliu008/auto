@@ -20,11 +20,6 @@ jobs:
                 sudo ln -s /usr/local/lib/libiconv.so.* /usr/local/lib/libiconv.so
             fi
               
-            run() {
-                printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
-                $@
-            }
-            
             run pwd
             run ls
             run sudo pkg_add git automake-1.16.2

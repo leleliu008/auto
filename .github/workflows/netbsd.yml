@@ -11,10 +11,8 @@ jobs:
           mem: 2048
           box: generic/netbsd9
           run: |
-            run() {
-              printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
-              $@
-            }
+            run pwd
+            run ls
 
             run sudo pkgin -y install mozilla-rootcerts git automake pkg-config
 

@@ -1,7 +1,7 @@
 name: NetBSD
 on: [push]
 jobs:
-  build-on-openbsd:
+  build-on-netbsd:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2

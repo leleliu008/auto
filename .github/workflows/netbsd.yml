@@ -25,5 +25,6 @@ jobs:
             run ./autogen.sh
             run ./configure --prefix=/usr
             run make
+            run sudo make install
             run file /usr/bin/ctags
             run ctags --version

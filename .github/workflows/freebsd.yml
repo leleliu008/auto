@@ -1,4 +1,4 @@
-name: run units target on FreeBSD
+name: FreeBSD
 
 on:
   push:

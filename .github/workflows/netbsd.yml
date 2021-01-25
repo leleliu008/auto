@@ -1,4 +1,4 @@
-name: Build
+name: NetBSD
 on: [push]
 jobs:
   build-on-openbsd:

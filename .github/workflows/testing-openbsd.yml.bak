@@ -1,0 +1,18 @@
+name: run units target on OpenBSD
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  testing:
+    runs-on: macos-10.15
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - run: vagrant init generic/openbsd6
+    - run: cp OpenBSD/Vagrantfile .
+    - run: vagrant up --provision

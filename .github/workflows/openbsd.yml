@@ -35,3 +35,4 @@ jobs:
             run sudo make install
             run file /usr/bin/ctags
             run ctags --version
+            run make check

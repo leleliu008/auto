@@ -1,18 +1,31 @@
-name: run units target on NetBSD
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
+name: Build
+on: [push]
 jobs:
-  testing:
-    runs-on: macos-10.15
-    
+  build-on-openbsd:
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-    
-    - run: vagrant init generic/netbsd9
-    - run: cp NetBSD/Vagrantfile .
-    - run: vagrant up --provision
+      - uses: actions/checkout@v2
+
+      - uses: leleliu008/github-actions-vagrant@v1
+        with:
+          mem: 2048
+          box: generic/openbsd6
+          run: |
+            run() {
+              printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
+              $@
+            }
+
+            run sudo pkgin -y install mozilla-rootcerts git automake pkg-config
+
+            run sudo mozilla-rootcerts install
+
+            run cc --version
+
+            run git clone https://github.com/universal-ctags/ctags
+            run cd ctags
+            run ./autogen.sh
+            run ./configure --prefix=/usr
+            run make
+            run file /usr/bin/ctags
+            run ctags --version

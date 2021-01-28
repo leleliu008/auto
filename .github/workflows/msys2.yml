@@ -13,7 +13,7 @@ jobs:
 
     - uses: msys2/setup-msys2@v2
       with:
-        msystem: MINGW64
+        msystem: MSYS
         update: true
         install: git gcc make automake1.16 autoconf pkg-config dos2unix libiconv-devel
 

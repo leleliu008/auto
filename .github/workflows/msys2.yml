@@ -15,7 +15,7 @@ jobs:
       with:
         msystem: MINGW64
         update: true
-        install: git gcc make automake autoconf pkg-config unix2dos
+        install: git gcc make automake autoconf pkg-config dos2unix
 
     - run: pwd
     - run: ls

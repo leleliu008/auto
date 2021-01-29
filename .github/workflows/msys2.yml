@@ -23,13 +23,13 @@ jobs:
         install: git make automake1.16 autoconf pkg-config dos2unix
 
     - if:  matrix.msystem == 'MSYS'
-      run: gcc libiconv-devel
+      run: pacman -S --noconfirm gcc libiconv-devel
 
     - if:  matrix.msystem == 'MINGW32'
-      run: mingw-w64-i686-toolchain
+      run: pacman -S --noconfirm mingw-w64-i686-toolchain
 
     - if:  matrix.msystem == 'MINGW64'
-      run: mingw-w64-x86_64-toolchain
+      run: pacman -S --noconfirm mingw-w64-x86_64-toolchain
 
     - run: ln -s /usr/bin/automake-1.16 /usr/bin/automake
     - run: ln -s /usr/bin/aclocal-1.16  /usr/bin/aclocal

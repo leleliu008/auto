@@ -42,6 +42,8 @@ jobs:
             $@
         }
         
+        echo $LANG
+
         run cd ctags
         
         run ./autogen.sh

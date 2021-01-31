@@ -20,7 +20,7 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         update: true
-        install: git make automake1.16 autoconf pkg-config dos2unix
+        install: git make automake autoconf pkg-config dos2unix
 
     - if:  matrix.msystem == 'MSYS'
       run: pacman -S --noconfirm gcc libiconv-devel
@@ -31,9 +31,6 @@ jobs:
     - if:  matrix.msystem == 'MINGW64'
       run: pacman -S --noconfirm mingw-w64-x86_64-toolchain
 
-    - run: ln -s /usr/bin/automake-1.16 /usr/bin/automake
-    - run: ln -s /usr/bin/aclocal-1.16  /usr/bin/aclocal
-
     - run: git clone https://github.com/universal-ctags/ctags
     
     - run: |
@@ -42,8 +39,6 @@ jobs:
             $@
         }
         
-        echo $LANG
-
         run cd ctags
         
         run ./autogen.sh

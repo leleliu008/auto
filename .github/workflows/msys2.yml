@@ -20,16 +20,16 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         update: true
-        install: git make automake autoconf pkg-config dos2unix
+        install: git make automake autoconf pkg-config python dos2unix
 
     - if:  matrix.msystem == 'MSYS'
-      run: pacman -S --noconfirm gcc libiconv-devel python-py
+      run: pacman -S --noconfirm gcc libiconv-devel
 
     - if:  matrix.msystem == 'MINGW32'
-      run: pacman -S --noconfirm mingw-w64-i686-toolchain mingw-w64-i686-python-py
+      run: pacman -S --noconfirm mingw-w64-i686-toolchain
 
     - if:  matrix.msystem == 'MINGW64'
-      run: pacman -S --noconfirm mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-py
+      run: pacman -S --noconfirm mingw-w64-x86_64-toolchain
 
     - run: |
         run() {
@@ -45,5 +45,5 @@ jobs:
         run make V=1
         run file ./ctags.exe
         run ./ctags.exe --version
-        run make check V=1 APPVEYOR=1 PYTHON=py
+        run make check V=1
         run make roundtrip

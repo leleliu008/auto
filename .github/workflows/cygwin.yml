@@ -9,10 +9,6 @@ jobs:
 
     - run: choco install -y --source cygwin gcc-g++ make automake autoconf pkg-config dos2unix libiconv-devel libjansson-devel libxml2-devel libyaml-devel
 
-      #- run: Invoke-WebRequest -OutFile setup-x86_64.exe "http://cygwin.com/setup-x86_64.exe"
-
-      #- run: .\setup-x86_64.exe -qnNdO -P git,gcc-g++,make,automake,autoconf,pkg-config,dos2unix,libiconv-devel,libjansson-devel,libxml2-devel,libyaml-devel
-
     - run: |
         run() {
             printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
@@ -31,4 +27,4 @@ jobs:
         run ./ctags.exe --version
         run make check V=1 APPVEYOR=1
         run make roundtrip
-      shell: C:\tools\cygwin\bin\bash.exe -lc {0}
+      shell: C:\tools\cygwin\bin\bash.exe -lie {0}

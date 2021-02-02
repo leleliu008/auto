@@ -36,7 +36,6 @@ jobs:
             printf "\033[0;35m==>\033[0m \033[0;32m%b\n\033[0m" "$*"
             $@
         }
-        run cd /c/Windows/System32 
         run git clone https://github.com/universal-ctags/ctags
         run cd ctags
         
@@ -45,5 +44,5 @@ jobs:
         run make V=1
         run file ./ctags.exe
         run ./ctags.exe --version
-        run make check V=1
+        run make check V=1 APPVEYOR=1
         run make roundtrip

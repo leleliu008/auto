@@ -5,10 +5,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - run: ls C:\
-    - run: ls C:\tools
     - uses: actions/checkout@v2
-    - run: pwd
 
     - run: choco install -y --source cygwin gcc-g++ make automake autoconf pkg-config dos2unix libiconv-devel libjansson-devel libxml2-devel libyaml-devel
 
@@ -23,6 +20,7 @@ jobs:
         }
         run pwd
         run env
+        run ls /bin
         run git clone https://github.com/universal-ctags/ctags
         run cd ctags
         
@@ -33,4 +31,4 @@ jobs:
         run ./ctags.exe --version
         run make check V=1 APPVEYOR=1
         run make roundtrip
-      shell: bash
+      shell: C:\tools\cygwin\bin\bash.exe -lc {0}

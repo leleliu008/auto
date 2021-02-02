@@ -5,7 +5,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - run: pwd
+    - run: ls C:\
     - uses: actions/checkout@v2
     - run: pwd
 

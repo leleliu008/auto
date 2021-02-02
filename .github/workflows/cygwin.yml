@@ -6,6 +6,7 @@ jobs:
 
     steps:
     - run: ls C:\
+    - run: ls C:\tools
     - uses: actions/checkout@v2
     - run: pwd
 

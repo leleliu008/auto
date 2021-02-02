@@ -10,9 +10,11 @@ jobs:
     - uses: actions/checkout@v2
     - run: pwd
 
-    - run: Invoke-WebRequest -OutFile setup-x86_64.exe "http://cygwin.com/setup-x86_64.exe"
+    - run: choco install -y git --source cygwin
 
-    - run: .\setup-x86_64.exe -qnNdO -P git,gcc-g++,make,automake,autoconf,pkg-config,dos2unix,libiconv-devel,libjansson-devel,libxml2-devel,libyaml-devel
+      #- run: Invoke-WebRequest -OutFile setup-x86_64.exe "http://cygwin.com/setup-x86_64.exe"
+
+      #- run: .\setup-x86_64.exe -qnNdO -P git,gcc-g++,make,automake,autoconf,pkg-config,dos2unix,libiconv-devel,libjansson-devel,libxml2-devel,libyaml-devel
 
     - run: |
         run() {

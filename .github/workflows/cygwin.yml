@@ -6,7 +6,7 @@ jobs:
 
     defaults:
       run:
-        shell: C:\tools\cygwin\bin\bash.exe -l -i -e {0}
+        shell: C:\tools\cygwin\bin\bash.exe -l -i -e -c
 
     steps:
       #- uses: actions/checkout@v2

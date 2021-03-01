@@ -9,14 +9,17 @@ jobs:
         shell: C:\tools\cygwin\bin\bash.exe -l -i {0}
 
     steps:
-      #- uses: actions/checkout@v2
+    - uses: actions/checkout@v2
 
     - run: choco install -y --source cygwin gcc-g++ make automake autoconf pkg-config dos2unix libiconv-devel libjansson-devel libxml2-devel libyaml-devel
       shell: pwsh
 
     - run: git config --global core.autocrlf input
+    
     - run: git clone https://github.com/universal-ctags/ctags
+
     - run: mv ctags/* .
+
     - run: ./autogen.sh
     - run: ./configure --prefix=/usr
     - run: make V=1

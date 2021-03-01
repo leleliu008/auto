@@ -25,5 +25,5 @@ jobs:
       - run: mv ctags/* .
       - run: ./autogen.sh
       - run: ./configure --host=$TARGET --disable-iconv --disable-xml --disable-json --disable-yaml CC=$CC CFLAGS=$CFLAGS CPPFLAGS=$CPPFLAGS LDFLAGS=$LDFLAGS
-      - run: V=1 WINDRES=$WINDRES AR=$AR
-      - run: file ctags | grep PE32
+      - run: make V=1 WINDRES=$WINDRES AR=$AR
+      - run: file ctags.exe | grep PE32

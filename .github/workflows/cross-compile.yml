@@ -8,13 +8,11 @@ jobs:
         build-machine-os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, macos-10.15]
         target-arch: [i686,x86_64]
     env:
-      TARGET=${{ matrix.target-arch }}-w64-mingw32
-      CC=${{ matrix.target-arch }}-w64-mingw32-gcc
-      AR=${{ matrix.target-arch }}-w64-mingw32-ar
-      WINDRES=${{ matrix.target-arch }}-w64-mingw32-windres
-      CFLAGS=-v
-      CPPFLAGS=
-      LDFLAGS=
+      TARGET:  ${{ matrix.target-arch }}-w64-mingw32
+      CC:      ${{ matrix.target-arch }}-w64-mingw32-gcc
+      AR:      ${{ matrix.target-arch }}-w64-mingw32-ar
+      WINDRES: ${{ matrix.target-arch }}-w64-mingw32-windres
+      CFLAGS:  -v
 
     runs-on: ${{ matrix.build-machine-os }}
 

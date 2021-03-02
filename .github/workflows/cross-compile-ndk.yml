@@ -44,6 +44,6 @@ jobs:
             eval "$*"
           }
            
-          run ./configure --host=$TARGET --disable-iconv --disable-xml --disable-json --disable-yaml CC="$CC" CFLAGS="\"$CFLAGS\"" CPPFLAGS="\"$CPPFLAGS\"" LDFLAGS="\"$LDFLAGS\"" &&
-          run make V=1 AR=$AR RANLIB=$RANLIB
+          run ./configure --host=$TARGET --disable-iconv --disable-xml --disable-json --disable-yaml CC="$CC" CFLAGS="\"$CFLAGS\"" CPPFLAGS="\"$CPPFLAGS\"" LDFLAGS="\"$LDFLAGS\"" AR=$AR RANLIB=$RANLIB
+      - run: make V=1
       - run: file ctags | grep 'ELF 32-bit LSB shared object, ARM, EABI5'

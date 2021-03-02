@@ -15,7 +15,7 @@ jobs:
       - run: brew install gcc make automake autoconf file
 
       - run: git clone https://github.com/universal-ctags/ctags
-      - run: mv ctags/* .
+      - run: mv ctags/* . && rm -rf ctags
       - run: ./autogen.sh
       - run: |
           BUILD_MACHINE_OS_TYPE=$(uname | tr A-Z a-z)

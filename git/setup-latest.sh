@@ -66,13 +66,13 @@ installDependencies() {
     
     command -v dnf > /dev/null && {
         $sudo dnf -y update
-        $sudo dnf -y install $@ xz curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
+        $sudo dnf -y install $@ xz libcurl-devel expat-devel gettext gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
         return 0
     }
     
     command -v yum > /dev/null && {
         $sudo yum -y update
-        $sudo yum -y install $@ xz curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
+        $sudo yum -y install $@ xz libcurl-devel expat-devel gettext gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
         return 0
     }
 }

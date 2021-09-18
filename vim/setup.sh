@@ -2338,7 +2338,7 @@ EOF
     command -v npm  > /dev/null || {
         command -v nvm > /dev/null || {
 	    step "install nvm"
-		run "curl -o- $(github_user_content_base_url)/nvm-sh/nvm/master/install.sh | $BASH"
+	    run "curl -o- $(github_user_content_base_url)/nvm-sh/nvm/master/install.sh | $BASH"
 	    export NVM_DIR="${HOME}/.nvm"
 	    . ~/.nvm/nvm.sh
 	}
@@ -2364,14 +2364,15 @@ EOF
 
     YCM_INSTALL_DIR="$VIM_PLUGIN_DIR/YouCompleteMe"
     if [ -d "$YCM_INSTALL_DIR" ] ; then
+        run chmod -R +w "$YCM_INSTALL_DIR"
 	    run rm -rf "$YCM_INSTALL_DIR"
     fi
   
     export GO111MODULE=on
-    export GOPROXY=https://goproxy.io
     export GOPATH=$YCM_INSTALL_DIR/go
 
     if [ "$CHINA" = true ] ; then
+        export GOPROXY=https://goproxy.io
         YCM_URL=https://gitee.com/tbang/YouCompleteMe.git
     else
         YCM_URL=https://github.com/ycm-core/YouCompleteMe.git
@@ -2386,7 +2387,7 @@ EOF
         sed_in_place "s@download.eclipse.org@mirrors.ustc.edu.cn/eclipse@g" ./third_party/ycmd/build.py
     fi
 
-    YCM_INSTALL_ARGS="--clangd-completer --ts-completer --go-completer"
+    YCM_INSTALL_ARGS="--clang-completer --ts-completer --go-completer"
 
     command -v java > /dev/null && {
         YCM_INSTALL_ARGS="$YCM_INSTALL_ARGS --java-completer"
@@ -2402,7 +2403,7 @@ EOF
     VIMRC="$HOME/.vimrc"
 
     [ -f "$VIMRC" ] && {
-	    step "backup $VIMRC"
+        step "backup $VIMRC"
         run mv "$VIMRC" "$VIMRC.$(date +%s)"
     }
 

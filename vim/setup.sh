@@ -2368,8 +2368,8 @@ EOF
 	    run rm -rf "$YCM_INSTALL_DIR"
     fi
   
-    export GO111MODULE=on
     export GOPATH=$YCM_INSTALL_DIR/go
+    export GO111MODULE=on
 
     if [ "$CHINA" = true ] ; then
         export GOPROXY=https://goproxy.io

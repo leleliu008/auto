@@ -2347,7 +2347,7 @@ EOF
     }
 
     if [ "$CHINA" = true ] && [ "$(npm config get registry)" = "https://registry.npmjs.org/" ] ; then
-	    step "set npm registry to chinese mirror"
+        step "set npm registry to chinese mirror"
         run npm config set registry "https://registry.npm.taobao.org/"
     fi
 
@@ -2359,13 +2359,13 @@ EOF
 
     VIM_PLUGIN_DIR="$HOME/.vim/bundle"
     if [ ! -d "$VIM_PLUGIN_DIR" ] ; then
-	    run install -d "$VIM_PLUGIN_DIR"
+        run install -d "$VIM_PLUGIN_DIR"
     fi
 
     YCM_INSTALL_DIR="$VIM_PLUGIN_DIR/YouCompleteMe"
     if [ -d "$YCM_INSTALL_DIR" ] ; then
         run chmod -R +w "$YCM_INSTALL_DIR"
-	    run rm -rf "$YCM_INSTALL_DIR"
+        run rm -rf "$YCM_INSTALL_DIR"
     fi
   
     export GOPATH=$YCM_INSTALL_DIR/go

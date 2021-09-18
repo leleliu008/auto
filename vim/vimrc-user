@@ -11,7 +11,7 @@ au BufReadPost *.kts setlocal filetype=kotlin
 
 call plug#begin('~/.vim/bundle')
 
-Plug 'git://gitee.com/YouCompleteMe/YouCompleteMe.git'
+Plug 'git://gitee.com/tbang/YouCompleteMe.git'
 
 "https://github.com/ervandew/supertab
 "Plug 'ervandew/supertab'

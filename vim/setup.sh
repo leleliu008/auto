@@ -304,16 +304,13 @@ die_if_sha256sum_mismatch() {
 
 # $1 map_name
 __map_name_ref() {
-    die_if_map_name_is_not_specified "$1"
-    printf "map_%s\n" "$(printf '%s' "$1" | md5sum)"
+    echo "map$(echo "$1" | md5sum)"
 }
 
 # $1 map_name
 # $2 key
 __map_key_ref() {
-    die_if_map_name_is_not_specified   "$1"
-    die_if_map_key__is_not_specified   "$2"
-    printf "%s_%s\n" "$(__map_name_ref "$1")" "$(printf '%s' "$2" | md5sum)"
+    echo "$(__map_name_ref "$1")_key$(echo "$2" | md5sum)"
 }
 
 # $1 map_name
@@ -331,8 +328,6 @@ map_contains() {
 # $2 key
 # $3 value
 map_set() {
-    die_if_map_name_is_not_specified "$1"
-    die_if_map_key__is_not_specified "$2"
     if ! map_contains "$1" "$2" ; then
         unset __MAP_NAME_REF__
         __MAP_NAME_REF__="$(__map_name_ref "$1")"
@@ -407,12 +402,16 @@ map_size() {
 
 # $1 map_name
 die_if_map_name_is_not_specified() {
-    [ -z "$1" ] && die "please specify a map name."
+    if [ -z "$1" ] ; then
+        die "please specify a map name."
+    fi
 }
 
 # $1 key
 die_if_map_key__is_not_specified() {
-    [ -z "$1" ] && die "please specify a map key."
+    if [ -z "$1" ] ; then
+        die "please specify a map key."
+    fi
 }
 
 # }}}
@@ -797,7 +796,12 @@ EOF
                     mingw32*) echo "windows" ;;
                     mingw64*) echo "windows" ;;
                     cygwin*)  echo 'windows' ;;
-                    *)  uname | tr A-Z a-z
+                    *)
+                        if [ "$(uname -o)" = Android ]; then
+                            echo android
+                        else
+                            uname | tr A-Z a-z
+                        fi
                 esac
                 ;;
 
@@ -807,7 +811,12 @@ EOF
                     mingw32*) echo "mingw32" ;;
                     mingw64*) echo "mingw64" ;;
                     cygwin*)  echo 'cygwin'  ;;
-                    *)  uname | tr A-Z a-z
+                    *)
+                        if [ "$(uname -o)" = Android ]; then
+                            echo android
+                        else
+                            uname | tr A-Z a-z
+                        fi
                 esac
                 ;;
             name)
@@ -821,6 +830,7 @@ EOF
                         __get_os_name_from_etc_os_release ||
                         __get_os_name_from_lsb_release
                         ;;
+                    android) echo android ;;
                     windows)
                         systeminfo | grep 'OS Name:' | cut -d: -f2 | head -n 1 | sed 's/^[[:space:]]*//' ;;
                     *)  uname | tr A-Z a-z
@@ -833,6 +843,7 @@ EOF
                 ;;
             libc)
                 case $(os kind) in
+                    android) echo bionic ;;
                     linux)
                         # https://pubs.opengroup.org/onlinepubs/7908799/xcu/getconf.html
                         if command -v getconf > /dev/null ; then
@@ -865,6 +876,8 @@ EOF
                         __get_os_version_from_etc_os_release ||
                         __get_os_version_from_lsb_release
                         ;;
+                    android)
+                        __get_os_version_from_getprop ;;
                     windows)
                         systeminfo | grep 'OS Version:' | cut -d: -f2 | head -n 1 | sed 's/^[[:space:]]*//' | cut -d ' ' -f1 ;;
                 esac
@@ -2325,7 +2338,7 @@ EOF
     command -v npm  > /dev/null || {
         command -v nvm > /dev/null || {
 	    step "install nvm"
-			run "curl -o- $(github_user_content_base_url)/nvm-sh/nvm/master/install.sh | $BASH"
+		run "curl -o- $(github_user_content_base_url)/nvm-sh/nvm/master/install.sh | $BASH"
 	    export NVM_DIR="${HOME}/.nvm"
 	    . ~/.nvm/nvm.sh
 	}
@@ -2334,7 +2347,7 @@ EOF
     }
 
     if [ "$CHINA" = true ] && [ "$(npm config get registry)" = "https://registry.npmjs.org/" ] ; then
-	step "set npm registry to chinese mirror"
+	    step "set npm registry to chinese mirror"
         run npm config set registry "https://registry.npm.taobao.org/"
     fi
 
@@ -2346,48 +2359,59 @@ EOF
 
     VIM_PLUGIN_DIR="$HOME/.vim/bundle"
     if [ ! -d "$VIM_PLUGIN_DIR" ] ; then
-	run install -d "$VIM_PLUGIN_DIR"
+	    run install -d "$VIM_PLUGIN_DIR"
     fi
 
     YCM_INSTALL_DIR="$VIM_PLUGIN_DIR/YouCompleteMe"
     if [ -d "$YCM_INSTALL_DIR" ] ; then
-	run rm -rf "$YCM_INSTALL_DIR"
+	    run rm -rf "$YCM_INSTALL_DIR"
     fi
   
     export GO111MODULE=on
     export GOPROXY=https://goproxy.io
     export GOPATH=$YCM_INSTALL_DIR/go
 
-    run git clone --recursive https://gitee.com/YouCompleteMe/YouCompleteMe.git "$YCM_INSTALL_DIR"
+    if [ "$CHINA" = true ] ; then
+        YCM_URL=https://gitee.com/tbang/YouCompleteMe.git
+    else
+        YCM_URL=https://github.com/ycm-core/YouCompleteMe.git
+    fi
+
+    run git clone --recursive "$YCM_URL" "$YCM_INSTALL_DIR"
 
     run cd "$YCM_INSTALL_DIR"
-    
-    YCM_INSTALL_ARGS="--clang-completer --ts-completer --go-completer"
-    
+
+    if [ "$CHINA" = true ] ; then
+        sed_in_place 's/github\.com/github.com.cnpmjs.org/g' $(grep 'github.com' -rl .)
+        sed_in_place "s@download.eclipse.org@mirrors.ustc.edu.cn/eclipse@g" ./third_party/ycmd/build.py
+    fi
+
+    YCM_INSTALL_ARGS="--clangd-completer --ts-completer --go-completer"
+
     command -v java > /dev/null && {
         YCM_INSTALL_ARGS="$YCM_INSTALL_ARGS --java-completer"
-        sed_in_place "s@download.eclipse.org@mirrors.ustc.edu.cn/eclipse@g" ./third_party/ycmd/build.py
     }
 
     command -v ninja > /dev/null && {
 	YCM_INSTALL_ARGS="$YCM_INSTALL_ARGS --ninja"
     }
-    
+
     step "compile YouCompleteMe"
     run $PYTHON install.py $YCM_INSTALL_ARGS
 
     VIMRC="$HOME/.vimrc"
 
     [ -f "$VIMRC" ] && {
-	step "backup $VIMRC"
+	    step "backup $VIMRC"
         run mv "$VIMRC" "$VIMRC.$(date +%s)"
     }
 
     step "create new $VIMRC"
     run cp "$CURRENT_SCRIPT_DIR/vimrc-user" "$VIMRC"
 
-    sed_in_place "s@/usr/local/bin/python3@$PYTHON@g" "$VIMRC"
+    sed_in_place "s@/usr/local/bin/python@$PYTHON@g" "$VIMRC"
 
+    echo
     success "All Done. open vim and run :PlugInstall command to install vim plugins!"
 }
 

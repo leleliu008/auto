@@ -2313,9 +2313,11 @@ EOF
         echo "$item" | tr '|' ' '
     done
 
-    if [ "$NATIVE_OS_KIND" != 'windows' ] ; then
-        [ "$(whoami)" = root ] || sudo=sudo
-    fi
+    case $NATIVE_OS_KIND in
+        windows) ;;
+	android) ;;
+	*) [ "$(whoami)" = root ] || sudo=sudo
+    esac
 
     regist_dependency required command git
     regist_dependency required command curl
@@ -2370,10 +2372,13 @@ EOF
   
     export GOPATH=$YCM_INSTALL_DIR/go
     export GO111MODULE=on
-
     if [ "$CHINA" = true ] ; then
         export GOPROXY=https://goproxy.io
-        YCM_URL=https://gitee.com/tbang/YouCompleteMe.git
+    fi
+
+    if [ "$CHINA" = true ] ; then
+        #YCM_URL=https://gitee.com/tbang/YouCompleteMe.git
+        YCM_URL=https://gitee.com/YouCompleteMe/YouCompleteMe.git
     else
         YCM_URL=https://github.com/ycm-core/YouCompleteMe.git
     fi
@@ -2383,11 +2388,17 @@ EOF
     run cd "$YCM_INSTALL_DIR"
 
     if [ "$CHINA" = true ] ; then
+        if [ -d third_party/python-future/docs/notebooks/ ] ; then
+            run rm -rf third_party/python-future/docs/notebooks/
+        fi
+        if [ -d third_party/ycmd/third_party/python-future/docs/notebooks/ ] ; then
+            run rm -rf third_party/ycmd/third_party/python-future/docs/notebooks/
+        fi
         sed_in_place 's/github\.com/github.com.cnpmjs.org/g' $(grep 'github.com' -rl .)
         sed_in_place "s@download.eclipse.org@mirrors.ustc.edu.cn/eclipse@g" ./third_party/ycmd/build.py
     fi
 
-    YCM_INSTALL_ARGS="--clang-completer --ts-completer --go-completer"
+    YCM_INSTALL_ARGS="--clang-completer --system-libclang --ts-completer --go-completer"
 
     command -v java > /dev/null && {
         YCM_INSTALL_ARGS="$YCM_INSTALL_ARGS --java-completer"
@@ -2408,7 +2419,11 @@ EOF
     }
 
     step "create new $VIMRC"
-    run cp "$CURRENT_SCRIPT_DIR/vimrc-user" "$VIMRC"
+    if [ -f "$CURRENT_SCRIPT_DIR/vimrc" ] ; then
+        run cp "$CURRENT_SCRIPT_DIR/vimrc" "$VIMRC"
+    else
+        fetch "$(github_user_content_base_url)/leleliu008/oh-my-vim/master/vimrc" --output-path=$VIMRC
+    fi
 
     sed_in_place "s@/usr/local/bin/python@$PYTHON@g" "$VIMRC"
 

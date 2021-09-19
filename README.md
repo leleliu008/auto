@@ -14,10 +14,18 @@
 |oh-my-zsh|[setup.sh](https://github.com/leleliu008/auto/blob/master/oh-my-zsh/setup.sh)|[oh-my-zsh](http://blog.fpliu.com/it/software/Oh-My-Zsh)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
 |oh-my-fish|[setup.sh](https://github.com/leleliu008/auto/blob/master/oh-my-fish/setup.sh)|[oh-my-fish](http://blog.fpliu.com/it/software/Oh-My-Fish)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
 |vcpkg|[setup.sh](https://github.com/leleliu008/auto/blob/master/vcpkg/setup.sh)|[vcpkg](http://blog.fpliu.com/it/software/vcpkg)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
-|vim|[setup.sh](https://github.com/leleliu008/auto/blob/master/vim/setup.sh)|[Vim](http://blog.fpliu.com/it/software/Vim)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本<br>包括[YouCompleteMe](http://blog.fpliu.com/it/software/Vim/plugin/YouCompleteMe)的安装和配置好的`vimrc`|
 |OpenArkCompiler|[Dockerfile](https://github.com/leleliu008/auto/blob/master/OpenArkCompiler/Dockerfile)|[华为方舟编译器](http://blog.fpliu.com/it/software/华为方舟编译器)的[Docker](http://blog.fpliu.com/it/software/Docker)镜像构建脚本|
 |redex|[Dockerfile](https://github.com/leleliu008/auto/blob/master/redex/Dockerfile)|[ReDex](http://blog.fpliu.com/it/software/ReDex)的[Docker](http://blog.fpliu.com/it/software/Docker)镜像构建脚本|
 |android/sdk|[Dockerfile](https://github.com/leleliu008/auto/blob/master/android/sdk/Dockerfile)|[AndroidSDK](http://blog.fpliu.com/it/software/AndroidSDK)的[Docker](http://blog.fpliu.com/it/software/Docker)镜像构建脚本|
 |android/sdk|[setup-on-gnu-linux.sh](https://github.com/leleliu008/auto/blob/master/android/sdk/setup-on-gnu-linux.sh)|在[GNU/Linux](http://blog.fpliu.com/it/os/Unix-like/GNU-Linux)上搭建[AndroidSDK](http://blog.fpliu.com/it/software/AndroidSDK)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)脚本|
 |android/sdk|[setup-on-macos.sh](https://github.com/leleliu008/auto/blob/master/android/sdk/setup-on-macos.sh)|在[macOS](http://blog.fpliu.com/it/os/macOS)上搭建[AndroidSDK](http://blog.fpliu.com/it/software/AndroidSDK)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)脚本|
 |ios|[tool.sh](https://github.com/leleliu008/auto/blob/master/ios/tool.sh)|[iOS](http://blog.fpliu.com/it/os/iOS)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)自动构建脚本|
+
+## other resources
+ - [oh-my-vim](https://github.com/leleliu008/oh-my-vim)
+ - [autogen.sh](https://github.com/leleliu008/autogen.sh)
+ - [cmakew](https://github.com/leleliu008/cmakew)
+ - [zpkg](https://github.com/leleliu008/zpkg)
+ - [ipkg](https://github.com/leleliu008/ipkg)
+ - [ndk-pkg](https://github.com/leleliu008/ndk-pkg)
+ - [androidx](https://github.com/leleliu008/androidx)

@@ -10,11 +10,3 @@
 |OpenArkCompiler|[Dockerfile](https://github.com/leleliu008/auto/blob/master/OpenArkCompiler/Dockerfile)|[华为方舟编译器](http://blog.fpliu.com/it/software/华为方舟编译器)的[Docker](http://blog.fpliu.com/it/software/Docker)镜像构建脚本|
 |ios|[tool.sh](https://github.com/leleliu008/auto/blob/master/ios/tool.sh)|[iOS](http://blog.fpliu.com/it/os/iOS)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)自动构建脚本|
 
-## other resources
- - [oh-my-vim](https://github.com/leleliu008/oh-my-vim)
- - [autogen.sh](https://github.com/leleliu008/autogen.sh)
- - [cmakew](https://github.com/leleliu008/cmakew)
- - [ppkg](https://github.com/leleliu008/ppkg)
- - [xcpkg](https://github.com/leleliu008/xcpkg)
- - [ndk-pkg](https://github.com/leleliu008/ndk-pkg)
- - [androidx](https://github.com/leleliu008/androidx)

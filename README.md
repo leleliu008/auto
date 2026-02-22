@@ -7,6 +7,5 @@
 |zentao|[setup-on-gnu-linux.sh](https://github.com/leleliu008/auto/blob/master/zentao/setup-on-gnu-linux.sh)|在[GNU/Linux](http://blog.fpliu.com/it/os/Unix-like/GNU-Linux)上搭建[禅道](http://blog.fpliu.com/it/software/zentao)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
 |xwiki|[setup-on-gnu-linux.sh](https://github.com/leleliu008/auto/blob/master/xwiki/setup-on-gnu-linux.sh)|在[GNU/Linux](http://blog.fpliu.com/it/os/Unix-like/GNU-Linux)上搭建[XWiki](http://blog.fpliu.com/it/software/XWiki)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
 |oh-my-zsh|[setup.sh](https://github.com/leleliu008/auto/blob/master/oh-my-zsh/setup.sh)|[oh-my-zsh](http://blog.fpliu.com/it/software/Oh-My-Zsh)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)安装脚本|
-|OpenArkCompiler|[Dockerfile](https://github.com/leleliu008/auto/blob/master/OpenArkCompiler/Dockerfile)|[华为方舟编译器](http://blog.fpliu.com/it/software/华为方舟编译器)的[Docker](http://blog.fpliu.com/it/software/Docker)镜像构建脚本|
 |ios|[tool.sh](https://github.com/leleliu008/auto/blob/master/ios/tool.sh)|[iOS](http://blog.fpliu.com/it/os/iOS)的[POSIX Shell](http://blog.fpliu.com/it/software/sh)自动构建脚本|
 

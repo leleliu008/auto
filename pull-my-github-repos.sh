@@ -4,6 +4,8 @@ set -ex
 
 I=0
 
+cd ~/github.com
+
 while true
 do
     I=$(($I + 1))

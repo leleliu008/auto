@@ -78,7 +78,7 @@ EOF
                 M*)
                     VOLD="$(git diff -U0 "$FILENAME" | grep '^-version: ' | cut -c11-)"
 
-                    if [ -z "$VOID" ] ; then
+                    if [ -z "$VOLD" ] ; then
                         XXXX=
                     else
                         XXXX=" $VOLD -> $VERSION"

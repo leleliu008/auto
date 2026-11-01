@@ -23,7 +23,7 @@ do
                     OSARCH=arm64
                 fi
 
-                DIRS="$(find -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-macos-*-$OSARCH" -printf '%P\n')"
+                DIRS="$(find ~/github.com -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-macos-*-$OSARCH" -printf '%P\n')"
                 ;;
             linux)
                 if [ "$OSARCH" = powerpc64le ] ; then

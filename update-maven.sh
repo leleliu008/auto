@@ -2,6 +2,8 @@
 
 set -ex
 
+cd ~/github.com
+
 CWD="$PWD"
 
 curl -LO https://formulae.brew.sh/api/formula/maven.json

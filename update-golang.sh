@@ -22,14 +22,14 @@ do
 
         case $OSNAME in
             *bsd)
-                DIRS="$(find -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-$OSNAME-*-$OSARCH" -printf '%P\n')"
+                DIRS="$(find ~/github.com -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-$OSNAME-*-$OSARCH" -printf '%P\n')"
                 ;;
             darwin)
                 if [ "$OSARCH" = amd64 ] ; then
                     OSARCH=x86_64
                 fi
 
-                DIRS="$(find -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-macos-*-$OSARCH" -printf '%P\n')"
+                DIRS="$(find ~/github.com -maxdepth 1 -mindepth 1 -type d -name "uppm-package-repository-macos-*-$OSARCH" -printf '%P\n')"
                 ;;
             linux)
                 case $OSARCH in

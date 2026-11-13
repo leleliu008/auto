@@ -60,13 +60,22 @@ echo "PKGS_COUNT=$PKGS_COUNT"
 cd -
 
 cat > .github/workflows/publish.yml <<EOF
-name: publish
+name: publish a new release
+
+permissions:
+  contents: write
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+
+  schedule:
+    # every monday UTC 00:00
+    - cron: '0 0 * * 1'
 
 jobs:
 EOF
+
+##############################################################################
 
 unset ITEMS
 unset NEEDS

@@ -1,0 +1,225 @@
+#!/bin/sh
+
+set -e
+
+##############################################################################
+
+case $1 in
+    '')
+        printf '%s\n' "Usage: $0 <API-LEVEL>, <API-LEVEL> is unspecified."
+        exit 1
+        ;;
+    [23][0-9])
+        API_LEVEL="$1"
+        ;;
+    *)
+        printf '%s\n' "Usage: $0 <API-LEVEL>, <API-LEVEL> should be an integer."
+        exit 1
+esac
+
+##############################################################################
+
+git clone --depth=1 https://github.com/leleliu008/ndk-pkg-formula-repository-official-core
+
+cd ndk-pkg-formula-repository-official-core/formula
+
+ls *.yml | sed 's|\.yml$||' | sort | uniq > a
+
+sed -n '/^dep-pkg:/p' *.yml | cut -c10- | tr ' ' '\n' | sort | uniq > b
+
+##############################################################################
+
+unset XXXX
+
+if [ "$API_LEVEL" -lt 37 ] ; then
+    XXXX=libfolly
+fi
+
+##############################################################################
+
+SED="sed -e s|^-||"
+
+for item in libskia_shared libskia_static libv8_shared libv8_static libpdfium cpprestsdk d8 webrtc fortune krb5 far2l fish yazi busybox util-linux tensorflow-lite $XXXX
+do
+    SED="$SED -e /^$item$/d"
+done
+
+printf "SED=%s\n" "$SED"
+
+PKGS="$(diff -U 0 a b | sed '/^--/d' | grep '^-' | $SED)"
+
+PKGS_COUNT="$(printf "$PKGS" | wc -l)"
+PKGS_COUNT="$(($PKGS_COUNT + 1))"
+
+echo "PKGS_COUNT=$PKGS_COUNT"
+
+##############################################################################
+
+cd -
+
+cat > .github/workflows/publish.yml <<EOF
+name: publish
+
+on:
+  workflow_dispatch
+
+jobs:
+EOF
+
+unset ITEMS
+unset NEEDS
+
+I=0
+J=0
+K=0
+
+for item in $PKGS
+do
+    if [ -z "$ITEMS" ] ; then
+        ITEMS="$item"
+    else
+        ITEMS="$ITEMS, $item"
+    fi
+
+    K=$(($K + 1))
+
+    J=$(($J + 1))
+
+    echo "J=$J"
+    echo "K=$K"
+
+    if [ "$J" = 256 ] || [ "$K" = "$PKGS_COUNT" ] ; then
+        J=0
+        I=$(($I + 1))
+
+        cat >> .github/workflows/publish.yml <<EOF
+
+  build$I:
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [$ITEMS]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: curl -LO https://raw.githubusercontent.com/leleliu008/ndk-pkg/master/ndk-pkg
+      - run: chmod a+x ndk-pkg
+
+      - run: ./ndk-pkg about
+      - run: ./ndk-pkg setup
+      - run: ./ndk-pkg update
+
+      - run: |
+          sed -i 's/libcares//'    ~/.ndk-pkg/repos.d/official-core/formula/curl.yml
+          sed -i '/enable-ares/d'  ~/.ndk-pkg/repos.d/official-core/formula/curl.yml
+          sed -i 's/libcares//'    ~/.ndk-pkg/repos.d/official-core/formula/libcurl.yml
+          sed -i '/enable-ares/d'  ~/.ndk-pkg/repos.d/official-core/formula/libcurl.yml
+
+      - run: ./ndk-pkg install android-$API_LEVEL-arm64-v8a/\${{ matrix.pkg }}
+
+      - name: bundle
+        run: |
+          set -ex
+
+          for item in \$(./ndk-pkg ls-installed)
+          do
+              ./ndk-pkg bundle "\$item" .tar.xz
+
+              PACKAGE_SUMMARY="\$(./ndk-pkg show "\$item" summary)"
+              PACKAGE_WEB_URL="\$(./ndk-pkg show "\$item" web-url)"
+              PACKAGE_VERSION="\$(./ndk-pkg show "\$item" version)"
+
+              PACKAGE_NAME="\${item#*/}"
+
+              PACKAGE_FILENAME="\$(ls \${PACKAGE_NAME%@*}-\$PACKAGE_VERSION-*.tar.xz)"
+
+              PACKAGE_BIN_SHA="\$(sha256sum "\$PACKAGE_FILENAME" | cut -d ' ' -f1)"
+
+              PACKAGE_BIN_URL="https://github.com/\${{ github.repository }}/releases/download/@TAGNAME@/\$PACKAGE_FILENAME"
+
+              cat > "\$PACKAGE_NAME.yml" <<EOF
+          summary: \$PACKAGE_SUMMARY
+          webpage: \$PACKAGE_WEB_URL
+          version: \$PACKAGE_VERSION
+          bin-url: \$PACKAGE_BIN_URL
+          bin-sha: \$PACKAGE_BIN_SHA
+          EOF
+          done
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: \${{ matrix.pkg }}
+          path: |
+            ./*.tar.xz
+            ./*.yml
+EOF
+
+        unset ITEMS
+
+        if [ -z "$NEEDS" ] ; then
+            NEEDS="build$I"
+        else
+            NEEDS="$NEEDS, build$I"
+        fi
+    fi
+done
+
+##############################################################################
+
+cat >> .github/workflows/publish.yml <<EOF
+
+  publish:
+    needs: [$NEEDS]
+
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: \${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: '*'
+          path: .
+          merge-multiple: true
+
+      - run: ls
+
+      - id: tagname
+        run: |
+          TAGNAME="\$(date +%Y.%m.%d)"
+          printf 'TAGNAME=%s\n' "\$TAGNAME" >> "\$GITHUB_OUTPUT"
+
+      - run: sed -i 's|@TAGNAME@|\${{ steps.tagname.outputs.TAGNAME }}|' *.yml
+
+      - run: mv *.yml formula/
+
+      - run: |
+          DIRNAME="uppm-formula-repository-android-$API_LEVEL-aarch64-\${{ steps.tagname.outputs.TAGNAME }}"
+
+          install -d "\$DIRNAME"
+
+          cp -r formula "\$DIRNAME/"
+
+          tar cvJf "\$DIRNAME.tar.xz" "\$DIRNAME"
+
+      - run: |
+          gh release create \${{ steps.tagname.outputs.TAGNAME }} --title \${{ steps.tagname.outputs.TAGNAME }} --notes 'These packages are created by [ndk-pkg](https://github.com/leleliu008/ndk-pkg)'
+
+          for f in *.tar.xz
+          do
+            sleep 1s
+            gh release upload \${{ steps.tagname.outputs.TAGNAME }} "\$f"
+          done
+
+      - run: git config --global user.name  leleliu008
+      - run: git config --global user.email leleliu008@gmail.com
+
+      - run: git pull
+      - run: git add formula
+      - run: git commit -m 'release new version \${{ steps.tagname.outputs.TAGNAME }}'
+      - run: git push origin master
+EOF

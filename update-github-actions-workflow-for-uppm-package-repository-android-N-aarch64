@@ -1,8 +1,12 @@
 #!/bin/sh
 
-set -e
+########################################################################
 
-##############################################################################
+# put this file in the root of ndk-pkg-formula-repository-official-core/
+
+########################################################################
+
+set -e
 
 case $1 in
     '')
@@ -19,9 +23,7 @@ esac
 
 ##############################################################################
 
-git clone --depth=1 https://github.com/leleliu008/ndk-pkg-formula-repository-official-core
-
-cd ndk-pkg-formula-repository-official-core/formula
+cd formula/
 
 ls *.yml | sed 's|\.yml$||' | sort | uniq > a
 
@@ -220,6 +222,20 @@ cat >> .github/workflows/publish.yml <<EOF
 
       - run: git pull
       - run: git add formula
-      - run: git commit -m 'release new version \${{ steps.tagname.outputs.TAGNAME }}'
+      - run: git commit -m 'release version \${{ steps.tagname.outputs.TAGNAME }}'
       - run: git push origin master
 EOF
+
+##############################################################################
+
+S="$(git status -s -- .github/workflows/publish.yml)"
+
+if [ -n "$S" ] ; then
+    git config --global user.name  leleliu008
+    git config --global user.email leleliu008@gmail.com
+
+    git pull
+    git add .github/workflows/publish.yml
+    git commit -m 'update github actions workflows'
+    git push origin master
+fi
